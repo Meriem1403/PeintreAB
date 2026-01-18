@@ -48,11 +48,12 @@
   gap: 0;
   justify-content: center;
   margin-bottom: 4rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   border-bottom: 1px solid #e5e5e5;
-  max-width: 600px;
+  max-width: 100%;
   margin-left: auto;
   margin-right: auto;
+  overflow-x: auto;
 }
 
 .tab-button {
@@ -69,6 +70,11 @@
   letter-spacing: 0.05em;
   position: relative;
   bottom: -1px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  white-space: nowrap;
 }
 
 .tab-button:hover {
@@ -160,5 +166,160 @@
 
   .admin-actions {
     justify-content: center;
+  }
+}
+
+/* Notifications / Messages */
+.unread-badge {
+  background: #e74c3c;
+  color: #ffffff;
+  border-radius: 12px;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-left: 0;
+}
+
+.admin-loading,
+.admin-empty {
+  text-align: center;
+  padding: 6rem 2rem;
+  color: #666;
+}
+
+.admin-loading .loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e5e5e5;
+  border-top-color: #C6AC8F;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+.admin-empty svg {
+  color: #ccc;
+  margin-bottom: 1rem;
+}
+
+.contacts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.contact-item {
+  background: #ffffff;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  padding: 2rem;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.contact-item.unread {
+  border-left: 4px solid #C6AC8F;
+  background: #fafafa;
+}
+
+.contact-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.contact-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+}
+
+.contact-header-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  flex: 1;
+}
+
+.contact-icon {
+  font-size: 1.5rem;
+  color: #999;
+  margin-top: 0.25rem;
+}
+
+.contact-icon.unread-icon {
+  color: #C6AC8F;
+}
+
+.contact-header h3 {
+  font-size: 1.25rem;
+  font-weight: 400;
+  color: #1a1a1a;
+  margin: 0 0 0.25rem 0;
+}
+
+.contact-email {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.mark-read-btn {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid #C6AC8F;
+  color: #C6AC8F;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.mark-read-btn:hover {
+  background: #C6AC8F;
+  color: #ffffff;
+}
+
+.contact-work-ref {
+  background: rgba(198, 172, 143, 0.1);
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  color: #1a1a1a;
+  font-size: 0.9rem;
+}
+
+.contact-work-ref .work-ref-price {
+  color: #C6AC8F;
+  font-weight: 500;
+}
+
+.contact-subject {
+  margin-bottom: 1rem;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.contact-message {
+  background: #f9f9f9;
+  padding: 1.25rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  line-height: 1.8;
+  color: #1a1a1a;
+  white-space: pre-wrap;
+}
+
+.contact-date {
+  color: #999;
+  font-size: 0.85rem;
+  text-align: right;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }

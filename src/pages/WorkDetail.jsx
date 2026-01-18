@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { FaTimes, FaCalendar, FaMapMarkerAlt, FaEuroSign, FaChevronLeft, FaChevronRight, FaPalette, FaPencilAlt } from 'react-icons/fa';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FaTimes, FaCalendar, FaMapMarkerAlt, FaEuroSign, FaChevronLeft, FaChevronRight, FaPalette, FaPencilAlt, FaEnvelope } from 'react-icons/fa';
 import { useWorks } from '../contexts/WorksContext';
+import ContactWorkForm from '../components/ContactWorkForm';
 import './WorkDetail.css';
 
 const WorkDetail = () => {
@@ -11,6 +12,7 @@ const WorkDetail = () => {
   const location = useLocation();
   const { works, loading } = useWorks();
   const [imageLoading, setImageLoading] = useState(true);
+  const [isContactFormOpen, setIsContactFormOpen] = useState(false);
 
   // S'assurer que categoryItems est toujours un tableau
   const categoryItems = useMemo(() => {
@@ -384,9 +386,38 @@ const WorkDetail = () => {
                 </div>
               </div>
             </div>
+
+            {/* Bouton "Cette œuvre m'intéresse" pour les œuvres disponibles */}
+            {!currentWork.is_sold && (category === 'peintures' || category === 'croquis') && (
+              <motion.button
+                className="work-interest-button"
+                onClick={() => setIsContactFormOpen(true)}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <FaEnvelope />
+                Cette œuvre m'intéresse
+              </motion.button>
+            )}
           </motion.div>
         </div>
       </motion.div>
+
+      {/* Modal formulaire de contact */}
+      <AnimatePresence>
+        {isContactFormOpen && (
+          <ContactWorkForm
+            work={currentWork}
+            onClose={() => setIsContactFormOpen(false)}
+            onSuccess={() => {
+              console.log('Message envoyé avec succès');
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };

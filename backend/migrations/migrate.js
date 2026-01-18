@@ -62,6 +62,17 @@ const createTables = async () => {
 
     console.log('✅ Tables créées avec succès');
 
+    // Ajouter work_id à la table contacts si elle n'existe pas
+    try {
+      await pool.query(`
+        ALTER TABLE contacts 
+        ADD COLUMN IF NOT EXISTS work_id INTEGER REFERENCES works(id) ON DELETE SET NULL
+      `);
+      console.log('✅ Colonne work_id ajoutée/vérifiée dans la table contacts');
+    } catch (error) {
+      console.log('ℹ️ Vérification de la colonne work_id dans contacts');
+    }
+
     // Créer un utilisateur admin par défaut si aucun n'existe
     const userCheck = await pool.query('SELECT * FROM users WHERE username = $1', ['admin']);
     

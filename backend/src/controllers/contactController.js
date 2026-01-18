@@ -3,24 +3,33 @@ import { sendContactNotification, sendContactConfirmation } from '../services/em
 
 export const createContact = async (req, res) => {
   try {
-    const { name, email, subject, message } = req.body;
+    const { name, email, subject, message, work_id } = req.body;
 
     if (!name || !email || !message) {
       return res.status(400).json({ error: 'Nom, email et message sont requis' });
     }
 
+    // Récupérer les infos de l'œuvre si work_id est fourni
+    let workData = null;
+    if (work_id) {
+      const workResult = await pool.query('SELECT * FROM works WHERE id = $1', [work_id]);
+      if (workResult.rows.length > 0) {
+        workData = workResult.rows[0];
+      }
+    }
+
     // Enregistrer dans la base de données
     const result = await pool.query(
-      `INSERT INTO contacts (name, email, subject, message)
-       VALUES ($1, $2, $3, $4)
+      `INSERT INTO contacts (name, email, subject, message, work_id)
+       VALUES ($1, $2, $3, $4, $5)
        RETURNING *`,
-      [name, email, subject || null, message]
+      [name, email, subject || null, message, work_id || null]
     );
 
-    // Envoyer les emails (notification + confirmation)
+    // Envoyer les emails (notification + confirmation) avec les infos de l'œuvre
     try {
-      await sendContactNotification(result.rows[0]);
-      await sendContactConfirmation(email, name);
+      await sendContactNotification(result.rows[0], workData);
+      await sendContactConfirmation(email, name, workData);
     } catch (emailError) {
       console.error('Erreur lors de l\'envoi des emails (message tout de même enregistré):', emailError);
     }
@@ -37,7 +46,18 @@ export const createContact = async (req, res) => {
 
 export const getAllContacts = async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM contacts ORDER BY created_at DESC');
+    // Récupérer les contacts avec les infos de l'œuvre associée
+    const result = await pool.query(`
+      SELECT 
+        c.*,
+        w.titre as work_titre,
+        w.type as work_type,
+        w.image as work_image,
+        w.prix as work_prix
+      FROM contacts c
+      LEFT JOIN works w ON c.work_id = w.id
+      ORDER BY c.created_at DESC
+    `);
     res.json(result.rows);
   } catch (error) {
     console.error('Erreur lors de la récupération des contacts:', error);

@@ -34,13 +34,23 @@ const initialWorks = {
 
 const seedDatabase = async () => {
   try {
-    // Vérifier si des données existent déjà
-    const existingWorks = await pool.query('SELECT COUNT(*) FROM works');
-    const count = parseInt(existingWorks.rows[0].count);
+    // Forcer la réinsertion : supprimer toutes les œuvres existantes d'abord
+    const forceReset = process.argv.includes('--force') || process.env.FORCE_SEED === 'true';
+    
+    if (forceReset) {
+      console.log('🔄 Suppression des œuvres existantes...');
+      await pool.query('DELETE FROM works');
+      console.log('✅ Anciennes données supprimées');
+    } else {
+      // Vérifier si des données existent déjà
+      const existingWorks = await pool.query('SELECT COUNT(*) FROM works');
+      const count = parseInt(existingWorks.rows[0].count);
 
-    if (count > 0) {
-      console.log(`✅ Des données existent déjà (${count} œuvres). Pas d'import nécessaire.`);
-      return;
+      if (count > 0) {
+        console.log(`✅ Des données existent déjà (${count} œuvres). Pas d'import nécessaire.`);
+        console.log('💡 Pour forcer la réinsertion, utilisez: npm run seed -- --force');
+        return;
+      }
     }
 
     console.log('🌱 Importation des données initiales...');
