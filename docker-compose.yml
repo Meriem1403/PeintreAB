@@ -1,23 +1,70 @@
-version: '3.8'
-
 services:
-  web:
+  # Base de données PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: peintreab-db
+    environment:
+      POSTGRES_DB: peintreab_db
+      POSTGRES_USER: peintreab_user
+      POSTGRES_PASSWORD: peintreab_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U peintreab_user -d peintreab_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: peintreab-backend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=peintreab_db
+      - DB_USER=peintreab_user
+      - DB_PASSWORD=peintreab_password
+      - JWT_SECRET=your-secret-key-change-in-production
+      - JWT_EXPIRES_IN=7d
+      - PORT=3000
+      - FRONTEND_URL=http://localhost:5173
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/migrations:/app/migrations
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: sh -c "sleep 3 && npm run migrate && npm run dev"
+
+  # Frontend React
+  frontend:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: peintreab-web
+    container_name: peintreab-frontend
     ports:
       - "5173:5173"
     volumes:
-      # Montage des fichiers source pour le hot-reload
       - ./src:/app/src
       - ./public:/app/public
       - ./index.html:/app/index.html
       - ./vite.config.js:/app/vite.config.js
       - ./package.json:/app/package.json
-      # Exclure node_modules du montage (utiliser celui du conteneur)
       - /app/node_modules
     environment:
       - NODE_ENV=development
+      - VITE_API_URL=http://localhost:3000/api
     stdin_open: true
     tty: true
+
+volumes:
+  postgres_data:

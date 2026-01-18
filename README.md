@@ -1,6 +1,6 @@
-# PeintreAB - Galerie d'Artiste Peintre
+# Alexandre Bindl - Galerie d'Artiste Peintre
 
-Site web React pour exposer la galerie d'un artiste peintre.
+Site web React pour exposer la galerie de l'artiste peintre Alexandre Bindl.
 
 ## 🚀 Technologies
 
@@ -84,7 +84,7 @@ npm run lint
 ## 📁 Structure du projet
 
 ```
-PeintreAB/
+AlexandreBindl/
 ├── public/           # Fichiers statiques
 ├── src/
 │   ├── assets/      # Ressources (images, etc.)

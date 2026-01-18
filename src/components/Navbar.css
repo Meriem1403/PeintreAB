@@ -1,0 +1,76 @@
+.navbar {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid rgba(198, 172, 143, 0.2);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  background: rgba(198, 172, 143, 0.98);
+  box-shadow: 0 2px 10px rgba(198, 172, 143, 0.25);
+}
+
+.navbar-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navbar-logo a {
+  font-family: 'Cormorant Garamond', 'Playfair Display', serif;
+  font-size: 2.5rem;
+  font-weight: 500;
+  color: #ffffff;
+  text-decoration: none;
+  letter-spacing: 0.08em;
+  font-style: italic;
+  transition: opacity 0.3s ease;
+}
+
+.navbar-logo a:hover {
+  opacity: 0.7;
+}
+
+.navbar-menu {
+  display: flex;
+  list-style: none;
+  gap: 3rem;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar-menu li {
+  position: relative;
+}
+
+.navbar-menu a {
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 300;
+  font-size: 0.95rem;
+  letter-spacing: 0.03em;
+  padding: 0.5rem 0;
+  position: relative;
+  transition: opacity 0.3s ease;
+  display: block;
+  text-transform: uppercase;
+}
+
+.navbar-menu a:hover {
+  opacity: 0.6;
+}
+
+.navbar-menu a.active {
+  font-weight: 400;
+}
+
+.underline {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1.5px;
+  background: #ffffff;
+  border-radius: 1px;
+}

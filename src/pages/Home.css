@@ -1,0 +1,458 @@
+.home {
+  min-height: 100vh;
+  background: #ffffff;
+  position: relative;
+  overflow-x: hidden;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Section hero avec particules - maintenant en haut */
+.hero-section {
+  position: relative;
+  height: 100vh;
+  width: 100%;
+  z-index: 2;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+/* Œuvre en arrière-plan du hero-section */
+.hero-artwork-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.artwork-image {
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+}
+
+
+.home > * {
+  position: relative;
+  z-index: 1;
+}
+
+
+/* Section features sans particules */
+.features {
+  position: relative;
+  z-index: 10;
+  background: #ffffff;
+}
+
+
+.hero {
+  text-align: center;
+  padding: 8rem 2rem 6rem;
+  max-width: 900px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 10;
+  pointer-events: none;
+  background: transparent;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+
+.hero h1,
+.hero p {
+  pointer-events: none;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-buttons,
+.hero-buttons a,
+.hero-buttons button {
+  pointer-events: auto;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-title {
+  font-size: 4.5rem;
+  font-weight: 300;
+  color: #ffffff;
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+.hero-subtitle {
+  font-size: 1.125rem;
+  color: #ffffff;
+  margin-bottom: 3rem;
+  font-weight: 300;
+  letter-spacing: 0.02em;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.btn {
+  padding: 1rem 2.5rem;
+  font-size: 0.95rem;
+  font-weight: 400;
+  border: 1px solid #ffffff;
+  background: transparent;
+  color: #ffffff;
+  border-radius: 0;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border: none;
+  font-family: inherit;
+}
+
+.btn-primary {
+  background: #C6AC8F;
+  color: #ffffff;
+  border-color: #C6AC8F;
+}
+
+.btn-primary:hover {
+  background: #B89A7A;
+  border-color: #B89A7A;
+}
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 3rem;
+  max-width: 1400px;
+  margin: 8rem auto;
+  padding: 0 2rem;
+  position: relative;
+  z-index: 10;
+  pointer-events: auto;
+  background: transparent;
+}
+
+.feature-card {
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  border-top: 1px solid #e5e5e5;
+  padding-top: 2rem;
+  position: relative;
+  z-index: 10;
+  transition: transform 0.3s ease;
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: #1a1a1a;
+  transition: width 0.3s ease;
+}
+
+.feature-card:hover::before {
+  width: 100%;
+}
+
+.feature-card h3 {
+  font-size: 1.5rem;
+  color: #1a1a1a;
+  margin-bottom: 1rem;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+}
+
+.feature-card p {
+  color: #666;
+  font-size: 0.95rem;
+  font-weight: 300;
+  line-height: 1.8;
+}
+
+/* Section œuvres mises en avant */
+.featured-works {
+  position: relative;
+  background: #fafafa;
+  padding: 6rem 1rem;
+  z-index: 10;
+  width: 100%;
+  overflow: hidden;
+}
+
+.featured-works-container {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0 1rem;
+  position: relative;
+  z-index: 2;
+}
+
+.featured-works-title {
+  font-size: 2.5rem;
+  font-weight: 300;
+  color: #1a1a1a;
+  margin-bottom: 4rem;
+  text-align: center;
+  letter-spacing: -0.02em;
+  position: relative;
+  z-index: 2;
+}
+
+/* Carrousel */
+.carousel-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  max-width: 1800px;
+  margin: 0 auto;
+}
+
+.carousel-container {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.featured-works-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3rem;
+  width: 100%;
+}
+
+.featured-work-item {
+  background: #ffffff;
+  border: 1px solid #e5e5e5;
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.featured-work-item:hover {
+  border-color: #C6AC8F;
+  box-shadow: 0 8px 24px rgba(198, 172, 143, 0.15);
+}
+
+.featured-work-image {
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: #f5f5f5;
+  position: relative;
+}
+
+.featured-work-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.featured-work-item:hover .featured-work-image img {
+  transform: scale(1.05);
+}
+
+/* Badge de disponibilité dans le carrousel */
+.featured-work-image .availability-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  z-index: 2;
+  backdrop-filter: blur(4px);
+  transition: all 0.3s ease;
+}
+
+.featured-work-image .availability-badge.available {
+  background: rgba(198, 172, 143, 0.9);
+  color: #ffffff;
+}
+
+.featured-work-image .availability-badge.sold {
+  background: rgba(128, 128, 128, 0.9);
+  color: #ffffff;
+}
+
+/* Boutons de navigation du carrousel */
+.carousel-button {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid #e5e5e5;
+  background: #ffffff;
+  color: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  z-index: 2;
+}
+
+.carousel-button:hover {
+  border-color: #C6AC8F;
+  background: #C6AC8F;
+  color: #ffffff;
+  transform: scale(1.1);
+}
+
+.carousel-button:active {
+  transform: scale(0.95);
+}
+
+/* Indicateurs du carrousel */
+.carousel-indicators {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 3rem;
+}
+
+.carousel-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid #e5e5e5;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0;
+}
+
+.carousel-indicator:hover {
+  border-color: #C6AC8F;
+  background: rgba(198, 172, 143, 0.3);
+}
+
+.carousel-indicator.active {
+  background: #C6AC8F;
+  border-color: #C6AC8F;
+  width: 24px;
+  border-radius: 5px;
+}
+
+.featured-work-info {
+  padding: 2rem 1.5rem;
+}
+
+.featured-work-info h3 {
+  font-size: 1.25rem;
+  font-weight: 300;
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.01em;
+}
+
+.featured-work-price {
+  font-size: 1rem;
+  color: #C6AC8F;
+  font-weight: 400;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .hero {
+    padding: 4rem 1.5rem 3rem;
+  }
+
+  .hero-title {
+    font-size: 2.5rem;
+  }
+  
+  .hero-subtitle {
+    font-size: 1rem;
+  }
+
+  .features {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    margin: 4rem auto;
+    padding: 0 1.5rem;
+  }
+
+  .featured-works {
+    padding: 4rem 1.5rem;
+  }
+
+  .featured-works-title {
+    font-size: 2rem;
+    margin-bottom: 3rem;
+  }
+
+  .carousel-wrapper {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .carousel-button {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+  }
+
+  .carousel-button-left {
+    left: 1rem;
+  }
+
+  .carousel-button-right {
+    right: 1rem;
+  }
+
+  .carousel-container {
+    width: 100%;
+  }
+
+  .featured-works-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+/* Tablette */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .featured-works-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+  }
+}
+
+/* Petit écran */
+@media (min-width: 1025px) and (max-width: 1440px) {
+  .featured-works-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+  }
+}
