@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: peintreab-web
+    ports:
+      - "5173:5173"
+    volumes:
+      # Montage des fichiers source pour le hot-reload
+      - ./src:/app/src
+      - ./public:/app/public
+      - ./index.html:/app/index.html
+      - ./vite.config.js:/app/vite.config.js
+      - ./package.json:/app/package.json
+      # Exclure node_modules du montage (utiliser celui du conteneur)
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    stdin_open: true
+    tty: true
