@@ -8,6 +8,8 @@ const Navbar = () => {
   const navItems = [
     { path: '/', label: 'Accueil' },
     { path: '/galerie', label: 'Galerie' },
+    { path: '/biographie', label: 'Biographie' },
+    { path: '/contact', label: 'Contact' },
     { path: '/admin', label: 'Admin' }
   ];
 

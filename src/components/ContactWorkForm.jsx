@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FaTimes } from 'react-icons/fa';
+import { FaTimes, FaCheckCircle } from 'react-icons/fa';
 import { contactsAPI } from '../utils/apiService';
 import './ContactWorkForm.css';
 
@@ -82,7 +82,9 @@ const ContactWorkForm = ({ work, onClose, onSuccess }) => {
 
         {success ? (
           <div className="contact-form-success">
-            <p>✅ Votre message a été envoyé avec succès !</p>
+            <p>
+              <FaCheckCircle /> Votre message a été envoyé avec succès !
+            </p>
             <p>Alexandre Bindl vous répondra dans les plus brefs délais.</p>
           </div>
         ) : (

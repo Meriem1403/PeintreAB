@@ -12,6 +12,9 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASSWORD,
   },
+  tls: {
+    rejectUnauthorized: false, // Pour Gmail en développement
+  },
 });
 
 // Vérifier la configuration email au démarrage
@@ -35,11 +38,15 @@ export const sendEmail = async ({ to, subject, text, html }) => {
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log('📧 Email envoyé:', info.messageId);
+    console.log('📧 Email envoyé avec succès:', info.messageId);
+    console.log('   Destinataire:', to);
     return { success: true, messageId: info.messageId };
   } catch (error) {
-    console.error('❌ Erreur lors de l\'envoi de l\'email:', error);
-    return { success: false, error: error.message };
+    console.error('❌ Erreur lors de l\'envoi de l\'email:', error.message);
+    if (error.message.includes('Application-specific password')) {
+      console.error('⚠️ Gmail nécessite un "App Password". Vérifiez votre configuration.');
+    }
+    throw error; // Propager l'erreur pour que l'appelant puisse la gérer
   }
 };
 
@@ -111,6 +118,49 @@ export const sendContactConfirmation = async (email, name, workData = null) => {
     subject: workData 
       ? `Demande reçue pour ${workData.titre} - Alexandre Bindl`
       : 'Message reçu - Alexandre Bindl',
+    text,
+    html,
+  });
+};
+
+// Envoyer une réponse à un contact
+export const sendReply = async ({ to, subject, message, originalContact }) => {
+  const { name, email, subject: originalSubject, message: originalMessage } = originalContact;
+
+  const html = `
+    <h2>Réponse à votre message</h2>
+    <p>Bonjour ${name},</p>
+    <p>${message.replace(/\n/g, '<br>')}</p>
+    <hr style="margin: 2rem 0; border: none; border-top: 1px solid #e5e5e5;">
+    <p style="color: #666; font-size: 0.9rem;">
+      <strong>Votre message original:</strong><br>
+      <em>${originalSubject || 'Sans sujet'}</em><br><br>
+      ${originalMessage.replace(/\n/g, '<br>')}
+    </p>
+    <p style="margin-top: 2rem;">
+      Cordialement,<br>
+      <strong>Alexandre Bindl</strong>
+    </p>
+  `;
+
+  const text = `
+    Réponse à votre message
+    Bonjour ${name},
+    
+    ${message}
+    
+    ---
+    Votre message original:
+    ${originalSubject || 'Sans sujet'}
+    ${originalMessage}
+    
+    Cordialement,
+    Alexandre Bindl
+  `;
+
+  return await sendEmail({
+    to,
+    subject,
     text,
     html,
   });

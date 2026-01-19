@@ -23,16 +23,19 @@ const WorkDetail = () => {
 
   // Trouver l'œuvre actuelle - logique optimisée pour un chargement rapide
   const { currentWork, currentIndex } = useMemo(() => {
-    // PRIORITÉ 1: Utiliser location.state.work si disponible (le plus rapide)
-    if (location.state?.work) {
-      const workFromState = location.state.work;
-      // Si categoryItems est disponible, trouver l'index
-      if (categoryItems && categoryItems.length > 0) {
+    // PRIORITÉ 1: Chercher dans categoryItems (données fraîches de la base) si disponible
+    if (categoryItems && categoryItems.length > 0) {
+      // Si on a un work dans location.state, chercher le même dans categoryItems pour avoir les données à jour
+      if (location.state?.work) {
+        const workFromState = location.state.work;
         const foundIndex = categoryItems.findIndex(item => 
           item && (item.id === workFromState.id || String(item.id) === String(workFromState.id))
         );
         if (foundIndex >= 0) {
-          return { currentWork: workFromState, currentIndex: foundIndex };
+          // Utiliser le work depuis categoryItems (données fraîches) plutôt que location.state
+          const workFromDB = categoryItems[foundIndex];
+          console.log('✅ Œuvre trouvée dans categoryItems:', { id: workFromDB.id, titre: workFromDB.titre, adresse: workFromDB.adresse, lieu: workFromDB.lieu });
+          return { currentWork: workFromDB, currentIndex: foundIndex };
         }
         // Fallback par titre
         const byTitle = categoryItems.findIndex(item => 
@@ -42,8 +45,32 @@ const WorkDetail = () => {
           return { currentWork: categoryItems[byTitle], currentIndex: byTitle };
         }
       }
-      // Si categoryItems n'est pas encore chargé, utiliser quand même workFromState avec index 0 temporaire
-      return { currentWork: workFromState, currentIndex: 0 };
+      
+      // PRIORITÉ 2: Chercher par ID dans l'URL si pas de location.state
+      if (id) {
+        const foundById = categoryItems.findIndex(item => {
+          if (!item) return false;
+          const itemId = String(item.id || '');
+          const searchId = String(id || '');
+          return itemId === searchId || itemId === String(Number(id)) || item.id === Number(id);
+        });
+        
+        if (foundById >= 0) {
+          console.log('✅ Œuvre trouvée via ID URL à l\'index', foundById);
+          return { currentWork: categoryItems[foundById], currentIndex: foundById };
+        }
+      }
+      
+      // PRIORITÉ 3: Utiliser le premier item disponible
+      if (categoryItems[0]) {
+        console.log('✅ Utilisation du premier item disponible (index 0)');
+        return { currentWork: categoryItems[0], currentIndex: 0 };
+      }
+    }
+    
+    // Fallback: Utiliser location.state.work si categoryItems n'est pas encore chargé
+    if (location.state?.work && (!categoryItems || categoryItems.length === 0)) {
+      return { currentWork: location.state.work, currentIndex: 0 };
     }
 
     // Si pas d'items ou chargement en cours, retourner null
@@ -336,7 +363,7 @@ const WorkDetail = () => {
                 </div>
               )}
 
-              {currentWork.date && (
+              {(currentWork.date || currentWork.date_debut) && (
                 <div className="meta-item">
                   <div className="meta-icon-wrapper">
                     <FaCalendar className="meta-icon" />
@@ -344,24 +371,50 @@ const WorkDetail = () => {
                   <div className="meta-content">
                     <span className="meta-label">Date</span>
                     <span className="meta-value">
-                      {new Date(currentWork.date).toLocaleDateString('fr-FR', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
+                      {currentWork.date_debut && currentWork.date_fin ? (
+                        <>
+                          {new Date(currentWork.date_debut).toLocaleDateString('fr-FR', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })} - {new Date(currentWork.date_fin).toLocaleDateString('fr-FR', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </>
+                      ) : (
+                        new Date(currentWork.date_debut || currentWork.date).toLocaleDateString('fr-FR', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })
+                      )}
                     </span>
                   </div>
                 </div>
               )}
 
-              {currentWork.lieu && (
+              {(currentWork.lieu || currentWork.adresse) && (
                 <div className="meta-item">
                   <div className="meta-icon-wrapper">
                     <FaMapMarkerAlt className="meta-icon" />
                   </div>
                   <div className="meta-content">
                     <span className="meta-label">Lieu</span>
-                    <span className="meta-value">{currentWork.lieu}</span>
+                    {currentWork.adresse ? (
+                      <a 
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(currentWork.adresse)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="meta-value meta-link"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {currentWork.lieu ? `${currentWork.lieu} - ${currentWork.adresse}` : currentWork.adresse}
+                      </a>
+                    ) : (
+                      <span className="meta-value">{currentWork.lieu}</span>
+                    )}
                   </div>
                 </div>
               )}

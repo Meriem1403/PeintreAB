@@ -1,0 +1,513 @@
+.biographie {
+  min-height: 100vh;
+  padding: 6rem 2rem;
+  background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 50%, #fafafa 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.biographie-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.biographie-header {
+  text-align: center;
+  margin-bottom: 6rem;
+  position: relative;
+}
+
+.biographie-header h1 {
+  font-family: 'Cormorant Garamond', 'Playfair Display', serif;
+  font-size: 4.5rem;
+  font-weight: 300;
+  color: #1a1a1a;
+  margin: 0;
+  letter-spacing: 0.12em;
+  position: relative;
+  display: inline-block;
+  text-transform: uppercase;
+}
+
+.biographie-header h1::before,
+.biographie-header h1::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 100px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #C6AC8F, transparent);
+}
+
+.biographie-header h1::before {
+  left: -120px;
+}
+
+.biographie-header h1::after {
+  right: -120px;
+}
+
+.biographie-content {
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(20px);
+  padding: 6rem 5rem;
+  border-radius: 24px;
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(198, 172, 143, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(198, 172, 143, 0.15);
+  position: relative;
+}
+
+.biographie-content::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(135deg, rgba(198, 172, 143, 0.1), rgba(198, 172, 143, 0.05));
+  border-radius: 24px;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.biographie-content:hover::before {
+  opacity: 1;
+}
+
+.biographie-main {
+  display: grid;
+  grid-template-columns: 0.9fr 1.6fr;
+  gap: 6rem;
+  align-items: start;
+}
+
+.biographie-image-wrapper {
+  position: sticky;
+  top: 3rem;
+}
+
+.image-frame {
+  position: relative;
+  padding: 20px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(250, 250, 250, 0.9));
+  border-radius: 20px;
+  box-shadow: 
+    0 15px 50px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  margin-bottom: 2.5rem;
+}
+
+.frame-decoration {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border: 2px solid #C6AC8F;
+  opacity: 0.3;
+}
+
+.frame-top-left {
+  top: 10px;
+  left: 10px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.frame-top-right {
+  top: 10px;
+  right: 10px;
+  border-left: none;
+  border-bottom: none;
+}
+
+.frame-bottom-left {
+  bottom: 10px;
+  left: 10px;
+  border-right: none;
+  border-top: none;
+}
+
+.frame-bottom-right {
+  bottom: 10px;
+  right: 10px;
+  border-left: none;
+  border-top: none;
+}
+
+.biographie-image-container {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 16px;
+  box-shadow: 0 12px 50px rgba(0, 0, 0, 0.2);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.biographie-image-container:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+}
+
+.biographie-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 16px;
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.biographie-image-container:hover .biographie-image {
+  transform: scale(1.05);
+}
+
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.05) 50%,
+    rgba(0, 0, 0, 0.15) 100%
+  );
+  border-radius: 16px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.biographie-image-container:hover .image-overlay {
+  opacity: 1;
+}
+
+.image-shine {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 70%
+  );
+  transform: rotate(45deg);
+  transition: transform 0.6s ease;
+  pointer-events: none;
+}
+
+.biographie-image-container:hover .image-shine {
+  transform: rotate(45deg) translate(100%, 100%);
+}
+
+.biographie-signature {
+  text-align: center;
+  padding-top: 2rem;
+  position: relative;
+}
+
+.signature-line {
+  width: 80px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #C6AC8F, transparent);
+  margin: 0 auto 1.5rem;
+}
+
+.biographie-signature p {
+  font-family: 'Cormorant Garamond', 'Playfair Display', serif;
+  font-size: 1.75rem;
+  font-weight: 400;
+  color: #1a1a1a;
+  font-style: italic;
+  letter-spacing: 0.15em;
+  margin: 0 0 0.5rem 0;
+  position: relative;
+}
+
+.signature-title {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 300;
+  color: #666;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-style: normal;
+  margin-top: 0.5rem;
+}
+
+.biographie-text-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.biographie-intro {
+  margin-bottom: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  position: relative;
+}
+
+.intro-decoration {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.intro-line {
+  height: 1px;
+  flex: 1;
+  background: linear-gradient(90deg, transparent, #C6AC8F, transparent);
+}
+
+.intro-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #C6AC8F;
+  opacity: 0.6;
+}
+
+.biographie-intro h2 {
+  font-family: 'Cormorant Garamond', 'Playfair Display', serif;
+  font-size: 2.25rem;
+  font-weight: 300;
+  color: #1a1a1a;
+  margin: 0;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.biographie-text {
+  line-height: 2.4;
+  color: #2a2a2a;
+  font-size: 1.2rem;
+  font-weight: 300;
+}
+
+.text-block {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 3rem;
+  position: relative;
+  padding-left: 0;
+}
+
+.text-block:last-child {
+  margin-bottom: 0;
+}
+
+.text-indicator {
+  width: 4px;
+  background: linear-gradient(180deg, #C6AC8F, rgba(198, 172, 143, 0.4));
+  border-radius: 2px;
+  flex-shrink: 0;
+  margin-top: 0.3em;
+  position: relative;
+}
+
+.text-indicator::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #C6AC8F;
+  opacity: 0.6;
+}
+
+.text-block p {
+  margin: 0;
+  text-align: justify;
+  flex: 1;
+  font-size: 1.15rem;
+  line-height: 2.2;
+}
+
+.biographie-footer {
+  margin-top: 4rem;
+  padding-top: 3rem;
+  text-align: center;
+  position: relative;
+}
+
+.footer-line {
+  width: 120px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #C6AC8F, transparent);
+  margin: 0 auto 2rem;
+}
+
+.footer-quote {
+  font-family: 'Cormorant Garamond', 'Playfair Display', serif;
+  font-size: 1.5rem;
+  font-style: italic;
+  color: #666;
+  letter-spacing: 0.05em;
+  margin: 0;
+  position: relative;
+}
+
+.footer-quote::before,
+.footer-quote::after {
+  content: '"';
+  font-size: 2rem;
+  color: #C6AC8F;
+  opacity: 0.5;
+  position: absolute;
+}
+
+.footer-quote::before {
+  left: -1.5rem;
+  top: -0.5rem;
+}
+
+.footer-quote::after {
+  right: -1.5rem;
+  bottom: -0.5rem;
+}
+
+.biographie-loading {
+  text-align: center;
+  padding: 6rem 2rem;
+  color: #666;
+}
+
+.biographie-loading .loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e5e5e5;
+  border-top-color: #C6AC8F;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 968px) {
+  .biographie-main {
+    grid-template-columns: 1fr;
+    gap: 4rem;
+  }
+
+  .biographie-image-wrapper {
+    position: static;
+  }
+
+  .image-frame {
+    max-width: 500px;
+    margin: 0 auto 2.5rem;
+  }
+
+  .biographie-header h1::before,
+  .biographie-header h1::after {
+    width: 60px;
+  }
+
+  .biographie-header h1::before {
+    left: -80px;
+  }
+
+  .biographie-header h1::after {
+    right: -80px;
+  }
+}
+
+@media (max-width: 768px) {
+  .biographie {
+    padding: 4rem 1.5rem;
+  }
+
+  .biographie-header {
+    margin-bottom: 4rem;
+  }
+
+  .biographie-header h1 {
+    font-size: 2.5rem;
+  }
+
+  .biographie-header h1::before,
+  .biographie-header h1::after {
+    display: none;
+  }
+
+  .biographie-content {
+    padding: 3rem 2rem;
+  }
+
+  .biographie-main {
+    gap: 3rem;
+  }
+
+  .image-frame {
+    padding: 15px;
+  }
+
+  .frame-decoration {
+    width: 20px;
+    height: 20px;
+  }
+
+  .biographie-intro {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .intro-decoration {
+    width: 100%;
+  }
+
+  .biographie-intro h2 {
+    font-size: 1.75rem;
+    white-space: normal;
+  }
+
+  .biographie-text {
+    font-size: 1.05rem;
+    line-height: 2;
+  }
+
+  .text-block {
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .text-block p {
+    font-size: 1rem;
+  }
+
+  .biographie-signature p {
+    font-size: 1.5rem;
+  }
+
+  .signature-title {
+    font-size: 0.75rem;
+  }
+
+  .footer-quote {
+    font-size: 1.25rem;
+  }
+
+  .biographie-footer {
+    margin-top: 3rem;
+    padding-top: 2rem;
+  }
+}

@@ -25,6 +25,8 @@ services:
     container_name: peintreab-backend
     ports:
       - "3000:3000"
+    env_file:
+      - ./backend/.env
     environment:
       - NODE_ENV=development
       - DB_HOST=postgres
@@ -39,6 +41,7 @@ services:
     volumes:
       - ./backend/src:/app/src
       - ./backend/migrations:/app/migrations
+      - ./backend/.env:/app/.env
       - /app/node_modules
     depends_on:
       postgres:

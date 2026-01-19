@@ -10,14 +10,37 @@
   max-width: 800px;
   margin-left: auto;
   margin-right: auto;
+  position: relative;
 }
 
 .galerie-header h1 {
-  font-size: 3.5rem;
+  font-family: 'Cormorant Garamond', 'Playfair Display', serif;
+  font-size: 4.5rem;
   font-weight: 300;
   color: #1a1a1a;
-  margin-bottom: 1rem;
-  letter-spacing: -0.03em;
+  margin: 0;
+  letter-spacing: 0.12em;
+  position: relative;
+  display: inline-block;
+  text-transform: uppercase;
+}
+
+.galerie-header h1::before,
+.galerie-header h1::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 100px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #C6AC8F, transparent);
+}
+
+.galerie-header h1::before {
+  left: -120px;
+}
+
+.galerie-header h1::after {
+  right: -120px;
 }
 
 .galerie-header p {
@@ -205,6 +228,25 @@
   font-weight: 300;
 }
 
+@media (max-width: 1024px) {
+  .galerie-header h1 {
+    font-size: 3.5rem;
+  }
+
+  .galerie-header h1::before,
+  .galerie-header h1::after {
+    width: 60px;
+  }
+
+  .galerie-header h1::before {
+    left: -80px;
+  }
+
+  .galerie-header h1::after {
+    right: -80px;
+  }
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -222,6 +264,11 @@
 
   .galerie-header h1 {
     font-size: 2.5rem;
+  }
+
+  .galerie-header h1::before,
+  .galerie-header h1::after {
+    display: none;
   }
   
   .category-tabs {

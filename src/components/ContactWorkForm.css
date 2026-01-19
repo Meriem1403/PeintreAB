@@ -139,6 +139,15 @@
   font-size: 1.1rem;
   font-weight: 500;
   color: #28a745;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.contact-form-success p:first-child svg {
+  font-size: 1.2rem;
+  flex-shrink: 0;
 }
 
 .form-actions {

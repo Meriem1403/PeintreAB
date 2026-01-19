@@ -22,19 +22,58 @@
 .admin-header-content > div {
   flex: 1;
   text-align: center;
+  position: relative;
 }
 
 .btn-logout {
-  position: absolute;
-  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 2rem auto 0;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.9rem;
+  font-weight: 300;
+  background: transparent;
+  color: #666;
+  border: 1px solid #e5e5e5;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  transition: all 0.3s ease;
+}
+
+.admin-header {
+  position: relative;
 }
 
 .admin-header h1 {
-  font-size: 3rem;
+  font-family: 'Cormorant Garamond', 'Playfair Display', serif;
+  font-size: 4.5rem;
   font-weight: 300;
   color: #1a1a1a;
-  margin-bottom: 0.75rem;
-  letter-spacing: -0.03em;
+  margin: 0;
+  letter-spacing: 0.12em;
+  position: relative;
+  display: inline-block;
+  text-transform: uppercase;
+}
+
+.admin-header h1::before,
+.admin-header h1::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 100px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #C6AC8F, transparent);
+}
+
+.admin-header h1::before {
+  left: -120px;
+}
+
+.admin-header h1::after {
+  right: -120px;
 }
 
 .admin-header p {
@@ -43,16 +82,25 @@
   font-weight: 300;
 }
 
+.admin-tabs-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4rem;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
 .admin-tabs {
   display: flex;
   gap: 0;
   justify-content: center;
-  margin-bottom: 4rem;
   flex-wrap: nowrap;
   border-bottom: 1px solid #e5e5e5;
-  max-width: 100%;
-  margin-left: auto;
-  margin-right: auto;
+  flex: 1;
   overflow-x: auto;
 }
 
@@ -104,34 +152,22 @@
   padding: 0.875rem 2rem;
   font-size: 0.9rem;
   font-weight: 400;
-  background: #1a1a1a;
+  background: #C6AC8F;
   color: #ffffff;
-  border: 1px solid #1a1a1a;
+  border: 1px solid #C6AC8F;
   cursor: pointer;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   transition: all 0.3s ease;
+  white-space: nowrap;
+  border-radius: 4px;
 }
 
 .btn-add:hover {
-  background: #333;
-  border-color: #333;
-}
-
-.btn-logout {
-  padding: 0.75rem 1.5rem;
-  font-size: 0.85rem;
-  font-weight: 300;
-  background: transparent;
-  color: #666;
-  border: 1px solid #e5e5e5;
-  cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  background: #B89A7D;
+  border-color: #B89A7D;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(198, 172, 143, 0.3);
 }
 
 .btn-logout:hover {
@@ -142,6 +178,27 @@
 
 .btn-logout svg {
   font-size: 1rem;
+  width: 16px;
+  height: 16px;
+}
+
+@media (max-width: 1024px) {
+  .admin-header h1 {
+    font-size: 3.5rem;
+  }
+
+  .admin-header h1::before,
+  .admin-header h1::after {
+    width: 60px;
+  }
+
+  .admin-header h1::before {
+    left: -80px;
+  }
+
+  .admin-header h1::after {
+    right: -80px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -150,9 +207,20 @@
   }
 
   .admin-header h1 {
-    font-size: 2rem;
+    font-size: 2.5rem;
+  }
+
+  .admin-header h1::before,
+  .admin-header h1::after {
+    display: none;
   }
   
+  .admin-tabs-wrapper {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.5rem;
+  }
+
   .admin-tabs {
     flex-direction: row;
     overflow-x: auto;
@@ -164,7 +232,8 @@
     padding: 1rem 1.5rem;
   }
 
-  .admin-actions {
+  .btn-add {
+    width: 100%;
     justify-content: center;
   }
 }
@@ -202,121 +271,6 @@
   margin-bottom: 1rem;
 }
 
-.contacts-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.contact-item {
-  background: #ffffff;
-  border: 1px solid #e5e5e5;
-  border-radius: 8px;
-  padding: 2rem;
-  transition: all 0.3s ease;
-  position: relative;
-}
-
-.contact-item.unread {
-  border-left: 4px solid #C6AC8F;
-  background: #fafafa;
-}
-
-.contact-item:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
-}
-
-.contact-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1.5rem;
-  gap: 1rem;
-}
-
-.contact-header-left {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  flex: 1;
-}
-
-.contact-icon {
-  font-size: 1.5rem;
-  color: #999;
-  margin-top: 0.25rem;
-}
-
-.contact-icon.unread-icon {
-  color: #C6AC8F;
-}
-
-.contact-header h3 {
-  font-size: 1.25rem;
-  font-weight: 400;
-  color: #1a1a1a;
-  margin: 0 0 0.25rem 0;
-}
-
-.contact-email {
-  color: #666;
-  font-size: 0.9rem;
-  margin: 0;
-}
-
-.mark-read-btn {
-  padding: 0.5rem 1rem;
-  background: transparent;
-  border: 1px solid #C6AC8F;
-  color: #C6AC8F;
-  border-radius: 4px;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  white-space: nowrap;
-}
-
-.mark-read-btn:hover {
-  background: #C6AC8F;
-  color: #ffffff;
-}
-
-.contact-work-ref {
-  background: rgba(198, 172, 143, 0.1);
-  padding: 0.75rem 1rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-  color: #1a1a1a;
-  font-size: 0.9rem;
-}
-
-.contact-work-ref .work-ref-price {
-  color: #C6AC8F;
-  font-weight: 500;
-}
-
-.contact-subject {
-  margin-bottom: 1rem;
-  color: #666;
-  font-size: 0.9rem;
-}
-
-.contact-message {
-  background: #f9f9f9;
-  padding: 1.25rem;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-  line-height: 1.8;
-  color: #1a1a1a;
-  white-space: pre-wrap;
-}
-
-.contact-date {
-  color: #999;
-  font-size: 0.85rem;
-  text-align: right;
-}
 
 @keyframes spin {
   to {

@@ -39,15 +39,15 @@ export const getWorkById = async (req, res) => {
 
 export const createWork = async (req, res) => {
   try {
-    const { type, titre, description, prix, image, date, lieu, is_sold, is_featured } = req.body;
+    const { type, titre, description, prix, image, date, date_debut, date_fin, lieu, adresse, is_sold, is_featured } = req.body;
 
     if (!type || !titre) {
       return res.status(400).json({ error: 'Type et titre sont requis' });
     }
 
     const result = await pool.query(
-      `INSERT INTO works (type, titre, description, prix, image, date, lieu, is_sold, is_featured)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      `INSERT INTO works (type, titre, description, prix, image, date, date_debut, date_fin, lieu, adresse, is_sold, is_featured)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
        RETURNING *`,
       [
         type, 
@@ -55,8 +55,11 @@ export const createWork = async (req, res) => {
         description || null, 
         prix || null, 
         image || null, 
-        date || null, 
+        date || null,
+        date_debut || null,
+        date_fin || null,
         lieu || null,
+        adresse || null,
         is_sold || false,
         is_featured || false
       ]
@@ -72,7 +75,8 @@ export const createWork = async (req, res) => {
 export const updateWork = async (req, res) => {
   try {
     const { id } = req.params;
-    const { titre, description, prix, image, date, lieu, is_sold, is_featured } = req.body;
+    const { titre, description, prix, image, date, date_debut, date_fin, lieu, adresse, is_sold, is_featured } = req.body;
+    console.log('🔄 Mise à jour œuvre:', { id, adresse, lieu, date_debut, date_fin });
 
     // Construire la requête SQL dynamiquement pour gérer les booléens correctement
     const updates = [];
@@ -99,9 +103,21 @@ export const updateWork = async (req, res) => {
       updates.push(`date = $${paramIndex++}`);
       params.push(date || null);
     }
+    if (date_debut !== undefined) {
+      updates.push(`date_debut = $${paramIndex++}`);
+      params.push(date_debut || null);
+    }
+    if (date_fin !== undefined) {
+      updates.push(`date_fin = $${paramIndex++}`);
+      params.push(date_fin || null);
+    }
     if (lieu !== undefined) {
       updates.push(`lieu = $${paramIndex++}`);
       params.push(lieu || null);
+    }
+    if (adresse !== undefined) {
+      updates.push(`adresse = $${paramIndex++}`);
+      params.push(adresse || null);
     }
     // Gérer explicitement les booléens
     if (is_sold !== undefined) {
@@ -119,8 +135,11 @@ export const updateWork = async (req, res) => {
     params.push(id);
 
     const query = `UPDATE works SET ${updates.join(', ')} ${whereClause} RETURNING *`;
+    console.log('📝 Requête SQL:', query);
+    console.log('📝 Paramètres:', params);
     
     const result = await pool.query(query, params);
+    console.log('✅ Œuvre mise à jour:', { id: result.rows[0].id, adresse: result.rows[0].adresse });
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Œuvre non trouvée' });

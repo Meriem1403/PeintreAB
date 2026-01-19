@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes.js';
 import workRoutes from './routes/workRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
+import artistRoutes from './routes/artistRoutes.js';
 import pool from './config/database.js';
 
 dotenv.config();
@@ -23,6 +24,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/works', workRoutes);
 app.use('/api/contacts', contactRoutes);
+app.use('/api/artist', artistRoutes);
 
 // Route de santé
 app.get('/api/health', (req, res) => {

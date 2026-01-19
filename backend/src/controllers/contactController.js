@@ -1,5 +1,5 @@
 import pool from '../config/database.js';
-import { sendContactNotification, sendContactConfirmation } from '../services/emailService.js';
+import { sendContactNotification, sendContactConfirmation, sendReply } from '../services/emailService.js';
 
 export const createContact = async (req, res) => {
   try {
@@ -31,7 +31,10 @@ export const createContact = async (req, res) => {
       await sendContactNotification(result.rows[0], workData);
       await sendContactConfirmation(email, name, workData);
     } catch (emailError) {
-      console.error('Erreur lors de l\'envoi des emails (message tout de même enregistré):', emailError);
+      console.error('❌ Erreur lors de l\'envoi des emails (message tout de même enregistré):', emailError.message);
+      if (emailError.message.includes('Application-specific password')) {
+        console.error('⚠️ Configuration email incorrecte: Gmail nécessite un App Password');
+      }
     }
 
     res.status(201).json({
@@ -53,7 +56,8 @@ export const getAllContacts = async (req, res) => {
         w.titre as work_titre,
         w.type as work_type,
         w.image as work_image,
-        w.prix as work_prix
+        w.prix as work_prix,
+        w.is_sold as is_sold
       FROM contacts c
       LEFT JOIN works w ON c.work_id = w.id
       ORDER BY c.created_at DESC
@@ -80,6 +84,68 @@ export const markContactAsRead = async (req, res) => {
     res.json(result.rows[0]);
   } catch (error) {
     console.error('Erreur lors de la mise à jour du contact:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+};
+
+export const replyContact = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { to, subject, message } = req.body;
+
+    if (!to || !subject || !message) {
+      return res.status(400).json({ error: 'Destinataire, sujet et message sont requis' });
+    }
+
+    // Récupérer le contact original
+    const contactResult = await pool.query('SELECT * FROM contacts WHERE id = $1', [id]);
+    if (contactResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Contact non trouvé' });
+    }
+
+    const contact = contactResult.rows[0];
+
+    // Envoyer la réponse par email
+    try {
+      await sendReply({
+        to,
+        subject,
+        message,
+        originalContact: contact,
+      });
+      console.log('✅ Réponse envoyée avec succès à:', to);
+    } catch (emailError) {
+      console.error('❌ Erreur lors de l\'envoi de la réponse:', emailError.message);
+      if (emailError.message.includes('Application-specific password')) {
+        return res.status(500).json({ 
+          error: 'Configuration email incorrecte: Gmail nécessite un App Password. Vérifiez backend/.env' 
+        });
+      }
+      return res.status(500).json({ error: 'Erreur lors de l\'envoi de l\'email: ' + emailError.message });
+    }
+
+    // Marquer le contact comme lu après réponse
+    await pool.query('UPDATE contacts SET read = true WHERE id = $1', [id]);
+
+    res.json({ message: 'Réponse envoyée avec succès' });
+  } catch (error) {
+    console.error('Erreur lors de l\'envoi de la réponse:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+};
+
+export const deleteContact = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query('DELETE FROM contacts WHERE id = $1 RETURNING *', [id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Contact non trouvé' });
+    }
+
+    res.json({ message: 'Contact supprimé avec succès' });
+  } catch (error) {
+    console.error('Erreur lors de la suppression du contact:', error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };

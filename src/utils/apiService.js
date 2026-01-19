@@ -98,4 +98,31 @@ export const contactsAPI = {
       method: 'PUT',
     });
   },
+  
+  reply: async (id, replyData) => {
+    return request(`/contacts/${id}/reply`, {
+      method: 'POST',
+      body: replyData,
+    });
+  },
+  
+  delete: async (id) => {
+    return request(`/contacts/${id}`, {
+      method: 'DELETE',
+    });
+  },
+};
+
+// API des informations artiste
+export const artistAPI = {
+  get: async () => {
+    return request('/artist');
+  },
+  
+  update: async (data) => {
+    return request('/artist', {
+      method: 'PUT',
+      body: data,
+    });
+  },
 };

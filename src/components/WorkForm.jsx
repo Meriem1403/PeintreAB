@@ -11,20 +11,42 @@ const WorkForm = ({ type, work, onClose }) => {
     prix: '',
     image: '',
     date: '',
+    date_debut: '',
+    date_fin: '',
     lieu: '',
+    adresse: '',
     is_sold: false,
     is_featured: false
   });
 
   useEffect(() => {
     if (work) {
+      // Formater les dates pour les inputs HTML (format YYYY-MM-DD)
+      const formatDate = (dateValue) => {
+        if (!dateValue) return '';
+        // Si c'est déjà au format YYYY-MM-DD, le retourner tel quel
+        if (typeof dateValue === 'string' && dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
+          return dateValue;
+        }
+        // Si c'est une date ISO ou un objet Date, extraire YYYY-MM-DD
+        const date = new Date(dateValue);
+        if (isNaN(date.getTime())) return '';
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
+
       setFormData({
         titre: work.titre || '',
         description: work.description || '',
         prix: work.prix || '',
         image: work.image || '',
-        date: work.date || '',
+        date: formatDate(work.date),
+        date_debut: formatDate(work.date_debut),
+        date_fin: formatDate(work.date_fin),
         lieu: work.lieu || '',
+        adresse: work.adresse || '',
         is_sold: work.is_sold || false,
         is_featured: work.is_featured || false
       });
@@ -119,27 +141,66 @@ const WorkForm = ({ type, work, onClose }) => {
             </div>
           )}
 
-          {/* Champ date pour tous les types */}
-          <div className="form-group">
-            <label>Date</label>
-            <input
-              type="date"
-              name="date"
-              value={formData.date}
-              onChange={handleChange}
-            />
-          </div>
-
-          {type === 'evenements' && (
+          {/* Champ date pour peintures et croquis */}
+          {type !== 'evenements' && (
             <div className="form-group">
-              <label>Lieu</label>
+              <label>Date</label>
               <input
-                type="text"
-                name="lieu"
-                value={formData.lieu}
+                type="date"
+                name="date"
+                value={formData.date}
                 onChange={handleChange}
               />
             </div>
+          )}
+
+          {type === 'evenements' && (
+            <>
+              <div className="form-group">
+                <label>Date de début *</label>
+                <input
+                  type="date"
+                  name="date_debut"
+                  value={formData.date_debut}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Date de fin *</label>
+                <input
+                  type="date"
+                  name="date_fin"
+                  value={formData.date_fin}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Lieu</label>
+                <input
+                  type="text"
+                  name="lieu"
+                  value={formData.lieu}
+                  onChange={handleChange}
+                  placeholder="Ex: Galerie d'art, Musée..."
+                />
+              </div>
+              <div className="form-group">
+                <label>Adresse complète *</label>
+                <input
+                  type="text"
+                  name="adresse"
+                  value={formData.adresse}
+                  onChange={handleChange}
+                  placeholder="Ex: 123 Rue de la République, 75001 Paris, France"
+                  required
+                />
+                <small style={{ color: '#666', fontSize: '0.85rem', marginTop: '0.5rem', display: 'block' }}>
+                  Cette adresse sera utilisée pour créer un lien vers Google Maps
+                </small>
+              </div>
+            </>
           )}
 
           {/* Champ is_sold pour peintures et croquis */}
@@ -166,7 +227,11 @@ const WorkForm = ({ type, work, onClose }) => {
                 checked={formData.is_featured}
                 onChange={handleChange}
               />
-              <span>Mettre en avant (apparaît sur la page d'accueil)</span>
+              <span>
+                {type === 'evenements' 
+                  ? "Mettre en avant (apparaît dans la section 'Événements à venir' sur la page d'accueil)"
+                  : "Mettre en avant (apparaît dans la section 'Œuvres à l'honneur' sur la page d'accueil)"}
+              </span>
             </label>
           </div>
 

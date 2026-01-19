@@ -399,6 +399,18 @@
   line-height: 1.4;
 }
 
+.meta-link {
+  color: #C6AC8F;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  border-bottom: 1px solid transparent;
+}
+
+.meta-link:hover {
+  color: #B89A7D;
+  border-bottom-color: #B89A7D;
+}
+
 .meta-value.sold-status {
   color: #808080;
   font-style: italic;

@@ -6,6 +6,8 @@ import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 import Galerie from './pages/Galerie';
+import Biographie from './pages/Biographie';
+import Contact from './pages/Contact';
 import WorkDetail from './pages/WorkDetail';
 import Admin from './pages/Admin';
 import Login from './pages/Login';
@@ -24,6 +26,8 @@ function App() {
                   <Route path="/" element={<Home />} />
                   <Route path="/galerie" element={<Galerie />} />
                   <Route path="/galerie/:category/:id" element={<WorkDetail />} />
+                  <Route path="/biographie" element={<Biographie />} />
+                  <Route path="/contact" element={<Contact />} />
                   <Route path="/login" element={<Login />} />
                   <Route 
                     path="/admin" 
