@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: http://www.alexandre-bindl.fr/sitemap.xml
+
+# Bloquer l'admin et les API
+Disallow: /admin
+Disallow: /api/
+Disallow: /login

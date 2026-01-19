@@ -2,6 +2,18 @@
 
 Site web React pour exposer la galerie de l'artiste peintre Alexandre Bindl.
 
+## ⚡ Démarrage rapide
+
+Pour démarrer rapidement, consultez **[QUICK_START.md](QUICK_START.md)**.
+
+```bash
+# Configuration automatique
+./setup.sh
+
+# Déploiement
+./deploy.sh
+```
+
 ## 🚀 Technologies
 
 - **React 19** - Bibliothèque JavaScript pour l'interface utilisateur
