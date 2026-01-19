@@ -306,22 +306,10 @@ const Home = () => {
                           <div className="featured-event-info">
                             <div className="event-category-tag">Événement</div>
                             <h3>{event.titre}</h3>
-                            {(event.lieu || event.adresse) && (
+                            {event.lieu && (
                               <div className="event-location">
                                 <FaMapMarkerAlt className="location-icon" />
-                                {event.adresse ? (
-                                  <a 
-                                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.adresse)}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="location-text location-link"
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    {event.lieu ? `${event.lieu} - ${event.adresse}` : event.adresse}
-                                  </a>
-                                ) : (
-                                  <span className="location-text">{event.lieu}</span>
-                                )}
+                                <span className="location-text">{event.lieu}</span>
                               </div>
                             )}
                             {event.description && (
