@@ -357,7 +357,7 @@ const WorkDetail = () => {
                   <div className="meta-content">
                     <span className="meta-label">Prix</span>
                     <span className={`meta-value ${currentWork.is_sold ? 'sold-status' : ''}`}>
-                      {currentWork.is_sold ? 'Vendu' : `${currentWork.prix}€`}
+                      {currentWork.is_sold ? 'Collection privée' : `${currentWork.prix}€`}
                     </span>
                   </div>
                 </div>

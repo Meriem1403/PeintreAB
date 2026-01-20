@@ -1,3 +1,12 @@
+# Configuration Docker Compose pour NAS
+# Usage: docker-compose -f docker-compose.nas.yml up -d
+# 
+# IMPORTANT: Adaptez les chemins selon votre NAS :
+# - Synology: /volume1/docker/peintreab
+# - QNAP: /share/Container/peintreab ou /share/CACHEDEV1_DATA/peintreab
+
+version: '3.8'
+
 services:
   # Base de données PostgreSQL
   postgres:
@@ -10,12 +19,14 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      # ADAPTER LE CHEMIN ICI selon votre NAS
+      - /volume1/docker/peintreab/postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U peintreab_user -d peintreab_db"]
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
   # Backend API
   backend:
@@ -28,26 +39,24 @@ services:
     env_file:
       - ./backend/.env
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_NAME=peintreab_db
       - DB_USER=peintreab_user
       - DB_PASSWORD=peintreab_password
-      - JWT_SECRET=your-secret-key-change-in-production
-      - JWT_EXPIRES_IN=7d
-      - PORT=3000
       - FRONTEND_URL=http://www.alexandre-bindl.fr
     volumes:
-      - ./backend/src:/app/src
-      - ./backend/migrations:/app/migrations
-      - ./backend/.env:/app/.env
-      - ./public:/app/public
+      # ADAPTER LES CHEMINS ICI selon votre NAS
+      - /volume1/docker/peintreab/backend/src:/app/src
+      - /volume1/docker/peintreab/backend/migrations:/app/migrations
+      - /volume1/docker/peintreab/backend/.env:/app/.env
       - /app/node_modules
     depends_on:
       postgres:
         condition: service_healthy
-    command: sh -c "sleep 3 && npm run migrate && npm run dev"
+    command: sh -c "sleep 3 && npm run migrate && npm start"
+    restart: unless-stopped
 
   # Frontend React
   frontend:
@@ -58,17 +67,16 @@ services:
     ports:
       - "5173:5173"
     volumes:
-      - ./src:/app/src
-      - ./public:/app/public
-      - ./index.html:/app/index.html
-      - ./vite.config.js:/app/vite.config.js
-      - ./package.json:/app/package.json
+      # ADAPTER LES CHEMINS ICI selon votre NAS
+      - /volume1/docker/peintreab/src:/app/src
+      - /volume1/docker/peintreab/public:/app/public
+      - /volume1/docker/peintreab/index.html:/app/index.html
+      - /volume1/docker/peintreab/vite.config.js:/app/vite.config.js
+      - /volume1/docker/peintreab/package.json:/app/package.json
       - /app/node_modules
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
       - VITE_API_URL=/api
     stdin_open: true
     tty: true
-
-volumes:
-  postgres_data:
+    restart: unless-stopped

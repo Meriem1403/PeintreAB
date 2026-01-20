@@ -1,18 +1,14 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaFacebook, FaInstagram, FaGlobe, FaEnvelope, FaPhone } from 'react-icons/fa';
 import ParticlesBackground from '../components/ParticlesBackground';
+import { contactInfoAPI } from '../utils/apiService';
 import './Contact.css';
 
 const Contact = () => {
   const location = useLocation();
-
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [location.pathname]);
-
-  const contactInfo = {
+  const [contactInfo, setContactInfo] = useState({
     facebook: {
       name: 'Alexandre Bindl - Artiste Peintre',
       url: 'https://www.facebook.com/AlexandreBindlArtistePeintre'
@@ -27,6 +23,39 @@ const Contact = () => {
     },
     email: 'alexandre.bindl@gmail.com',
     phone: '06 32 00 12 28'
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    loadContactInfo();
+  }, [location.pathname]);
+
+  const loadContactInfo = async () => {
+    try {
+      setLoading(true);
+      const data = await contactInfoAPI.get();
+      setContactInfo({
+        facebook: {
+          name: data.facebook_name || 'Alexandre Bindl - Artiste Peintre',
+          url: data.facebook_url || 'https://www.facebook.com/AlexandreBindlArtistePeintre'
+        },
+        instagram: {
+          name: data.instagram_name || 'Alexandre_Bindl',
+          url: data.instagram_url || 'https://www.instagram.com/Alexandre_Bindl'
+        },
+        website: {
+          name: data.website_name || 'www.alexandre-bindl.fr',
+          url: data.website_url || 'http://www.alexandre-bindl.fr'
+        },
+        email: data.email || 'alexandre.bindl@gmail.com',
+        phone: data.phone || '06 32 00 12 28'
+      });
+    } catch (error) {
+      console.error('Erreur lors du chargement des informations de contact:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

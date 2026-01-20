@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FaChevronLeft, FaChevronRight, FaMapMarkerAlt } from 'react-icons/fa';
 import ParticlesBackground from '../components/ParticlesBackground';
 import { useWorks } from '../contexts/WorksContext';
+import { siteSettingsAPI } from '../utils/apiService';
 import './Home.css';
 
 const Home = () => {
@@ -13,6 +14,7 @@ const Home = () => {
   const navigate = useNavigate();
   const [featuredWorks, setFeaturedWorks] = useState([]);
   const [featuredEvents, setFeaturedEvents] = useState([]);
+  const [heroImage, setHeroImage] = useState('/images/peintures/2025-2-le-cours.jpg');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentEventIndex, setCurrentEventIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -29,6 +31,21 @@ const Home = () => {
         animationRef.current.kill();
       }
     };
+  }, []);
+
+  // Charger l'image du hero depuis les paramètres du site
+  useEffect(() => {
+    const loadHeroImage = async () => {
+      try {
+        const settings = await siteSettingsAPI.get();
+        if (settings.hero_image) {
+          setHeroImage(settings.hero_image);
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement de l\'image du hero:', error);
+      }
+    };
+    loadHeroImage();
   }, []);
 
   // Filtrer les œuvres mises en avant (peintures et croquis uniquement)
@@ -50,8 +67,21 @@ const Home = () => {
           });
         }
       });
-      setFeaturedWorks(featured);
-      setFeaturedEvents(events);
+      
+      // Trier par display_order (croissant), puis par created_at (décroissant) si display_order est identique
+      const sortByDisplayOrder = (a, b) => {
+        const orderA = a.display_order !== undefined && a.display_order !== null ? a.display_order : 999999;
+        const orderB = b.display_order !== undefined && b.display_order !== null ? b.display_order : 999999;
+        if (orderA !== orderB) {
+          return orderA - orderB;
+        }
+        const dateA = a.created_at ? new Date(a.created_at) : new Date(0);
+        const dateB = b.created_at ? new Date(b.created_at) : new Date(0);
+        return dateB - dateA;
+      };
+      
+      setFeaturedWorks(featured.sort(sortByDisplayOrder));
+      setFeaturedEvents(events.sort(sortByDisplayOrder));
     }
   }, [works, loading]);
 
@@ -153,7 +183,7 @@ const Home = () => {
     <div className="home">
       <div className="hero-section">
         <div className="hero-artwork-bg">
-          <div className="artwork-image" style={{ backgroundImage: 'url(/images/peintures/2025-2-le-cours.jpg)' }} />
+          <div className="artwork-image" style={{ backgroundImage: `url(${heroImage})` }} />
         </div>
         <ParticlesBackground />
         <motion.div
@@ -416,7 +446,7 @@ const Home = () => {
                           <div className="featured-work-image">
                             <img src={work.image} alt={work.titre} />
                             <div className={`availability-badge ${work.is_sold ? 'sold' : 'available'}`}>
-                              {work.is_sold ? 'Vendu' : 'Disponible'}
+                              {work.is_sold ? 'Collection privée' : 'Disponible'}
                             </div>
                           </div>
                         )}

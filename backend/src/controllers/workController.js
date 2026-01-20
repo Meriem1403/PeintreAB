@@ -11,7 +11,7 @@ export const getAllWorks = async (req, res) => {
       params.push(type);
     }
 
-    query += ' ORDER BY created_at DESC';
+    query += ' ORDER BY COALESCE(display_order, 999999) ASC, created_at DESC';
 
     const result = await pool.query(query, params);
     res.json(result.rows);
@@ -39,15 +39,27 @@ export const getWorkById = async (req, res) => {
 
 export const createWork = async (req, res) => {
   try {
-    const { type, titre, description, prix, image, date, date_debut, date_fin, lieu, adresse, is_sold, is_featured } = req.body;
+    const { type, titre, description, prix, image, date, date_debut, date_fin, lieu, adresse, is_sold, is_featured, display_order } = req.body;
 
     if (!type || !titre) {
       return res.status(400).json({ error: 'Type et titre sont requis' });
     }
 
+    // Si display_order n'est pas fourni, utiliser le max + 1 pour cette catégorie
+    let finalDisplayOrder = display_order;
+    if (finalDisplayOrder === undefined || finalDisplayOrder === null || finalDisplayOrder === '') {
+      const maxOrderResult = await pool.query(
+        'SELECT COALESCE(MAX(display_order), 0) + 1 as next_order FROM works WHERE type = $1',
+        [type]
+      );
+      finalDisplayOrder = maxOrderResult.rows[0].next_order;
+    } else {
+      finalDisplayOrder = parseInt(finalDisplayOrder, 10);
+    }
+
     const result = await pool.query(
-      `INSERT INTO works (type, titre, description, prix, image, date, date_debut, date_fin, lieu, adresse, is_sold, is_featured)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      `INSERT INTO works (type, titre, description, prix, image, date, date_debut, date_fin, lieu, adresse, is_sold, is_featured, display_order)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
        RETURNING *`,
       [
         type, 
@@ -61,7 +73,8 @@ export const createWork = async (req, res) => {
         lieu || null,
         adresse || null,
         is_sold || false,
-        is_featured || false
+        is_featured || false,
+        finalDisplayOrder
       ]
     );
 
@@ -75,7 +88,7 @@ export const createWork = async (req, res) => {
 export const updateWork = async (req, res) => {
   try {
     const { id } = req.params;
-    const { titre, description, prix, image, date, date_debut, date_fin, lieu, adresse, is_sold, is_featured } = req.body;
+    const { titre, description, prix, image, date, date_debut, date_fin, lieu, adresse, is_sold, is_featured, display_order } = req.body;
     console.log('🔄 Mise à jour œuvre:', { id, adresse, lieu, date_debut, date_fin });
 
     // Construire la requête SQL dynamiquement pour gérer les booléens correctement
@@ -127,6 +140,10 @@ export const updateWork = async (req, res) => {
     if (is_featured !== undefined) {
       updates.push(`is_featured = $${paramIndex++}`);
       params.push(is_featured === true || is_featured === 'true');
+    }
+    if (display_order !== undefined && display_order !== null && display_order !== '') {
+      updates.push(`display_order = $${paramIndex++}`);
+      params.push(parseInt(display_order, 10));
     }
 
     updates.push(`updated_at = CURRENT_TIMESTAMP`);

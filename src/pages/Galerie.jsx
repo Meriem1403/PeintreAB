@@ -1,12 +1,16 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { useWorks } from '../contexts/WorksContext';
 import GalleryItem from '../components/GalleryItem';
 import './Galerie.css';
 
+const ITEMS_PER_PAGE = 12;
+
 const Galerie = () => {
   const [activeCategory, setActiveCategory] = useState('peintures');
+  const [currentPage, setCurrentPage] = useState(1);
   const { works, loading } = useWorks();
   const navigate = useNavigate();
   const location = useLocation();
@@ -36,7 +40,21 @@ const Galerie = () => {
       return [];
     }
     const categoryItems = works[activeCategory] || [];
-    return Array.isArray(categoryItems) ? categoryItems : [];
+    if (!Array.isArray(categoryItems)) {
+      return [];
+    }
+    // Trier par display_order (croissant), puis par created_at (décroissant) si display_order est identique
+    return [...categoryItems].sort((a, b) => {
+      const orderA = a.display_order !== undefined && a.display_order !== null ? a.display_order : 999999;
+      const orderB = b.display_order !== undefined && b.display_order !== null ? b.display_order : 999999;
+      if (orderA !== orderB) {
+        return orderA - orderB;
+      }
+      // Si display_order est identique, trier par date de création (plus récent en premier)
+      const dateA = a.created_at ? new Date(a.created_at) : new Date(0);
+      const dateB = b.created_at ? new Date(b.created_at) : new Date(0);
+      return dateB - dateA;
+    });
   }, [works, activeCategory]);
 
   const handleWorkClick = (work) => {
@@ -55,8 +73,69 @@ const Galerie = () => {
   const handleCategoryChange = (categoryId) => {
     if (categoryId && categories.find(cat => cat.id === categoryId)) {
       setActiveCategory(categoryId);
+      setCurrentPage(1); // Réinitialiser à la page 1 lors du changement de catégorie
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+  };
+
+  // Calculer la pagination
+  const totalPages = Math.ceil(items.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedItems = items.slice(startIndex, endIndex);
+
+  // Réinitialiser à la page 1 si la page actuelle est supérieure au nombre total de pages
+  useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
+      setCurrentPage(1);
+    }
+  }, [totalPages, currentPage]);
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisible = 5;
+    
+    if (totalPages <= maxVisible) {
+      // Afficher toutes les pages si moins de maxVisible
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Afficher les pages avec ellipses
+      if (currentPage <= 3) {
+        // Début : 1, 2, 3, 4, ..., dernière
+        for (let i = 1; i <= 4; i++) {
+          pages.push(i);
+        }
+        pages.push('ellipsis');
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        // Fin : 1, ..., avant-dernière, dernière-2, dernière-1, dernière
+        pages.push(1);
+        pages.push('ellipsis');
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        // Milieu : 1, ..., page-1, page, page+1, ..., dernière
+        pages.push(1);
+        pages.push('ellipsis');
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pages.push(i);
+        }
+        pages.push('ellipsis');
+        pages.push(totalPages);
+      }
+    }
+    
+    return pages;
   };
 
   return (
@@ -119,20 +198,73 @@ const Galerie = () => {
               <p>Aucune œuvre à afficher pour le moment.</p>
             </div>
           ) : (
-            items.map((item, index) => {
-              if (!item) return null;
-              return (
-                <GalleryItem 
-                  key={`${item.id || 'item'}-${activeCategory}-${index}`} 
-                  item={item} 
-                  index={index}
-                  onClick={handleWorkClick}
-                />
-              );
-            }).filter(Boolean)
+            <>
+              {paginatedItems.map((item, index) => {
+                if (!item) return null;
+                return (
+                  <GalleryItem 
+                    key={`${item.id || 'item'}-${activeCategory}-${startIndex + index}`} 
+                    item={item} 
+                    index={startIndex + index}
+                    onClick={handleWorkClick}
+                  />
+                );
+              }).filter(Boolean)}
+            </>
           )}
         </motion.div>
       </AnimatePresence>
+
+      {/* Pagination */}
+      {!loading && items.length > 0 && totalPages > 1 && (
+        <motion.div
+          className="pagination"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <button
+            className="pagination-button"
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            aria-label="Page précédente"
+          >
+            <FaChevronLeft />
+          </button>
+
+          <div className="pagination-numbers">
+            {getPageNumbers().map((page, index) => {
+              if (page === 'ellipsis') {
+                return (
+                  <span key={`ellipsis-${index}`} className="pagination-ellipsis">
+                    ...
+                  </span>
+                );
+              }
+              return (
+                <button
+                  key={page}
+                  className={`pagination-number ${currentPage === page ? 'active' : ''}`}
+                  onClick={() => handlePageChange(page)}
+                  aria-label={`Page ${page}`}
+                  aria-current={currentPage === page ? 'page' : undefined}
+                >
+                  {page}
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            className="pagination-button"
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            aria-label="Page suivante"
+          >
+            <FaChevronRight />
+          </button>
+        </motion.div>
+      )}
     </div>
   );
 };

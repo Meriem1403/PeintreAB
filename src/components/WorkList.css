@@ -4,6 +4,27 @@
   gap: 2rem;
 }
 
+.work-list-item {
+  cursor: move;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.work-list-item.dragging {
+  opacity: 0.5;
+  cursor: grabbing;
+}
+
+.work-list-item.drag-over {
+  border-top: 3px solid #C6AC8F;
+  margin-top: 1rem;
+}
+
+.work-list-item.drag-over:first-child {
+  margin-top: 0;
+  padding-top: 1rem;
+}
+
 .empty-state {
   text-align: center;
   padding: 4rem 2rem;

@@ -102,10 +102,11 @@
   border-bottom: 1px solid #e5e5e5;
   flex: 1;
   overflow-x: auto;
+  min-width: 0;
 }
 
 .tab-button {
-  padding: 1rem 2rem;
+  padding: 1rem 1.5rem;
   font-size: 0.9rem;
   font-weight: 300;
   border: none;
@@ -123,6 +124,8 @@
   justify-content: center;
   gap: 0.5rem;
   white-space: nowrap;
+  flex-shrink: 0;
+  min-width: fit-content;
 }
 
 .tab-button:hover {

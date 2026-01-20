@@ -4,8 +4,11 @@
   position: sticky;
   top: 0;
   z-index: 1000;
-  backdrop-filter: blur(10px);
+  /* Fallback pour navigateurs ne supportant pas backdrop-filter */
   background: rgba(198, 172, 143, 0.98);
+  /* Support moderne avec flou */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   box-shadow: 0 2px 10px rgba(198, 172, 143, 0.25);
 }
 

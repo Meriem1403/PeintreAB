@@ -126,3 +126,31 @@ export const artistAPI = {
     });
   },
 };
+
+// API des informations de contact
+export const contactInfoAPI = {
+  get: async () => {
+    return request('/contact-info');
+  },
+  
+  update: async (data) => {
+    return request('/contact-info', {
+      method: 'PUT',
+      body: data,
+    });
+  },
+};
+
+// API des paramètres du site
+export const siteSettingsAPI = {
+  get: async () => {
+    return request('/site-settings');
+  },
+  
+  update: async (data) => {
+    return request('/site-settings', {
+      method: 'PUT',
+      body: data,
+    });
+  },
+};

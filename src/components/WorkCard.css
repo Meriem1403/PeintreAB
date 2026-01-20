@@ -3,6 +3,11 @@
   overflow: visible;
   border-top: 1px solid #e5e5e5;
   padding-top: 2rem;
+  transition: transform 0.2s ease;
+}
+
+.work-card:hover {
+  transform: translateY(-5px);
 }
 
 .work-card-image {
@@ -26,6 +31,31 @@
 
 .work-card-content {
   padding: 0;
+}
+
+.work-card-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.drag-handle {
+  color: #999;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  transition: color 0.2s ease;
+  user-select: none;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.work-card:hover .drag-handle {
+  color: #1a1a1a;
 }
 
 .work-card-content h3 {
@@ -68,11 +98,14 @@
   margin-top: 1.5rem;
   padding-top: 1.5rem;
   border-top: 1px solid #e5e5e5;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .btn-edit,
 .btn-delete {
   flex: 1;
+  min-width: 120px;
   padding: 0.75rem 1.5rem;
   border: 1px solid #1a1a1a;
   background: transparent;
@@ -83,6 +116,8 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-size: 0.85rem;
+  flex-shrink: 0;
+  user-select: none;
 }
 
 .btn-edit:hover {

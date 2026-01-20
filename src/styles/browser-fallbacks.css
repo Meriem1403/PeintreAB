@@ -1,0 +1,56 @@
+/* Fallbacks pour navigateurs Windows anciens */
+
+/* Fallback pour backdrop-filter (Edge Legacy, IE) */
+@supports not (backdrop-filter: blur(10px)) {
+  .navbar {
+    background: rgba(198, 172, 143, 0.98) !important;
+  }
+  
+  .form-overlay {
+    background: rgba(0, 0, 0, 0.7) !important;
+  }
+  
+  .work-detail-overlay {
+    background: rgba(0, 0, 0, 0.85) !important;
+  }
+  
+  .contact-form-container,
+  .biographie-content {
+    background: rgba(255, 255, 255, 0.95) !important;
+  }
+}
+
+/* Fallback pour aspect-ratio (Edge Legacy) */
+@supports not (aspect-ratio: 1) {
+  .featured-event-image {
+    padding-top: 55.56%; /* 1.8/1 ratio */
+  }
+  
+  .work-card-image,
+  .image-option {
+    padding-top: 100%; /* 1/1 ratio */
+  }
+}
+
+/* Fallback pour scroll-behavior smooth */
+@supports not (scroll-behavior: smooth) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Amélioration du rendu des polices sur Windows */
+@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+  body {
+    -ms-font-feature-settings: "liga" 1, "kern" 1;
+  }
+}
+
+/* Support pour les navigateurs Windows avec ClearType */
+@media screen {
+  body {
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}

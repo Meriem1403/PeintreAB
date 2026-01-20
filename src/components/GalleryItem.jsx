@@ -63,7 +63,7 @@ const GalleryItem = ({ item, index, onClick }) => {
           />
           <div className="image-overlay" />
           <div className={`availability-badge ${item.is_sold ? 'sold' : 'available'}`}>
-            {item.is_sold ? 'Vendu' : 'Disponible'}
+            {item.is_sold ? 'Collection privée' : 'Disponible'}
           </div>
         </div>
       )}
@@ -73,7 +73,7 @@ const GalleryItem = ({ item, index, onClick }) => {
         {(item.prix || item.date) && (
           <div className="item-info">
             {item.prix && !item.is_sold && <span className="item-price">{item.prix}€</span>}
-            {item.is_sold && <span className="item-sold">Vendu</span>}
+            {item.is_sold && <span className="item-sold">Collection privée</span>}
             {item.date && <span className="item-date">{new Date(item.date).toLocaleDateString('fr-FR')}</span>}
           </div>
         )}

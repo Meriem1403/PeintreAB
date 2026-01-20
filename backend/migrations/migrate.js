@@ -53,7 +53,11 @@ const createTables = async () => {
         ALTER TABLE works 
         ADD COLUMN IF NOT EXISTS adresse VARCHAR(500)
       `);
-      console.log('✅ Colonnes is_sold, is_featured, date_debut, date_fin et adresse ajoutées/vérifiées');
+      await pool.query(`
+        ALTER TABLE works 
+        ADD COLUMN IF NOT EXISTS display_order INTEGER DEFAULT 0
+      `);
+      console.log('✅ Colonnes is_sold, is_featured, date_debut, date_fin, adresse et display_order ajoutées/vérifiées');
     } catch (error) {
       // Les colonnes existent déjà ou erreur, on continue
       console.log('ℹ️ Vérification des colonnes is_sold, is_featured, date_debut et date_fin');
@@ -97,6 +101,60 @@ Formé dans les techniques classiques de la peinture à l''huile, Alexandre dév
         )
       `);
       console.log('✅ Informations artiste par défaut créées');
+    }
+
+    // Table contact_info (pour les informations de contact)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS contact_info (
+        id SERIAL PRIMARY KEY,
+        email VARCHAR(255) DEFAULT 'alexandre.bindl@gmail.com',
+        phone VARCHAR(50) DEFAULT '06 32 00 12 28',
+        facebook_name VARCHAR(255) DEFAULT 'Alexandre Bindl - Artiste Peintre',
+        facebook_url VARCHAR(500) DEFAULT 'https://www.facebook.com/AlexandreBindlArtistePeintre',
+        instagram_name VARCHAR(255) DEFAULT 'Alexandre_Bindl',
+        instagram_url VARCHAR(500) DEFAULT 'https://www.instagram.com/Alexandre_Bindl',
+        website_name VARCHAR(255) DEFAULT 'www.alexandre-bindl.fr',
+        website_url VARCHAR(500) DEFAULT 'http://www.alexandre-bindl.fr',
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Insérer une entrée par défaut si elle n'existe pas
+    const contactInfoCheck = await pool.query('SELECT * FROM contact_info LIMIT 1');
+    if (contactInfoCheck.rows.length === 0) {
+      await pool.query(`
+        INSERT INTO contact_info (email, phone, facebook_name, facebook_url, instagram_name, instagram_url, website_name, website_url)
+        VALUES (
+          'alexandre.bindl@gmail.com',
+          '06 32 00 12 28',
+          'Alexandre Bindl - Artiste Peintre',
+          'https://www.facebook.com/AlexandreBindlArtistePeintre',
+          'Alexandre_Bindl',
+          'https://www.instagram.com/Alexandre_Bindl',
+          'www.alexandre-bindl.fr',
+          'http://www.alexandre-bindl.fr'
+        )
+      `);
+      console.log('✅ Informations de contact par défaut créées');
+    }
+
+    // Table site_settings (pour les paramètres du site comme l'image du hero)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS site_settings (
+        id SERIAL PRIMARY KEY,
+        hero_image VARCHAR(500) DEFAULT '/images/peintures/2025-2-le-cours.jpg',
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Insérer une entrée par défaut si elle n'existe pas
+    const siteSettingsCheck = await pool.query('SELECT * FROM site_settings LIMIT 1');
+    if (siteSettingsCheck.rows.length === 0) {
+      await pool.query(`
+        INSERT INTO site_settings (hero_image)
+        VALUES ('/images/peintures/2025-2-le-cours.jpg')
+      `);
+      console.log('✅ Paramètres du site par défaut créés');
     }
 
     console.log('✅ Tables créées avec succès');

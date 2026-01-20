@@ -123,3 +123,11 @@ AlexandreBindl/
 
 - Les `node_modules` ne sont pas montés en volume pour éviter les conflits entre OS
 - Le mode développement utilise `--host 0.0.0.0` pour permettre l'accès depuis l'extérieur du conteneur
+
+## 📚 Documentation
+
+- [Guide de déploiement](README_DEPLOYMENT.md)
+- [Guide SEO](README_SEO.md)
+- [Guide NAS](README_NAS_DEPLOYMENT.md)
+- [Guide de transfert des données](README_DATA_TRANSFER.md)
+- [Guide Windows](README_WINDOWS.md) - Pour les utilisateurs Windows

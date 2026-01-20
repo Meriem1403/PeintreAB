@@ -213,7 +213,7 @@ const WorkForm = ({ type, work, onClose }) => {
                   checked={formData.is_sold}
                   onChange={handleChange}
                 />
-                <span>Œuvre vendue</span>
+                <span>Collection privée</span>
               </label>
             </div>
           )}

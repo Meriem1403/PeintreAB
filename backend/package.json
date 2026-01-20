@@ -8,7 +8,11 @@
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
     "migrate": "node migrations/migrate.js",
-    "seed": "node migrations/seedData.js"
+    "seed": "node migrations/seedData.js",
+    "scan-seed": "node migrations/scanAndSeed.js",
+    "remove-no-images": "node migrations/removeWorksWithoutImages.js",
+    "export-data": "node migrations/exportData.js",
+    "import-data": "node migrations/importData.js"
   },
   "keywords": [],
   "author": "",

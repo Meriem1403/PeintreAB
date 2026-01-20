@@ -9,6 +9,8 @@ import WorkForm from '../components/WorkForm';
 import WorkList from '../components/WorkList';
 import ContactList from '../components/ContactList';
 import ArtistInfoForm from '../components/ArtistInfoForm';
+import ContactInfoForm from '../components/ContactInfoForm';
+import HeroSettingsForm from '../components/HeroSettingsForm';
 import './Admin.css';
 
 const Admin = () => {
@@ -50,7 +52,9 @@ const Admin = () => {
     { id: 'peintures', label: 'Peintures' },
     { id: 'croquis', label: 'Croquis' },
     { id: 'evenements', label: 'Événements' },
+    { id: 'hero-settings', label: 'Hero' },
     { id: 'artist-info', label: 'Informations artiste' },
+    { id: 'contact-info', label: 'Contact' },
     { id: 'notifications', label: 'Notifications', icon: FiMail }
   ];
 
@@ -130,13 +134,15 @@ const Admin = () => {
                 <>
                   <FiMail /> Notifications {unreadCount > 0 && <span className="unread-badge">{unreadCount}</span>}
                 </>
+              ) : tab.id === 'artist-info' || tab.id === 'contact-info' || tab.id === 'hero-settings' ? (
+                tab.label
               ) : (
                 `${tab.label} (${works[tab.id]?.length || 0})`
               )}
             </motion.button>
           ))}
         </motion.div>
-        {activeTab !== 'artist-info' && activeTab !== 'notifications' && (
+        {activeTab !== 'artist-info' && activeTab !== 'contact-info' && activeTab !== 'notifications' && activeTab !== 'hero-settings' && (
           <motion.button
             className="btn-add"
             onClick={handleAdd}
@@ -186,6 +192,26 @@ const Admin = () => {
               transition={{ duration: 0.3 }}
             >
               <ArtistInfoForm />
+            </motion.div>
+          ) : activeTab === 'contact-info' ? (
+            <motion.div
+              key="contact-info"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <ContactInfoForm />
+            </motion.div>
+          ) : activeTab === 'hero-settings' ? (
+            <motion.div
+              key="hero-settings"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <HeroSettingsForm />
             </motion.div>
           ) : (
             <motion.div

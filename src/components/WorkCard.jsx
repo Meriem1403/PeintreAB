@@ -1,13 +1,10 @@
 import { motion } from 'framer-motion';
+import { FaGripVertical } from 'react-icons/fa';
 import './WorkCard.css';
 
 const WorkCard = ({ work, type, onEdit, onDelete }) => {
   return (
-    <motion.div
-      className="work-card"
-      whileHover={{ y: -10, scale: 1.02 }}
-      transition={{ type: "spring", stiffness: 300 }}
-    >
+    <div className="work-card">
       {work.image && (
         <div className="work-card-image">
           <img src={work.image} alt={work.titre} />
@@ -15,7 +12,12 @@ const WorkCard = ({ work, type, onEdit, onDelete }) => {
       )}
       
       <div className="work-card-content">
-        <h3>{work.titre}</h3>
+        <div className="work-card-header">
+          <div className="drag-handle">
+            <FaGripVertical />
+          </div>
+          <h3>{work.titre}</h3>
+        </div>
         {work.description && <p className="work-description">{work.description}</p>}
         
         <div className="work-card-info">
@@ -30,26 +32,32 @@ const WorkCard = ({ work, type, onEdit, onDelete }) => {
           )}
         </div>
 
-        <div className="work-card-actions">
-          <motion.button
+        <div className="work-card-actions" onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
+          <button
             className="btn-edit"
-            onClick={onEdit}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onEdit();
+            }}
+            draggable={false}
           >
             Modifier
-          </motion.button>
-          <motion.button
+          </button>
+          <button
             className="btn-delete"
-            onClick={onDelete}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onDelete();
+            }}
+            draggable={false}
           >
             Supprimer
-          </motion.button>
+          </button>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
