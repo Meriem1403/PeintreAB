@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { worksAPI } from '../utils/apiService';
+import { normalizeImageUrl } from '../utils/imageUrl';
 
 const WorksContext = createContext();
 
@@ -21,41 +22,66 @@ export const WorksProvider = ({ children }) => {
 
   useEffect(() => {
     loadWorks();
+
+    const handleFocus = () => {
+      if (!works.peintures.length && !works.croquis.length && !works.evenements.length) {
+        loadWorks();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
   const loadWorks = async () => {
-    try {
-      setLoading(true);
-      console.log('🔄 Chargement des œuvres depuis l\'API...');
-      
-      const [peintures, croquis, evenements] = await Promise.all([
-        worksAPI.getAll('peintures'),
-        worksAPI.getAll('croquis'),
-        worksAPI.getAll('evenements'),
-      ]);
-      
-      console.log('✅ Données chargées:', { 
-        peintures: peintures?.length || 0, 
-        croquis: croquis?.length || 0, 
-        evenements: evenements?.length || 0 
-      });
-      
-      setWorks({
-        peintures: peintures || [],
-        croquis: croquis || [],
-        evenements: evenements || [],
-      });
-    } catch (error) {
-      console.error('❌ Erreur lors du chargement des œuvres:', error);
-      // En cas d'erreur, garder des tableaux vides pour éviter un crash
-      setWorks({
-        peintures: [],
-        croquis: [],
-        evenements: []
-      });
-    } finally {
-      setLoading(false);
+    setLoading(true);
+    const maxAttempts = 5;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+      try {
+        console.log(`🔄 Chargement des œuvres depuis l'API (tentative ${attempt}/${maxAttempts})...`);
+
+        const [peintures, croquis, evenements] = await Promise.all([
+          worksAPI.getAll('peintures'),
+          worksAPI.getAll('croquis'),
+          worksAPI.getAll('evenements'),
+        ]);
+
+        const normalizeWorks = (items = []) =>
+          items.map((work) => ({
+            ...work,
+            image: normalizeImageUrl(work.image),
+          }));
+
+        setWorks({
+          peintures: normalizeWorks(peintures),
+          croquis: normalizeWorks(croquis),
+          evenements: normalizeWorks(evenements),
+        });
+
+        console.log('✅ Données chargées:', {
+          peintures: peintures?.length || 0,
+          croquis: croquis?.length || 0,
+          evenements: evenements?.length || 0,
+        });
+        setLoading(false);
+        return;
+      } catch (error) {
+        console.error(`❌ Erreur chargement œuvres (tentative ${attempt}/${maxAttempts}):`, error.message);
+        if (attempt < maxAttempts) {
+          await sleep(attempt * 1000);
+        }
+      }
     }
+
+    setWorks({
+      peintures: [],
+      croquis: [],
+      evenements: [],
+    });
+    setLoading(false);
   };
 
   const addWork = async (type, work) => {

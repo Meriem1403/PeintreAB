@@ -3,34 +3,49 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// Configuration du transporteur email
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-  port: parseInt(process.env.EMAIL_PORT || '587'),
-  secure: false, // true pour 465, false pour autres ports
-  auth: {
+const emailHost = process.env.EMAIL_HOST || 'smtp.gmail.com';
+const emailPort = parseInt(process.env.EMAIL_PORT || '587', 10);
+const isLocalMail = emailHost === 'mailpit' || process.env.EMAIL_MODE === 'dev';
+
+const transporterConfig = {
+  host: emailHost,
+  port: emailPort,
+  secure: emailPort === 465,
+  tls: {
+    rejectUnauthorized: false,
+  },
+};
+
+if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
+  transporterConfig.auth = {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASSWORD,
-  },
-  tls: {
-    rejectUnauthorized: false, // Pour Gmail en développement
-  },
-});
+  };
+}
 
-// Vérifier la configuration email au démarrage
-transporter.verify((error, success) => {
+const transporter = nodemailer.createTransport(transporterConfig);
+
+transporter.verify((error) => {
   if (error) {
     console.log('⚠️ Configuration email non disponible:', error.message);
-    console.log('📧 Le service de mailing nécessite EMAIL_USER et EMAIL_PASSWORD dans .env');
+    if (isLocalMail) {
+      console.log('📧 Vérifiez que le service Mailpit est démarré (docker compose up mailpit)');
+    } else {
+      console.log('📧 Le service de mailing nécessite EMAIL_USER et EMAIL_PASSWORD dans .env');
+    }
   } else {
-    console.log('✅ Service de mailing configuré avec succès');
+    if (isLocalMail) {
+      console.log('✅ Service de mailing configuré (Mailpit - http://localhost:8025)');
+    } else {
+      console.log('✅ Service de mailing configuré avec succès');
+    }
   }
 });
 
 export const sendEmail = async ({ to, subject, text, html }) => {
   try {
     const mailOptions = {
-      from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
+      from: process.env.EMAIL_FROM || process.env.EMAIL_USER || 'noreply@peintreab.local',
       to,
       subject,
       text,
@@ -40,17 +55,19 @@ export const sendEmail = async ({ to, subject, text, html }) => {
     const info = await transporter.sendMail(mailOptions);
     console.log('📧 Email envoyé avec succès:', info.messageId);
     console.log('   Destinataire:', to);
+    if (isLocalMail) {
+      console.log('   Interface Mailpit: http://localhost:8025');
+    }
     return { success: true, messageId: info.messageId };
   } catch (error) {
     console.error('❌ Erreur lors de l\'envoi de l\'email:', error.message);
     if (error.message.includes('Application-specific password')) {
       console.error('⚠️ Gmail nécessite un "App Password". Vérifiez votre configuration.');
     }
-    throw error; // Propager l'erreur pour que l'appelant puisse la gérer
+    throw error;
   }
 };
 
-// Envoyer un email de notification de nouveau contact
 export const sendContactNotification = async (contactData, workData = null) => {
   const { name, email, subject, message } = contactData;
 
@@ -81,16 +98,15 @@ export const sendContactNotification = async (contactData, workData = null) => {
   `;
 
   return await sendEmail({
-    to: process.env.EMAIL_USER, // Email de l'artiste
-    subject: workData 
-      ? `Nouvelle demande pour l'œuvre: ${workData.titre}` 
+    to: process.env.EMAIL_USER || process.env.EMAIL_FROM,
+    subject: workData
+      ? `Nouvelle demande pour l'œuvre: ${workData.titre}`
       : `Nouveau contact: ${subject || 'Sans sujet'}`,
     text,
     html,
   });
 };
 
-// Envoyer un email de confirmation au visiteur
 export const sendContactConfirmation = async (email, name, workData = null) => {
   const workInfo = workData ? `
     <p>Votre demande concernant l'œuvre "<strong>${workData.titre}</strong>" a bien été transmise à Alexandre Bindl.</p>
@@ -115,7 +131,7 @@ export const sendContactConfirmation = async (email, name, workData = null) => {
 
   return await sendEmail({
     to: email,
-    subject: workData 
+    subject: workData
       ? `Demande reçue pour ${workData.titre} - Alexandre Bindl`
       : 'Message reçu - Alexandre Bindl',
     text,
@@ -123,9 +139,8 @@ export const sendContactConfirmation = async (email, name, workData = null) => {
   });
 };
 
-// Envoyer une réponse à un contact
 export const sendReply = async ({ to, subject, message, originalContact }) => {
-  const { name, email, subject: originalSubject, message: originalMessage } = originalContact;
+  const { name, subject: originalSubject, message: originalMessage } = originalContact;
 
   const html = `
     <h2>Réponse à votre message</h2>

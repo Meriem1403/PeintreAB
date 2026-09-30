@@ -1,4 +1,5 @@
 import pool from '../config/database.js';
+import { normalizeImageUrl } from '../utils/imageUrl.js';
 
 export const getSiteSettings = async (req, res) => {
   try {
@@ -8,7 +9,11 @@ export const getSiteSettings = async (req, res) => {
         hero_image: '/images/peintures/2025-2-le-cours.jpg',
       });
     }
-    res.json(result.rows[0]);
+    const settings = result.rows[0];
+    res.json({
+      ...settings,
+      hero_image: normalizeImageUrl(settings.hero_image),
+    });
   } catch (error) {
     console.error('Erreur lors de la récupération des paramètres du site:', error);
     res.status(500).json({ error: 'Erreur serveur' });
