@@ -5,6 +5,7 @@ import { FaChevronLeft, FaChevronRight, FaMapMarkerAlt } from 'react-icons/fa';
 import ParticlesBackground from '../components/ParticlesBackground';
 import { useWorks } from '../contexts/WorksContext';
 import { siteSettingsAPI } from '../utils/apiService';
+import { normalizeImageUrl } from '../utils/imageUrl';
 import './Home.css';
 
 const Home = () => {
@@ -39,7 +40,7 @@ const Home = () => {
       try {
         const settings = await siteSettingsAPI.get();
         if (settings.hero_image) {
-          setHeroImage(settings.hero_image);
+          setHeroImage(normalizeImageUrl(settings.hero_image));
         }
       } catch (error) {
         console.error('Erreur lors du chargement de l\'image du hero:', error);
@@ -301,7 +302,6 @@ const Home = () => {
                           initial={{ opacity: 0, y: 30 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.9 + index * 0.1, duration: 0.5 }}
-                          whileHover={{ y: -10, transition: { duration: 0.3 } }}
                           onClick={() => handleWorkClick(event, event.category)}
                         >
                           <div className="event-card-overlay"></div>
@@ -439,7 +439,6 @@ const Home = () => {
                       <motion.div
                         key={`${work.id}-${work.category}`}
                         className="featured-work-item"
-                        whileHover={{ scale: 1.05, y: -5 }}
                         onClick={() => handleWorkClick(work, work.category)}
                       >
                         {work.image && (

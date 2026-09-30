@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaTimes, FaCalendar, FaMapMarkerAlt, FaEuroSign, FaChevronLeft, FaChevronRight, FaPalette, FaPencilAlt, FaEnvelope } from 'react-icons/fa';
 import { useWorks } from '../contexts/WorksContext';
 import ContactWorkForm from '../components/ContactWorkForm';
+import { normalizeImageUrl } from '../utils/imageUrl';
 import './WorkDetail.css';
 
 const WorkDetail = () => {
@@ -177,7 +178,8 @@ const WorkDetail = () => {
 
   // Réinitialiser le chargement d'image quand l'œuvre change
   useEffect(() => {
-    if (currentWork?.image) {
+    const nextImageUrl = normalizeImageUrl(currentWork?.image);
+    if (nextImageUrl) {
       setImageLoading(true);
       // Vérifier si l'image est déjà chargée (en cache)
       const img = new Image();
@@ -191,7 +193,7 @@ const WorkDetail = () => {
       };
       
       // Définir src (déclenche le chargement si pas en cache)
-      img.src = currentWork.image;
+      img.src = nextImageUrl;
       
       // Si l'image est déjà en cache, onLoad ne se déclenchera pas
       // Vérifier complete après un court délai pour permettre au navigateur de vérifier le cache
@@ -242,6 +244,7 @@ const WorkDetail = () => {
 
   const hasPrevious = currentIndex > 0;
   const hasNext = currentIndex >= 0 && currentIndex < categoryItems.length - 1;
+  const imageUrl = normalizeImageUrl(currentWork.image);
 
   // Rendu principal - TOUJOURS quelque chose si on arrive ici
   return (
@@ -293,7 +296,7 @@ const WorkDetail = () => {
         {/* Contenu principal */}
         <div className="work-detail-content">
           {/* Image */}
-          {currentWork.image && (
+          {imageUrl && (
             <motion.div
               className="work-detail-image-wrapper"
               initial={{ opacity: 0, scale: 0.95 }}
@@ -307,7 +310,7 @@ const WorkDetail = () => {
                   </div>
                 )}
                 <img
-                  src={currentWork.image}
+                  src={imageUrl}
                   alt={currentWork.titre || 'Œuvre'}
                   onLoad={(e) => {
                     setImageLoading(false);
@@ -317,7 +320,7 @@ const WorkDetail = () => {
                     }
                   }}
                   onError={() => {
-                    console.warn('⚠️ Erreur chargement image:', currentWork.image);
+                    console.warn('⚠️ Erreur chargement image:', imageUrl);
                     setImageLoading(false);
                   }}
                   style={{ opacity: imageLoading ? 0 : 1, transition: 'opacity 0.3s' }}

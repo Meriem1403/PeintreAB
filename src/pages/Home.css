@@ -198,7 +198,7 @@
   padding: 6rem 1rem;
   z-index: 10;
   width: 100%;
-  overflow: hidden;
+  overflow: visible;
 }
 
 
@@ -282,13 +282,16 @@
   border-radius: 16px;
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.35s ease;
   position: relative;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   border: 1px solid rgba(198, 172, 143, 0.1);
   display: flex;
   flex-direction: column;
   height: 100%;
+  will-change: transform;
 }
 
 .featured-event-item::before {
@@ -311,8 +314,9 @@
 
 .featured-event-item:hover {
   border-color: rgba(198, 172, 143, 0.4);
-  box-shadow: 0 12px 40px rgba(198, 172, 143, 0.2);
-  transform: translateY(-8px);
+  box-shadow: 0 16px 40px rgba(198, 172, 143, 0.22);
+  transform: translateY(-6px);
+  z-index: 3;
 }
 
 .event-card-overlay {
@@ -349,7 +353,7 @@
 }
 
 .featured-event-item:hover .featured-event-image img {
-  transform: scale(1.1);
+  transform: scale(1.04);
 }
 
 .image-gradient {
@@ -418,6 +422,9 @@
   gap: 0.5rem;
   margin: 0.75rem 0;
   padding: 0.5rem;
+  background: rgba(198, 172, 143, 0.08);
+  border-radius: 8px;
+  font-size: 0.85rem;
 }
 
 .location-link {
@@ -430,10 +437,6 @@
 .location-link:hover {
   color: #B89A7D;
   border-bottom-color: #B89A7D;
-}
-  background: rgba(198, 172, 143, 0.08);
-  border-radius: 8px;
-  font-size: 0.85rem;
 }
 
 .location-icon {
@@ -494,7 +497,7 @@
   padding: 6rem 1rem;
   z-index: 10;
   width: 100%;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .featured-works-container {
@@ -551,6 +554,8 @@
   position: relative;
   background: transparent;
   z-index: 5;
+  padding: 1.25rem 0;
+  margin: -1.25rem 0;
 }
 
 .featured-works-grid {
@@ -566,13 +571,18 @@
   border-radius: 4px;
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.35s ease,
+              border-color 0.35s ease;
   position: relative;
+  will-change: transform;
 }
 
 .featured-work-item:hover {
   border-color: #C6AC8F;
-  box-shadow: 0 8px 24px rgba(198, 172, 143, 0.15);
+  box-shadow: 0 16px 36px rgba(198, 172, 143, 0.2);
+  transform: translateY(-6px);
+  z-index: 3;
 }
 
 .featured-work-image {
@@ -591,7 +601,7 @@
 }
 
 .featured-work-item:hover .featured-work-image img {
-  transform: scale(1.05);
+  transform: scale(1.04);
 }
 
 /* Badge de disponibilité dans le carrousel */

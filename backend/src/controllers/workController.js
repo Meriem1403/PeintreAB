@@ -1,4 +1,5 @@
 import pool from '../config/database.js';
+import { normalizeImageUrl, normalizeWork } from '../utils/imageUrl.js';
 
 export const getAllWorks = async (req, res) => {
   try {
@@ -14,7 +15,7 @@ export const getAllWorks = async (req, res) => {
     query += ' ORDER BY COALESCE(display_order, 999999) ASC, created_at DESC';
 
     const result = await pool.query(query, params);
-    res.json(result.rows);
+    res.json(result.rows.map(normalizeWork));
   } catch (error) {
     console.error('Erreur lors de la récupération des œuvres:', error);
     res.status(500).json({ error: 'Erreur serveur' });
@@ -30,7 +31,7 @@ export const getWorkById = async (req, res) => {
       return res.status(404).json({ error: 'Œuvre non trouvée' });
     }
 
-    res.json(result.rows[0]);
+    res.json(normalizeWork(result.rows[0]));
   } catch (error) {
     console.error('Erreur lors de la récupération de l\'œuvre:', error);
     res.status(500).json({ error: 'Erreur serveur' });
@@ -66,7 +67,7 @@ export const createWork = async (req, res) => {
         titre, 
         description || null, 
         prix || null, 
-        image || null, 
+        normalizeImageUrl(image) || null, 
         date || null,
         date_debut || null,
         date_fin || null,
@@ -78,7 +79,7 @@ export const createWork = async (req, res) => {
       ]
     );
 
-    res.status(201).json(result.rows[0]);
+    res.status(201).json(normalizeWork(result.rows[0]));
   } catch (error) {
     console.error('Erreur lors de la création de l\'œuvre:', error);
     res.status(500).json({ error: 'Erreur serveur' });
@@ -110,7 +111,7 @@ export const updateWork = async (req, res) => {
     }
     if (image !== undefined) {
       updates.push(`image = $${paramIndex++}`);
-      params.push(image || null);
+      params.push(normalizeImageUrl(image) || null);
     }
     if (date !== undefined) {
       updates.push(`date = $${paramIndex++}`);
@@ -162,7 +163,7 @@ export const updateWork = async (req, res) => {
       return res.status(404).json({ error: 'Œuvre non trouvée' });
     }
 
-    res.json(result.rows[0]);
+    res.json(normalizeWork(result.rows[0]));
   } catch (error) {
     console.error('Erreur lors de la mise à jour de l\'œuvre:', error);
     res.status(500).json({ error: 'Erreur serveur' });
