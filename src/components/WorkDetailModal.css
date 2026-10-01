@@ -69,7 +69,7 @@
 .modal-nav:hover {
   background: #ffffff;
   color: #1a1a1a;
-  border-color: #C6AC8F;
+  border-color: var(--color-primary);
   transform: translateY(-50%) scale(1.1);
 }
 

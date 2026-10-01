@@ -1,0 +1,231 @@
+/* Accueil — un seul fond, panneaux transparents, pas de couture entre sections */
+
+html:has(.home) {
+  --home-nav-offset: 4.75rem;
+  --home-panel-h: calc(100dvh - var(--home-nav-offset));
+  --home-canvas: #ffffff;
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+  scroll-padding-top: var(--home-nav-offset);
+}
+
+html:has(.home),
+body:has(.home),
+.app:has(.home),
+.home {
+  background: var(--home-canvas);
+}
+
+.home {
+  --home-pad-y: clamp(1.5rem, 3.2vh, 2.35rem);
+  --home-pad-x: clamp(1.35rem, 4vw, 3rem);
+  --home-gap-head-stage: clamp(2.25rem, 5vh, 3.5rem);
+  --home-gap-cards: clamp(1rem, 1.8vw, 1.5rem);
+  --home-gap-carousel-nav: clamp(0.85rem, 1.6vw, 1.35rem);
+}
+
+.home-panel {
+  position: relative;
+  flex-shrink: 0;
+  width: 100%;
+  height: var(--home-panel-h);
+  min-height: var(--home-panel-h);
+  max-height: var(--home-panel-h);
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  box-sizing: border-box;
+  overflow: hidden;
+  background: transparent;
+}
+
+.hero-section.home-panel {
+  background: #0a0908;
+}
+
+.hero-section.home-panel::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: min(20vh, 150px);
+  pointer-events: none;
+  z-index: 4;
+  background: linear-gradient(to bottom, transparent, var(--home-canvas));
+}
+
+.home-panel--content {
+  color: #1a1816;
+}
+
+.hero-section.home-panel + .home-panel--content .home-panel-frame {
+  padding-top: clamp(2.85rem, 6.5vh, 4.5rem);
+}
+
+.home-panel-frame {
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+  height: 100%;
+  max-height: 100%;
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: var(--home-pad-y) var(--home-pad-x);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  align-content: stretch;
+  gap: var(--home-gap-head-stage);
+}
+
+.home-panel-head {
+  flex-shrink: 0;
+  padding: 0 0 0.25rem;
+  margin: 0;
+  border: none;
+}
+
+.home-carousel {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-height: 0;
+  height: 100%;
+  background: transparent;
+}
+
+.home-carousel-row {
+  display: grid;
+  grid-template-columns: 3.25rem minmax(0, 1fr) 3.25rem;
+  align-items: center;
+  gap: var(--home-gap-carousel-nav);
+  min-height: 0;
+  background: transparent;
+}
+
+.home-carousel-nav-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+}
+
+.home-carousel-nav-slot--prev {
+  justify-content: flex-end;
+  padding-right: 0.15rem;
+}
+
+.home-carousel-nav-slot--next {
+  justify-content: flex-start;
+  padding-left: 0.15rem;
+}
+
+.home-carousel-viewport {
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  align-items: stretch;
+  overflow: hidden;
+  padding: 0 0.15rem;
+  background: transparent;
+}
+
+.home-carousel-nav {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  border: 1px solid rgba(26, 24, 22, 0.12);
+  background: transparent;
+  color: #1a1816;
+  font-size: 1.5rem;
+  line-height: 1;
+  font-weight: 300;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0 0.1rem;
+  transition: border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  box-shadow: none;
+}
+
+.home-carousel-nav:hover {
+  border-color: var(--color-primary, #c6ac8f);
+  color: var(--color-primary, #c6ac8f);
+  background: transparent;
+}
+
+.home-carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: clamp(0.65rem, 1.2vh, 0.9rem) 0 0;
+}
+
+.home-carousel-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  border: none;
+  padding: 0;
+  background: rgba(26, 24, 22, 0.14);
+  cursor: pointer;
+  transition: width 0.25s ease, background 0.25s ease;
+}
+
+.home-carousel-dot.is-active {
+  width: 1.35rem;
+  background: var(--color-primary, #c6ac8f);
+}
+
+.home-carousel-track {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  gap: var(--home-gap-cards);
+  align-items: stretch;
+  background: transparent;
+}
+
+/* Cartes & carrousels legacy : pas de plaques blanches / crème sur la page */
+.home .featured-event-item,
+.home .featured-work-item {
+  background: transparent;
+  backdrop-filter: none;
+  box-shadow: none;
+  border: 1px solid rgba(26, 24, 22, 0.1);
+}
+
+.home .featured-event-image,
+.home .featured-work-image {
+  background: #eeeeee;
+}
+
+.home .carousel-wrapper,
+.home .carousel-container {
+  background: transparent;
+}
+
+@media (max-width: 768px) {
+  .home {
+    --home-pad-y: clamp(1.15rem, 2.8vh, 1.65rem);
+    --home-gap-head-stage: clamp(1.75rem, 4vh, 2.5rem);
+  }
+
+  .home-carousel-row {
+    grid-template-columns: 2.5rem minmax(0, 1fr) 2.5rem;
+  }
+
+  .home-carousel-nav {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:has(.home) {
+    scroll-snap-type: none;
+    scroll-behavior: auto;
+  }
+}

@@ -1,14 +1,32 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaChevronLeft, FaChevronRight, FaMapMarkerAlt } from 'react-icons/fa';
+import { FaChevronRight, FaMapMarkerAlt } from 'react-icons/fa';
 import ParticlesBackground from '../components/ParticlesBackground';
+import HomeExhibitionPanel from '../components/HomeExhibitionPanel';
 import { useWorks } from '../contexts/WorksContext';
 import { siteSettingsAPI } from '../utils/apiService';
 import { normalizeImageUrl } from '../utils/imageUrl';
+import '../styles/home-panels.css';
 import './Home.css';
 
+const workCategoryLabel = (category) => (category === 'croquis' ? 'Croquis' : 'Peinture');
+
+const getWorksPerView = (width) => {
+  if (width < 640) return 1;
+  if (width < 1024) return 2;
+  return 3;
+};
+
+const getEventsPerView = (width) => {
+  if (width < 640) return 1;
+  if (width < 900) return 2;
+  if (width < 1200) return 3;
+  return 4;
+};
+
 const Home = () => {
+  const homeRef = useRef(null);
   const heroRef = useRef(null);
   const animationRef = useRef(null);
   const { works, loading } = useWorks();
@@ -20,6 +38,8 @@ const Home = () => {
   const [currentEventIndex, setCurrentEventIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [isEventPaused, setIsEventPaused] = useState(false);
+  const [worksPerView, setWorksPerView] = useState(() => getWorksPerView(window.innerWidth));
+  const [eventsPerView, setEventsPerView] = useState(() => getEventsPerView(window.innerWidth));
   const carouselIntervalRef = useRef(null);
   const eventCarouselIntervalRef = useRef(null);
 
@@ -33,6 +53,50 @@ const Home = () => {
       }
     };
   }, []);
+
+  // Hauteur navbar → scroll-padding / sections (variable globale pour le snap CSS)
+  useEffect(() => {
+    const measureNav = () => {
+      const nav = document.querySelector('.navbar');
+      const navPx = nav ? nav.offsetHeight : 76;
+      const offset = `${navPx}px`;
+      const panelH = `calc(100dvh - ${navPx}px)`;
+      document.documentElement.style.setProperty('--home-nav-offset', offset);
+      document.documentElement.style.setProperty('--home-panel-h', panelH);
+      homeRef.current?.style.setProperty('--home-nav-offset', offset);
+      homeRef.current?.style.setProperty('--home-panel-h', panelH);
+    };
+
+    measureNav();
+    const nav = document.querySelector('.navbar');
+    const navObserver = nav ? new ResizeObserver(measureNav) : null;
+    if (nav && navObserver) navObserver.observe(nav);
+
+    return () => navObserver?.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const onResize = () => {
+      setWorksPerView(getWorksPerView(window.innerWidth));
+      setEventsPerView(getEventsPerView(window.innerWidth));
+    };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  useEffect(() => {
+    setCurrentIndex((i) => {
+      const max = Math.max(0, featuredWorks.length - worksPerView);
+      return Math.min(i, max);
+    });
+  }, [worksPerView, featuredWorks.length]);
+
+  useEffect(() => {
+    setCurrentEventIndex((i) => {
+      const max = Math.max(0, featuredEvents.length - eventsPerView);
+      return Math.min(i, max);
+    });
+  }, [eventsPerView, featuredEvents.length]);
 
   // Charger l'image du hero depuis les paramètres du site
   useEffect(() => {
@@ -86,33 +150,32 @@ const Home = () => {
     }
   }, [works, loading]);
 
+  const worksMaxIndex = Math.max(0, featuredWorks.length - worksPerView);
+  const eventsMaxIndex = Math.max(0, featuredEvents.length - eventsPerView);
+  const worksPageCount = Math.max(1, Math.ceil(featuredWorks.length / worksPerView));
+  const eventsPageCount = Math.max(1, Math.ceil(featuredEvents.length / eventsPerView));
+
   // Défilement automatique du carrousel des œuvres
   useEffect(() => {
-    if (featuredWorks.length <= 3 || isPaused) return;
+    if (featuredWorks.length <= worksPerView || isPaused) return;
 
     carouselIntervalRef.current = setInterval(() => {
-      setCurrentIndex((prevIndex) => {
-        const maxIndex = Math.max(0, featuredWorks.length - 3);
-        return prevIndex >= maxIndex ? 0 : prevIndex + 1;
-      });
-    }, 4000); // Change toutes les 4 secondes
+      setCurrentIndex((prevIndex) => (prevIndex >= worksMaxIndex ? 0 : prevIndex + 1));
+    }, 4000);
 
     return () => {
       if (carouselIntervalRef.current) {
         clearInterval(carouselIntervalRef.current);
       }
     };
-  }, [featuredWorks.length, isPaused]);
+  }, [featuredWorks.length, isPaused, worksPerView, worksMaxIndex]);
 
   // Défilement automatique du carrousel des événements
   useEffect(() => {
-    if (featuredEvents.length <= 4 || isEventPaused) return;
+    if (featuredEvents.length <= eventsPerView || isEventPaused) return;
 
     eventCarouselIntervalRef.current = setInterval(() => {
-      setCurrentEventIndex((prevIndex) => {
-        const maxIndex = Math.max(0, featuredEvents.length - 4);
-        return prevIndex >= maxIndex ? 0 : prevIndex + 1;
-      });
+      setCurrentEventIndex((prevIndex) => (prevIndex >= eventsMaxIndex ? 0 : prevIndex + 1));
     }, 4000);
 
     return () => {
@@ -120,57 +183,38 @@ const Home = () => {
         clearInterval(eventCarouselIntervalRef.current);
       }
     };
-  }, [featuredEvents.length, isEventPaused]);
+  }, [featuredEvents.length, isEventPaused, eventsPerView, eventsMaxIndex]);
 
   const getVisibleWorks = () => {
-    if (featuredWorks.length <= 3) return featuredWorks;
-    return featuredWorks.slice(currentIndex, currentIndex + 3);
+    if (featuredWorks.length <= worksPerView) return featuredWorks;
+    return featuredWorks.slice(currentIndex, currentIndex + worksPerView);
   };
 
   const getVisibleEvents = () => {
-    if (featuredEvents.length <= 4) return featuredEvents;
-    return featuredEvents.slice(currentEventIndex, currentEventIndex + 4);
-  };
-
-  const getEventsGridColumns = () => {
-    if (featuredEvents.length === 1) return '1fr';
-    if (featuredEvents.length === 2) return 'repeat(2, 1fr)';
-    if (featuredEvents.length === 3) return 'repeat(3, 1fr)';
-    return 'repeat(4, 1fr)';
+    if (featuredEvents.length <= eventsPerView) return featuredEvents;
+    return featuredEvents.slice(currentEventIndex, currentEventIndex + eventsPerView);
   };
 
   const handlePrevious = () => {
-    setCurrentIndex((prevIndex) => {
-      const maxIndex = Math.max(0, featuredWorks.length - 3);
-      return prevIndex <= 0 ? maxIndex : prevIndex - 1;
-    });
+    setCurrentIndex((prevIndex) => (prevIndex <= 0 ? worksMaxIndex : prevIndex - 1));
     setIsPaused(true);
     setTimeout(() => setIsPaused(false), 10000); // Reprendre après 10 secondes
   };
 
   const handleNext = () => {
-    setCurrentIndex((prevIndex) => {
-      const maxIndex = Math.max(0, featuredWorks.length - 3);
-      return prevIndex >= maxIndex ? 0 : prevIndex + 1;
-    });
+    setCurrentIndex((prevIndex) => (prevIndex >= worksMaxIndex ? 0 : prevIndex + 1));
     setIsPaused(true);
     setTimeout(() => setIsPaused(false), 10000); // Reprendre après 10 secondes
   };
 
   const handleEventPrevious = () => {
-    setCurrentEventIndex((prevIndex) => {
-      const maxIndex = Math.max(0, featuredEvents.length - 4);
-      return prevIndex <= 0 ? maxIndex : prevIndex - 1;
-    });
+    setCurrentEventIndex((prevIndex) => (prevIndex <= 0 ? eventsMaxIndex : prevIndex - 1));
     setIsEventPaused(true);
     setTimeout(() => setIsEventPaused(false), 10000);
   };
 
   const handleEventNext = () => {
-    setCurrentEventIndex((prevIndex) => {
-      const maxIndex = Math.max(0, featuredEvents.length - 4);
-      return prevIndex >= maxIndex ? 0 : prevIndex + 1;
-    });
+    setCurrentEventIndex((prevIndex) => (prevIndex >= eventsMaxIndex ? 0 : prevIndex + 1));
     setIsEventPaused(true);
     setTimeout(() => setIsEventPaused(false), 10000);
   };
@@ -181,8 +225,8 @@ const Home = () => {
   };
 
   return (
-    <div className="home">
-      <div className="hero-section">
+    <div className="home" ref={homeRef}>
+      <div className="hero-section home-panel">
         <div className="hero-artwork-bg">
           <div className="artwork-image" style={{ backgroundImage: `url(${heroImage})` }} />
         </div>
@@ -225,11 +269,11 @@ const Home = () => {
               e.preventDefault();
               const element = document.getElementById('featured-works');
               if (element) {
-                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                element.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
               }
             }}
           >
-            Voir les œuvres à l'honneur
+            Découvrir la sélection
           </motion.a>
         </motion.div>
         </motion.div>
@@ -237,261 +281,194 @@ const Home = () => {
 
       {/* Section événements mis en avant */}
       {featuredEvents.length > 0 && (
-        <motion.section
+        <HomeExhibitionPanel
           id="featured-events"
-          className="featured-events"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.7, duration: 0.6 }}
+          eyebrow="Agenda"
+          title="Événements"
+          lead="Expositions, vernissages et moments de rencontre autour de la peinture."
+          actionLabel="Tous les événements"
+          actionTo="/galerie"
+          canNavigate={featuredEvents.length > eventsPerView}
+          onPrevious={handleEventPrevious}
+          onNext={handleEventNext}
           onMouseEnter={() => setIsEventPaused(true)}
           onMouseLeave={() => setIsEventPaused(false)}
-        >
-          <div className="featured-events-container">
-              <motion.div
-                className="featured-events-header"
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.8 }}
-              >
-                <div className="events-header-decoration">
-                  <div className="decoration-line"></div>
-                  <div className="decoration-dot"></div>
-                </div>
-                <h2 className="featured-events-title">Événements à venir</h2>
-                <div className="events-header-decoration">
-                  <div className="decoration-dot"></div>
-                  <div className="decoration-line"></div>
-                </div>
-              </motion.div>
-              
-              <motion.p
-                className="featured-events-intro-text"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.9 }}
-              >
-                Découvrez les prochaines expositions et rendez-vous artistiques
-              </motion.p>
-              
-              <div className="carousel-wrapper">
-                {featuredEvents.length > 4 && (
-                  <button
-                    className="carousel-button carousel-button-left"
-                    onClick={handleEventPrevious}
-                    aria-label="Précédent"
-                  >
-                    <FaChevronLeft />
-                  </button>
-                )}
-
-                <div className="carousel-container">
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={currentEventIndex}
-                      className="featured-events-grid"
-                      style={{ gridTemplateColumns: getEventsGridColumns() }}
-                      initial={{ opacity: 0, x: 50 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -50 }}
-                      transition={{ duration: 0.5 }}
-                    >
-                      {getVisibleEvents().map((event, index) => (
-                        <motion.div
-                          key={`${event.id}-${event.category}`}
-                          className="featured-event-item"
-                          initial={{ opacity: 0, y: 30 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.9 + index * 0.1, duration: 0.5 }}
-                          onClick={() => handleWorkClick(event, event.category)}
-                        >
-                          <div className="event-card-overlay"></div>
-                          {event.image && (
-                            <div className="featured-event-image">
-                              <img src={event.image} alt={event.titre} />
-                              <div className="image-gradient"></div>
-                            {(event.date_debut || event.date) && (
-                              <div className="event-date-badge">
-                                {event.date_debut && event.date_fin ? (
-                                  <>
-                                    {new Date(event.date_debut).toLocaleDateString('fr-FR', { 
-                                      day: 'numeric',
-                                      month: 'short'
-                                    })} - {new Date(event.date_fin).toLocaleDateString('fr-FR', { 
-                                      day: 'numeric',
-                                      month: 'short',
-                                      year: 'numeric'
-                                    })}
-                                  </>
-                                ) : (
-                                  new Date(event.date_debut || event.date).toLocaleDateString('fr-FR', { 
-                                    day: 'numeric',
-                                    month: 'long',
-                                    year: 'numeric'
-                                  })
-                                )}
-                              </div>
-                            )}
-                            </div>
-                          )}
-                          <div className="featured-event-info">
-                            <div className="event-category-tag">Événement</div>
-                            <h3>{event.titre}</h3>
-                            {event.lieu && (
-                              <div className="event-location">
-                                <FaMapMarkerAlt className="location-icon" />
-                                <span className="location-text">{event.lieu}</span>
-                              </div>
-                            )}
-                            {event.description && (
-                              <p className="featured-event-description">{event.description}</p>
-                            )}
-                            <div className="event-cta">
-                              <span>En savoir plus</span>
-                              <FaChevronRight className="cta-arrow" />
-                            </div>
-                          </div>
-                        </motion.div>
-                      ))}
-                    </motion.div>
-                  </AnimatePresence>
-                </div>
-
-                {featuredEvents.length > 4 && (
-                  <button
-                    className="carousel-button carousel-button-right"
-                    onClick={handleEventNext}
-                    aria-label="Suivant"
-                  >
-                    <FaChevronRight />
-                  </button>
-                )}
+          dotsFooter={
+            featuredEvents.length > eventsPerView ? (
+              <div className="home-carousel-dots">
+                {Array.from({ length: eventsPageCount }).map((_, index) => {
+                  const pageIndex = index * eventsPerView;
+                  const isActive =
+                    currentEventIndex >= pageIndex &&
+                    currentEventIndex < pageIndex + eventsPerView;
+                  return (
+                    <button
+                      key={index}
+                      type="button"
+                      className={`home-carousel-dot${isActive ? ' is-active' : ''}`}
+                      onClick={() => setCurrentEventIndex(Math.min(pageIndex, eventsMaxIndex))}
+                      aria-label={`Page ${index + 1}`}
+                    />
+                  );
+                })}
               </div>
-
-              {featuredEvents.length > 4 && (
-                <div className="carousel-indicators">
-                  {Array.from({ length: Math.ceil(featuredEvents.length / 4) }).map((_, index) => {
-                    const pageIndex = index * 4;
-                    const maxIndex = Math.max(0, featuredEvents.length - 4);
-                    const isActive = currentEventIndex >= pageIndex && currentEventIndex < pageIndex + 4 && 
-                                   (currentEventIndex === pageIndex || currentEventIndex <= maxIndex);
-                    return (
-                      <button
-                        key={index}
-                        className={`carousel-indicator ${isActive ? 'active' : ''}`}
-                        onClick={() => setCurrentEventIndex(Math.min(pageIndex, maxIndex))}
-                        aria-label={`Page ${index + 1}`}
-                      />
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-        </motion.section>
+            ) : null
+          }
+        >
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`${currentEventIndex}-${eventsPerView}`}
+              className="home-carousel-track featured-events-grid"
+              style={{
+                gridTemplateColumns: `repeat(${Math.min(eventsPerView, getVisibleEvents().length)}, minmax(0, 1fr))`,
+              }}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.32 }}
+            >
+              {getVisibleEvents().map((event) => (
+                <motion.div
+                  key={`${event.id}-${event.category}`}
+                  className="featured-event-item"
+                  onClick={() => handleWorkClick(event, event.category)}
+                  whileHover={{ y: -3 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {event.image && (
+                    <div className="featured-event-image">
+                      <img src={normalizeImageUrl(event.image)} alt={event.titre} />
+                      <div className="image-gradient" />
+                      {(event.date_debut || event.date) && (
+                        <div className="event-date-badge">
+                          {event.date_debut && event.date_fin ? (
+                            <>
+                              {new Date(event.date_debut).toLocaleDateString('fr-FR', {
+                                day: 'numeric',
+                                month: 'short',
+                              })}{' '}
+                              -{' '}
+                              {new Date(event.date_fin).toLocaleDateString('fr-FR', {
+                                day: 'numeric',
+                                month: 'short',
+                                year: 'numeric',
+                              })}
+                            </>
+                          ) : (
+                            new Date(event.date_debut || event.date).toLocaleDateString('fr-FR', {
+                              day: 'numeric',
+                              month: 'long',
+                              year: 'numeric',
+                            })
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  <div className="featured-event-info">
+                    <div className="event-category-tag">Événement</div>
+                    <h3>{event.titre}</h3>
+                    {event.lieu && (
+                      <div className="event-location">
+                        <FaMapMarkerAlt className="location-icon" />
+                        <span className="location-text">{event.lieu}</span>
+                      </div>
+                    )}
+                    {event.description && (
+                      <p className="featured-event-description">{event.description}</p>
+                    )}
+                    <div className="event-cta">
+                      <span>En savoir plus</span>
+                      <FaChevronRight className="cta-arrow" />
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          </AnimatePresence>
+        </HomeExhibitionPanel>
       )}
 
       {/* Section œuvres mises en avant - Carrousel */}
       {featuredWorks.length > 0 && (
-        <motion.section
+        <HomeExhibitionPanel
           id="featured-works"
-          className="featured-works"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8, duration: 0.6 }}
+          eyebrow="Sélection"
+          title="Œuvres choisies"
+          lead="Un parcours intime parmi les toiles et croquis que l’artiste souhaite mettre en lumière."
+          actionLabel="Entrer en galerie"
+          actionTo="/galerie"
+          canNavigate={featuredWorks.length > worksPerView}
+          onPrevious={handlePrevious}
+          onNext={handleNext}
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
+          dotsFooter={
+            featuredWorks.length > worksPerView ? (
+              <div className="home-carousel-dots">
+                {Array.from({ length: worksPageCount }).map((_, index) => {
+                  const pageIndex = index * worksPerView;
+                  const isActive =
+                    currentIndex >= pageIndex && currentIndex < pageIndex + worksPerView;
+                  return (
+                    <button
+                      key={index}
+                      type="button"
+                      className={`home-carousel-dot${isActive ? ' is-active' : ''}`}
+                      onClick={() => setCurrentIndex(Math.min(pageIndex, worksMaxIndex))}
+                      aria-label={`Page ${index + 1}`}
+                    />
+                  );
+                })}
+              </div>
+            ) : null
+          }
         >
-          <ParticlesBackground containerId="particles-container-featured" particleColor="#C6AC8F" />
-          <div className="featured-works-container">
-            <div className="featured-works-header">
-              <div className="works-header-decoration">
-                <div className="decoration-line"></div>
-                <div className="decoration-dot"></div>
-              </div>
-              <h2 className="featured-works-title">Œuvres à l'honneur</h2>
-              <div className="works-header-decoration">
-                <div className="decoration-dot"></div>
-                <div className="decoration-line"></div>
-              </div>
-            </div>
-            
-            <div className="carousel-wrapper">
-              {featuredWorks.length > 3 && (
-                <button
-                  className="carousel-button carousel-button-left"
-                  onClick={handlePrevious}
-                  aria-label="Précédent"
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`${currentIndex}-${worksPerView}`}
+              className="home-carousel-track featured-works-grid"
+              style={{
+                gridTemplateColumns: `repeat(${Math.min(worksPerView, getVisibleWorks().length)}, minmax(0, 1fr))`,
+              }}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.32 }}
+            >
+              {getVisibleWorks().map((work) => (
+                <motion.div
+                  key={`${work.id}-${work.category}`}
+                  className="featured-work-item"
+                  onClick={() => handleWorkClick(work, work.category)}
+                  whileHover={{ y: -3 }}
+                  transition={{ duration: 0.2 }}
                 >
-                  <FaChevronLeft />
-                </button>
-              )}
-
-              <div className="carousel-container">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={currentIndex}
-                    className="featured-works-grid"
-                    initial={{ opacity: 0, x: 50 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -50 }}
-                    transition={{ duration: 0.5 }}
-                  >
-                    {getVisibleWorks().map((work) => (
-                      <motion.div
-                        key={`${work.id}-${work.category}`}
-                        className="featured-work-item"
-                        onClick={() => handleWorkClick(work, work.category)}
-                      >
-                        {work.image && (
-                          <div className="featured-work-image">
-                            <img src={work.image} alt={work.titre} />
-                            <div className={`availability-badge ${work.is_sold ? 'sold' : 'available'}`}>
-                              {work.is_sold ? 'Collection privée' : 'Disponible'}
-                            </div>
-                          </div>
-                        )}
-                        <div className="featured-work-info">
-                          <h3>{work.titre}</h3>
-                          {work.prix && !work.is_sold && (
-                            <p className="featured-work-price">{work.prix}€</p>
-                          )}
-                        </div>
-                      </motion.div>
-                    ))}
-                  </motion.div>
-                </AnimatePresence>
-              </div>
-
-                {featuredWorks.length > 3 && (
-                  <button
-                    className="carousel-button carousel-button-right"
-                    onClick={handleNext}
-                    aria-label="Suivant"
-                  >
-                    <FaChevronRight />
-                  </button>
-                )}
-              </div>
-
-              {featuredWorks.length > 3 && (
-                <div className="carousel-indicators">
-                  {Array.from({ length: Math.ceil(featuredWorks.length / 3) }).map((_, index) => {
-                    const pageIndex = index * 3;
-                    const maxIndex = Math.max(0, featuredWorks.length - 3);
-                    const isActive = currentIndex >= pageIndex && currentIndex < pageIndex + 3 && 
-                                   (currentIndex === pageIndex || currentIndex <= maxIndex);
-                    return (
-                      <button
-                        key={index}
-                        className={`carousel-indicator ${isActive ? 'active' : ''}`}
-                        onClick={() => setCurrentIndex(Math.min(pageIndex, maxIndex))}
-                        aria-label={`Page ${index + 1}`}
-                      />
-                    );
-                  })}
-                </div>
-              )}
-          </div>
-        </motion.section>
+                  {work.image && (
+                    <div className="featured-work-image">
+                      <img src={normalizeImageUrl(work.image)} alt={work.titre} />
+                      <div className={`availability-badge ${work.is_sold ? 'sold' : 'available'}`}>
+                        {work.is_sold ? 'Collection privée' : 'Disponible'}
+                      </div>
+                    </div>
+                  )}
+                  <div className="featured-work-info">
+                    <span className="featured-work-category">{workCategoryLabel(work.category)}</span>
+                    <h3>{work.titre}</h3>
+                    {work.description && (
+                      <p className="featured-work-excerpt">{work.description}</p>
+                    )}
+                    {(work.prix || work.is_sold) && (
+                      <p className="featured-work-price">
+                        {work.is_sold ? 'Collection privée' : `${work.prix} €`}
+                      </p>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          </AnimatePresence>
+        </HomeExhibitionPanel>
       )}
     </div>
   );

@@ -53,26 +53,26 @@ const ContactWorkForm = ({ work, onClose, onSuccess }) => {
 
   return (
     <motion.div
-      className="contact-form-overlay"
+      className="form-modal-overlay contact-form-overlay"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={onClose}
     >
       <motion.div
-        className="contact-form-container"
+        className="form-modal contact-form-container"
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.8, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="contact-form-header">
-          <h2>Cette œuvre m'intéresse</h2>
-          <button className="close-button" onClick={onClose}>×</button>
+        <div className="form-modal-header contact-form-header">
+          <h2>Cette œuvre m&apos;intéresse</h2>
+          <button type="button" className="form-modal-close" onClick={onClose} aria-label="Fermer">×</button>
         </div>
 
         {work && (
-          <div className="contact-work-info">
+          <div className="form-modal-aside contact-work-info">
             <h3>{work.titre}</h3>
             {work.prix && !work.is_sold && (
               <p className="work-price">Prix: {work.prix}€</p>
@@ -88,10 +88,11 @@ const ContactWorkForm = ({ work, onClose, onSuccess }) => {
             <p>Alexandre Bindl vous répondra dans les plus brefs délais.</p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="contact-form">
+          <form onSubmit={handleSubmit} className="app-form form-modal-body contact-form">
             <div className="form-group">
-              <label>Nom *</label>
+              <label htmlFor="contact-name">Nom *</label>
               <input
+                id="contact-name"
                 type="text"
                 name="name"
                 value={formData.name}
@@ -102,8 +103,9 @@ const ContactWorkForm = ({ work, onClose, onSuccess }) => {
             </div>
 
             <div className="form-group">
-              <label>Email *</label>
+              <label htmlFor="contact-email">Email *</label>
               <input
+                id="contact-email"
                 type="email"
                 name="email"
                 value={formData.email}
@@ -114,8 +116,9 @@ const ContactWorkForm = ({ work, onClose, onSuccess }) => {
             </div>
 
             <div className="form-group">
-              <label>Message *</label>
+              <label htmlFor="contact-message">Message *</label>
               <textarea
+                id="contact-message"
                 name="message"
                 value={formData.message}
                 onChange={handleChange}

@@ -1,40 +1,59 @@
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FiMenu, FiX } from 'react-icons/fi';
 import './Navbar.css';
 
 const Navbar = () => {
   const location = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const navItems = [
     { path: '/', label: 'Accueil' },
     { path: '/galerie', label: 'Galerie' },
     { path: '/biographie', label: 'Biographie' },
     { path: '/contact', label: 'Contact' },
-    { path: '/admin', label: 'Admin' }
+    { path: '/admin', label: 'Admin' },
   ];
 
+  const closeMenu = () => setMenuOpen(false);
+
   return (
-    <motion.nav 
+    <motion.nav
       className="navbar"
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.5 }}
     >
       <div className="navbar-container">
-        <motion.div 
+        <motion.div
           className="navbar-logo"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          <Link to="/">Alexandre Bindl</Link>
+          <Link to="/" onClick={closeMenu}>Alexandre Bindl</Link>
         </motion.div>
-        
-        <ul className="navbar-menu">
+
+        <button
+          type="button"
+          className="navbar-toggle"
+          aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((open) => !open)}
+        >
+          {menuOpen ? <FiX /> : <FiMenu />}
+        </button>
+
+        <ul className={`navbar-menu ${menuOpen ? 'open' : ''}`}>
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
               <li key={item.path}>
-                <Link to={item.path} className={isActive ? 'active' : ''}>
+                <Link
+                  to={item.path}
+                  className={isActive ? 'active' : ''}
+                  onClick={closeMenu}
+                >
                   {item.label}
                   {isActive && (
                     <motion.div
@@ -42,9 +61,9 @@ const Navbar = () => {
                       layoutId="underline"
                       initial={false}
                       transition={{
-                        type: "spring",
+                        type: 'spring',
                         stiffness: 380,
-                        damping: 30
+                        damping: 30,
                       }}
                     />
                   )}
@@ -54,6 +73,20 @@ const Navbar = () => {
           })}
         </ul>
       </div>
+
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.button
+            type="button"
+            className="navbar-overlay"
+            aria-label="Fermer le menu"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={closeMenu}
+          />
+        )}
+      </AnimatePresence>
     </motion.nav>
   );
 };

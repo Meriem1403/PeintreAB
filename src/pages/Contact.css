@@ -44,7 +44,7 @@
   transform: translateY(-50%);
   width: 100px;
   height: 1px;
-  background: linear-gradient(90deg, transparent, #C6AC8F, transparent);
+  background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
 }
 
 .contact-header h1::before {
@@ -66,7 +66,7 @@
   margin: 0 auto 3rem;
   font-style: italic;
   padding-bottom: 2rem;
-  border-bottom: 1px solid rgba(198, 172, 143, 0.2);
+  border-bottom: 1px solid rgba(var(--color-primary-rgb), 0.2);
 }
 
 .contact-content {
@@ -76,9 +76,9 @@
   border-radius: 24px;
   box-shadow: 
     0 20px 60px rgba(0, 0, 0, 0.1),
-    0 0 0 1px rgba(198, 172, 143, 0.08),
+    0 0 0 1px rgba(var(--color-primary-rgb), 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(198, 172, 143, 0.15);
+  border: 1px solid rgba(var(--color-primary-rgb), 0.15);
   width: 100%;
   box-sizing: border-box;
 }
@@ -95,7 +95,7 @@
   background: rgba(255, 255, 255, 0.8);
   border-radius: 16px;
   padding: 2.5rem;
-  border: 1px solid rgba(198, 172, 143, 0.1);
+  border: 1px solid rgba(var(--color-primary-rgb), 0.1);
   transition: all 0.3s ease;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   min-width: 0;
@@ -104,7 +104,7 @@
 
 .contact-card:hover {
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
-  border-color: rgba(198, 172, 143, 0.3);
+  border-color: rgba(var(--color-primary-rgb), 0.3);
 }
 
 .card-header {
@@ -123,7 +123,7 @@
 .header-line {
   width: 60px;
   height: 2px;
-  background: linear-gradient(90deg, #C6AC8F, transparent);
+  background: linear-gradient(90deg, var(--color-primary), transparent);
 }
 
 .card-content {
@@ -141,12 +141,12 @@
   text-decoration: none;
   transition: all 0.3s ease;
   background: rgba(250, 250, 250, 0.8);
-  border: 1px solid rgba(198, 172, 143, 0.1);
+  border: 1px solid rgba(var(--color-primary-rgb), 0.1);
 }
 
 .contact-link:hover {
-  background: rgba(198, 172, 143, 0.05);
-  border-color: rgba(198, 172, 143, 0.3);
+  background: rgba(var(--color-primary-rgb), 0.05);
+  border-color: rgba(var(--color-primary-rgb), 0.3);
   transform: translateX(5px);
 }
 
@@ -169,15 +169,15 @@
 }
 
 .website-link .contact-icon {
-  color: #C6AC8F;
+  color: var(--color-primary);
 }
 
 .email-link .contact-icon {
-  color: #C6AC8F;
+  color: var(--color-primary);
 }
 
 .phone-link .contact-icon {
-  color: #C6AC8F;
+  color: var(--color-primary);
 }
 
 .link-content {

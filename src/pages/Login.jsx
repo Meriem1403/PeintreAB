@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { FiUser, FiLock } from 'react-icons/fi';
@@ -11,6 +11,8 @@ const Login = () => {
   const [error, setError] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const redirectPath = location.state?.from || '/admin';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,26 +25,26 @@ const Login = () => {
 
     const success = await login(username, password);
     if (success) {
-      navigate('/admin');
+      navigate(redirectPath, { replace: true });
     } else {
       setError('Identifiants incorrects');
     }
   };
 
   return (
-    <div className="login">
+    <div className="login-page">
       <motion.div
-        className="login-container"
+        className="login-card"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="login-header">
+        <div className="login-card-header">
           <h1>Espace Administration</h1>
-          <p>Connexion requise</p>
+          <p>Connectez-vous pour gérer la galerie</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="login-form">
+        <form onSubmit={handleSubmit} className="app-form login-form">
           {error && (
             <motion.div
               className="error-message"
@@ -54,9 +56,9 @@ const Login = () => {
           )}
 
           <div className="form-group">
-            <label htmlFor="username">
-              <FiUser className="icon" />
-              Nom d'utilisateur
+            <label htmlFor="username" className="form-label-inline">
+              <FiUser className="icon" aria-hidden />
+              Nom d&apos;utilisateur
             </label>
             <input
               type="text"
@@ -69,8 +71,8 @@ const Login = () => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">
-              <FiLock className="icon" />
+            <label htmlFor="password" className="form-label-inline">
+              <FiLock className="icon" aria-hidden />
               Mot de passe
             </label>
             <input

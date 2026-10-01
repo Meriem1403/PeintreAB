@@ -159,6 +159,14 @@ Formé dans les techniques classiques de la peinture à l''huile, Alexandre dév
 
     console.log('✅ Tables créées avec succès');
 
+    await pool.query(`
+      ALTER TABLE site_settings
+      ADD COLUMN IF NOT EXISTS primary_color VARCHAR(20) DEFAULT '#C6AC8F',
+      ADD COLUMN IF NOT EXISTS accent_color VARCHAR(20) DEFAULT '#B89A7A',
+      ADD COLUMN IF NOT EXISTS navbar_color VARCHAR(20) DEFAULT '#C6AC8F'
+    `);
+    console.log('✅ Colonnes de thème ajoutées/vérifiées dans site_settings');
+
     // Ajouter work_id à la table contacts si elle n'existe pas
     try {
       await pool.query(`

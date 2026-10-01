@@ -186,7 +186,7 @@ const Galerie = () => {
                 width: '40px', 
                 height: '40px', 
                 border: '3px solid #e5e5e5', 
-                borderTopColor: '#C6AC8F', 
+                borderTopColor: 'var(--color-primary)', 
                 borderRadius: '50%', 
                 animation: 'spin 1s linear infinite',
                 margin: '0 auto 1rem'

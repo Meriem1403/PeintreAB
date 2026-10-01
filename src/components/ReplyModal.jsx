@@ -43,34 +43,34 @@ const ReplyModal = ({ contact, onClose, onSuccess }) => {
   return (
     <AnimatePresence>
       <motion.div
-        className="reply-modal-overlay"
+        className="form-modal-overlay reply-modal-overlay"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
       >
         <motion.div
-          className="reply-modal-container"
+          className="form-modal reply-modal-container"
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="reply-modal-header">
+          <div className="form-modal-header reply-modal-header">
             <h2>Répondre à {contact.name}</h2>
-            <button className="close-btn" onClick={onClose}>
+            <button type="button" className="form-modal-close close-btn" onClick={onClose} aria-label="Fermer">
               <FaTimes />
             </button>
           </div>
 
-          <div className="reply-modal-info">
+          <div className="form-modal-aside reply-modal-info">
             <p><strong>De:</strong> {contact.email}</p>
             {contact.work_titre && (
               <p><strong>Œuvre concernée:</strong> {contact.work_titre}</p>
             )}
           </div>
 
-          <form onSubmit={handleSubmit} className="reply-modal-form">
+          <form onSubmit={handleSubmit} className="app-form form-modal-body reply-modal-form">
             <div className="form-group">
               <label htmlFor="subject">Sujet</label>
               <input
@@ -101,7 +101,7 @@ const ReplyModal = ({ contact, onClose, onSuccess }) => {
               </div>
             )}
 
-            <div className="reply-modal-actions">
+            <div className="form-actions reply-modal-actions">
               <button
                 type="button"
                 className="btn-cancel"

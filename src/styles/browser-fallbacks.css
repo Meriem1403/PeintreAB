@@ -3,7 +3,7 @@
 /* Fallback pour backdrop-filter (Edge Legacy, IE) */
 @supports not (backdrop-filter: blur(10px)) {
   .navbar {
-    background: rgba(198, 172, 143, 0.98) !important;
+    background: rgba(var(--color-primary-rgb), 0.98) !important;
   }
   
   .form-overlay {

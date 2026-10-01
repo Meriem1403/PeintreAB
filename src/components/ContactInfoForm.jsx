@@ -88,7 +88,7 @@ const ContactInfoForm = ({ onUpdate }) => {
 
   return (
     <motion.div
-      className="contact-info-form"
+      className="contact-info-form app-form-panel"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
@@ -98,7 +98,7 @@ const ContactInfoForm = ({ onUpdate }) => {
         Gérez les informations de contact qui apparaissent sur la page Contact.
       </p>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="app-form">
         <div className="form-section">
           <h3>Contact direct</h3>
           <div className="form-group">

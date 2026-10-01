@@ -14,7 +14,7 @@
 }
 
 .contact-item.unread {
-  border-left: 4px solid #C6AC8F;
+  border-left: 4px solid var(--color-primary);
   background: #fafafa;
 }
 
@@ -48,7 +48,7 @@
 }
 
 .contact-icon.unread-icon {
-  color: #C6AC8F;
+  color: var(--color-primary);
 }
 
 .contact-header h3 {
@@ -92,12 +92,12 @@
 
 .mark-read-btn {
   background: transparent;
-  border-color: #C6AC8F;
-  color: #C6AC8F;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .mark-read-btn:hover:not(:disabled) {
-  background: #C6AC8F;
+  background: var(--color-primary);
   color: #ffffff;
 }
 
@@ -124,7 +124,7 @@
 }
 
 .contact-work-ref {
-  background: rgba(198, 172, 143, 0.1);
+  background: rgba(var(--color-primary-rgb), 0.1);
   padding: 0.75rem 1rem;
   border-radius: 4px;
   margin-bottom: 1rem;
@@ -133,7 +133,7 @@
 }
 
 .contact-work-ref .work-ref-price {
-  color: #C6AC8F;
+  color: var(--color-primary);
   font-weight: 500;
 }
 

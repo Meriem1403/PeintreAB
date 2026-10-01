@@ -38,7 +38,7 @@
   top: 50%;
   width: 100px;
   height: 1px;
-  background: linear-gradient(90deg, transparent, #C6AC8F, transparent);
+  background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
 }
 
 .biographie-header h1::before {
@@ -56,9 +56,9 @@
   border-radius: 24px;
   box-shadow: 
     0 20px 60px rgba(0, 0, 0, 0.1),
-    0 0 0 1px rgba(198, 172, 143, 0.08),
+    0 0 0 1px rgba(var(--color-primary-rgb), 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(198, 172, 143, 0.15);
+  border: 1px solid rgba(var(--color-primary-rgb), 0.15);
   position: relative;
 }
 
@@ -69,7 +69,7 @@
   left: -2px;
   right: -2px;
   bottom: -2px;
-  background: linear-gradient(135deg, rgba(198, 172, 143, 0.1), rgba(198, 172, 143, 0.05));
+  background: linear-gradient(135deg, rgba(var(--color-primary-rgb), 0.1), rgba(var(--color-primary-rgb), 0.05));
   border-radius: 24px;
   z-index: -1;
   opacity: 0;
@@ -107,7 +107,7 @@
   position: absolute;
   width: 30px;
   height: 30px;
-  border: 2px solid #C6AC8F;
+  border: 2px solid var(--color-primary);
   opacity: 0.3;
 }
 
@@ -218,7 +218,7 @@
 .signature-line {
   width: 80px;
   height: 1px;
-  background: linear-gradient(90deg, transparent, #C6AC8F, transparent);
+  background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
   margin: 0 auto 1.5rem;
 }
 
@@ -268,14 +268,14 @@
 .intro-line {
   height: 1px;
   flex: 1;
-  background: linear-gradient(90deg, transparent, #C6AC8F, transparent);
+  background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
 }
 
 .intro-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #C6AC8F;
+  background: var(--color-primary);
   opacity: 0.6;
 }
 
@@ -310,7 +310,7 @@
 
 .text-indicator {
   width: 4px;
-  background: linear-gradient(180deg, #C6AC8F, rgba(198, 172, 143, 0.4));
+  background: linear-gradient(180deg, var(--color-primary), rgba(var(--color-primary-rgb), 0.4));
   border-radius: 2px;
   flex-shrink: 0;
   margin-top: 0.3em;
@@ -325,7 +325,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #C6AC8F;
+  background: var(--color-primary);
   opacity: 0.6;
 }
 
@@ -347,7 +347,7 @@
 .footer-line {
   width: 120px;
   height: 1px;
-  background: linear-gradient(90deg, transparent, #C6AC8F, transparent);
+  background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
   margin: 0 auto 2rem;
 }
 
@@ -365,7 +365,7 @@
 .footer-quote::after {
   content: '"';
   font-size: 2rem;
-  color: #C6AC8F;
+  color: var(--color-primary);
   opacity: 0.5;
   position: absolute;
 }
@@ -390,7 +390,7 @@
   width: 40px;
   height: 40px;
   border: 3px solid #e5e5e5;
-  border-top-color: #C6AC8F;
+  border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 1rem;

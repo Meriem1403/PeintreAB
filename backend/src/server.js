@@ -7,7 +7,13 @@ import contactRoutes from './routes/contactRoutes.js';
 import artistRoutes from './routes/artistRoutes.js';
 import contactInfoRoutes from './routes/contactInfoRoutes.js';
 import siteSettingsRoutes from './routes/siteSettingsRoutes.js';
+import uploadRoutes from './routes/uploadRoutes.js';
 import pool from './config/database.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const publicDir = path.resolve(__dirname, '../public');
 
 dotenv.config();
 
@@ -21,6 +27,7 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use('/images', express.static(path.join(publicDir, 'images')));
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -29,6 +36,7 @@ app.use('/api/contacts', contactRoutes);
 app.use('/api/artist', artistRoutes);
 app.use('/api/contact-info', contactInfoRoutes);
 app.use('/api/site-settings', siteSettingsRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Route de santé
 app.get('/api/health', (req, res) => {
