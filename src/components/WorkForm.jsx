@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useWorks } from '../contexts/WorksContext';
+import FormSwitch from './FormSwitch';
+import ImageDropzone from './ImageDropzone';
 import './WorkForm.css';
 
 const WorkForm = ({ type, work, onClose }) => {
@@ -16,19 +18,17 @@ const WorkForm = ({ type, work, onClose }) => {
     lieu: '',
     adresse: '',
     is_sold: false,
-    is_featured: false
+    is_featured: false,
   });
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (work) {
-      // Formater les dates pour les inputs HTML (format YYYY-MM-DD)
       const formatDate = (dateValue) => {
         if (!dateValue) return '';
-        // Si c'est déjà au format YYYY-MM-DD, le retourner tel quel
         if (typeof dateValue === 'string' && dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
           return dateValue;
         }
-        // Si c'est une date ISO ou un objet Date, extraire YYYY-MM-DD
         const date = new Date(dateValue);
         if (isNaN(date.getTime())) return '';
         const year = date.getFullYear();
@@ -48,210 +48,209 @@ const WorkForm = ({ type, work, onClose }) => {
         lieu: work.lieu || '',
         adresse: work.adresse || '',
         is_sold: work.is_sold || false,
-        is_featured: work.is_featured || false
+        is_featured: work.is_featured || false,
       });
     }
   }, [work]);
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    const { name, value, type: inputType, checked } = e.target;
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: inputType === 'checkbox' ? checked : value,
     }));
   };
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData(prev => ({
-          ...prev,
-          image: reader.result
-        }));
-      };
-      reader.readAsDataURL(file);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      if (work) {
+        await updateWork(type, work.id, formData);
+      } else {
+        await addWork(type, formData);
+      }
+      onClose();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (work) {
-      updateWork(type, work.id, formData);
-    } else {
-      addWork(type, formData);
-    }
-    onClose();
-  };
+  const uploadFolder = type === 'evenements' ? 'evenements' : type;
+
+  const featuredHint =
+    type === 'evenements'
+      ? 'Visible dans « Prochains rendez-vous » sur l’accueil'
+      : 'Visible dans « En lumière » sur l’accueil';
 
   return (
     <motion.div
-      className="form-overlay"
+      className="form-modal-overlay"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={onClose}
     >
       <motion.div
-        className="form-container"
-        initial={{ scale: 0.8, opacity: 0 }}
+        className="form-modal form-modal--wide"
+        initial={{ scale: 0.96, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.8, opacity: 0 }}
+        exit={{ scale: 0.96, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="form-header">
-          <h2>{work ? 'Modifier' : 'Ajouter'} {type === 'peintures' ? 'une peinture' : type === 'croquis' ? 'un croquis' : 'un événement'}</h2>
-          <button className="close-button" onClick={onClose}>×</button>
+        <div className="form-modal-header">
+          <h2>
+            {work ? 'Modifier' : 'Ajouter'}{' '}
+            {type === 'peintures' ? 'une peinture' : type === 'croquis' ? 'un croquis' : 'un événement'}
+          </h2>
+          <button type="button" className="form-modal-close" onClick={onClose} aria-label="Fermer">
+            ×
+          </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="work-form">
-          <div className="form-group">
-            <label>Titre *</label>
-            <input
-              type="text"
-              name="titre"
-              value={formData.titre}
-              onChange={handleChange}
-              required
-            />
-          </div>
+        <form onSubmit={handleSubmit} className="app-form form-modal-body">
+          <div className="form-block">
+            <h3 className="form-block-title">Informations</h3>
 
-          <div className="form-group">
-            <label>Description</label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              rows="4"
-            />
-          </div>
-
-          {type !== 'evenements' && (
             <div className="form-group">
-              <label>Prix (€)</label>
+              <label htmlFor="work-titre">Titre *</label>
               <input
-                type="number"
-                name="prix"
-                value={formData.prix}
+                id="work-titre"
+                type="text"
+                name="titre"
+                value={formData.titre}
                 onChange={handleChange}
-                min="0"
-                step="0.01"
+                placeholder="Titre de l'œuvre"
+                required
               />
             </div>
-          )}
 
-          {/* Champ date pour peintures et croquis */}
-          {type !== 'evenements' && (
             <div className="form-group">
-              <label>Date</label>
-              <input
-                type="date"
-                name="date"
-                value={formData.date}
+              <label htmlFor="work-description">Description</label>
+              <textarea
+                id="work-description"
+                name="description"
+                value={formData.description}
                 onChange={handleChange}
+                rows="4"
+                placeholder="Technique, dimensions, contexte…"
               />
             </div>
-          )}
 
-          {type === 'evenements' && (
-            <>
-              <div className="form-group">
-                <label>Date de début *</label>
-                <input
-                  type="date"
-                  name="date_debut"
-                  value={formData.date_debut}
-                  onChange={handleChange}
-                  required
-                />
+            {type !== 'evenements' && (
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="work-prix">Prix (€)</label>
+                  <input
+                    id="work-prix"
+                    type="number"
+                    name="prix"
+                    value={formData.prix}
+                    onChange={handleChange}
+                    min="0"
+                    step="0.01"
+                    placeholder="1200"
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="work-date">Date</label>
+                  <input
+                    id="work-date"
+                    type="date"
+                    name="date"
+                    value={formData.date}
+                    onChange={handleChange}
+                  />
+                </div>
               </div>
-              <div className="form-group">
-                <label>Date de fin *</label>
-                <input
-                  type="date"
-                  name="date_fin"
-                  value={formData.date_fin}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Lieu</label>
-                <input
-                  type="text"
-                  name="lieu"
-                  value={formData.lieu}
-                  onChange={handleChange}
-                  placeholder="Ex: Galerie d'art, Musée..."
-                />
-              </div>
-              <div className="form-group">
-                <label>Adresse complète *</label>
-                <input
-                  type="text"
-                  name="adresse"
-                  value={formData.adresse}
-                  onChange={handleChange}
-                  placeholder="Ex: 123 Rue de la République, 75001 Paris, France"
-                  required
-                />
-                <small style={{ color: '#666', fontSize: '0.85rem', marginTop: '0.5rem', display: 'block' }}>
-                  Cette adresse sera utilisée pour créer un lien vers Google Maps
-                </small>
-              </div>
-            </>
-          )}
+            )}
 
-          {/* Champ is_sold pour peintures et croquis */}
-          {type !== 'evenements' && (
-            <div className="form-group checkbox-group">
-              <label className="checkbox-label">
-                <input
-                  type="checkbox"
+            {type === 'evenements' && (
+              <>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="work-date-debut">Début *</label>
+                    <input
+                      id="work-date-debut"
+                      type="date"
+                      name="date_debut"
+                      value={formData.date_debut}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="work-date-fin">Fin *</label>
+                    <input
+                      id="work-date-fin"
+                      type="date"
+                      name="date_fin"
+                      value={formData.date_fin}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="work-lieu">Lieu</label>
+                  <input
+                    id="work-lieu"
+                    type="text"
+                    name="lieu"
+                    value={formData.lieu}
+                    onChange={handleChange}
+                    placeholder="Galerie, musée…"
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="work-adresse">Adresse *</label>
+                  <input
+                    id="work-adresse"
+                    type="text"
+                    name="adresse"
+                    value={formData.adresse}
+                    onChange={handleChange}
+                    placeholder="Adresse complète"
+                    required
+                  />
+                  <small className="field-hint">Utilisée pour le lien Google Maps</small>
+                </div>
+              </>
+            )}
+          </div>
+
+          <div className="form-block">
+            <h3 className="form-block-title">Visibilité</h3>
+            <div className="form-switch-stack">
+              {type !== 'evenements' && (
+                <FormSwitch
+                  id="work-is-sold"
                   name="is_sold"
                   checked={formData.is_sold}
                   onChange={handleChange}
+                  label="Collection privée"
+                  description="Masque le prix et indique que l’œuvre n’est plus disponible"
                 />
-                <span>Collection privée</span>
-              </label>
-            </div>
-          )}
-
-          {/* Champ is_featured pour tous les types */}
-          <div className="form-group checkbox-group">
-            <label className="checkbox-label">
-              <input
-                type="checkbox"
+              )}
+              <FormSwitch
+                id="work-is-featured"
                 name="is_featured"
                 checked={formData.is_featured}
                 onChange={handleChange}
+                label="Mettre en avant"
+                description={featuredHint}
               />
-              <span>
-                {type === 'evenements' 
-                  ? "Mettre en avant (apparaît dans la section 'Événements à venir' sur la page d'accueil)"
-                  : "Mettre en avant (apparaît dans la section 'Œuvres à l'honneur' sur la page d'accueil)"}
-              </span>
-            </label>
+            </div>
           </div>
 
-          <div className="form-group">
-            <label>Image</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="file-input"
-            />
-            {formData.image && (
-              <img src={formData.image} alt="Preview" className="image-preview" />
-            )}
-            <input
-              type="text"
-              name="image"
-              placeholder="Ou URL de l'image"
-              value={formData.image && !formData.image.startsWith('data:') ? formData.image : ''}
-              onChange={handleChange}
+          <div className="form-block">
+            <ImageDropzone
+              label="Visuel"
+              folder={uploadFolder}
+              value={formData.image}
+              onChange={(url) => setFormData((prev) => ({ ...prev, image: url }))}
             />
           </div>
 
@@ -260,18 +259,19 @@ const WorkForm = ({ type, work, onClose }) => {
               type="button"
               onClick={onClose}
               className="btn-cancel"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
               Annuler
             </motion.button>
             <motion.button
               type="submit"
               className="btn-submit"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              disabled={saving}
+              whileHover={{ scale: saving ? 1 : 1.02 }}
+              whileTap={{ scale: saving ? 1 : 0.98 }}
             >
-              {work ? 'Modifier' : 'Ajouter'}
+              {saving ? 'Enregistrement…' : work ? 'Enregistrer' : 'Créer'}
             </motion.button>
           </div>
         </form>

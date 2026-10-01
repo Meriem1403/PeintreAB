@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { WorksProvider } from './contexts/WorksContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -17,7 +18,8 @@ function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <WorksProvider>
+        <ThemeProvider>
+          <WorksProvider>
           <Router>
             <div className="app">
               <Navbar />
@@ -41,7 +43,8 @@ function App() {
               </ErrorBoundary>
             </div>
           </Router>
-        </WorksProvider>
+          </WorksProvider>
+        </ThemeProvider>
       </AuthProvider>
     </ErrorBoundary>
   );

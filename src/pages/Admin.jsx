@@ -1,7 +1,18 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiLogOut, FiMail } from 'react-icons/fi';
+import {
+  FiLogOut,
+  FiMail,
+  FiExternalLink,
+  FiImage,
+  FiEdit3,
+  FiCalendar,
+  FiSun,
+  FiDroplet,
+  FiUser,
+  FiPhone,
+} from 'react-icons/fi';
 import { useAuth } from '../contexts/AuthContext';
 import { useWorks } from '../contexts/WorksContext';
 import { contactsAPI } from '../utils/apiService';
@@ -11,7 +22,34 @@ import ContactList from '../components/ContactList';
 import ArtistInfoForm from '../components/ArtistInfoForm';
 import ContactInfoForm from '../components/ContactInfoForm';
 import HeroSettingsForm from '../components/HeroSettingsForm';
+import ThemeSettingsForm from '../components/ThemeSettingsForm';
 import './Admin.css';
+
+const NAV = [
+  {
+    section: 'Galerie',
+    items: [
+      { id: 'peintures', label: 'Peintures', icon: FiImage },
+      { id: 'croquis', label: 'Croquis', icon: FiEdit3 },
+      { id: 'evenements', label: 'Événements', icon: FiCalendar },
+    ],
+  },
+  {
+    section: 'Site',
+    items: [
+      { id: 'hero-settings', label: 'Accueil', icon: FiSun },
+      { id: 'theme-settings', label: 'Couleurs', icon: FiDroplet },
+      { id: 'artist-info', label: 'Artiste', icon: FiUser },
+      { id: 'contact-info', label: 'Contact', icon: FiPhone },
+    ],
+  },
+  {
+    section: 'Messages',
+    items: [{ id: 'notifications', label: 'Boîte de réception', icon: FiMail }],
+  },
+];
+
+const GALLERY_TABS = new Set(['peintures', 'croquis', 'evenements']);
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -24,12 +62,10 @@ const Admin = () => {
   const [contacts, setContacts] = useState([]);
   const [contactsLoading, setContactsLoading] = useState(true);
 
-  // Scroll en haut lors de l'ouverture de la page admin
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [location.pathname]);
 
-  // Charger les messages/contacts
   useEffect(() => {
     loadContacts();
   }, []);
@@ -47,33 +83,14 @@ const Admin = () => {
     }
   };
 
+  const unreadCount = contacts.filter((c) => !c.read).length;
 
-  const tabs = [
-    { id: 'peintures', label: 'Peintures' },
-    { id: 'croquis', label: 'Croquis' },
-    { id: 'evenements', label: 'Événements' },
-    { id: 'hero-settings', label: 'Hero' },
-    { id: 'artist-info', label: 'Informations artiste' },
-    { id: 'contact-info', label: 'Contact' },
-    { id: 'notifications', label: 'Notifications', icon: FiMail }
-  ];
-
-  const unreadCount = contacts.filter(c => !c.read).length;
-
-  const handleAdd = () => {
-    setEditingWork(null);
-    setIsFormOpen(true);
+  const selectTab = (tabId) => {
+    setActiveTab(tabId);
+    if (tabId === 'notifications') loadContacts();
   };
 
-  const handleEdit = (work) => {
-    setEditingWork(work);
-    setIsFormOpen(true);
-  };
-
-  const handleCloseForm = () => {
-    setIsFormOpen(false);
-    setEditingWork(null);
-  };
+  const activeMeta = NAV.flatMap((g) => g.items).find((i) => i.id === activeTab);
 
   const handleLogout = () => {
     logout();
@@ -81,159 +98,131 @@ const Admin = () => {
   };
 
   return (
-    <div className="admin" key={location.pathname}>
-      <motion.div
-        className="admin-header"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        key={`header-${location.pathname}`}
-      >
-        <div className="admin-header-content">
+    <div className="admin-shell">
+      <aside className="admin-sidebar">
+        <div className="admin-sidebar-brand">
+          <span className="admin-sidebar-mark">AB</span>
           <div>
-            <h1>Espace Administration</h1>
-            <p>Gérez vos œuvres et événements</p>
+            <strong>Atelier</strong>
+            <span>Gestion du site</span>
           </div>
         </div>
-        <motion.button
-          className="btn-logout"
-          onClick={handleLogout}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-        >
-          <FiLogOut />
-          Déconnexion
-        </motion.button>
-      </motion.div>
 
-      <div className="admin-tabs-wrapper">
-        <motion.div
-          className="admin-tabs"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          key={`tabs-${location.pathname}`}
-        >
-          {tabs.map((tab) => (
-            <motion.button
-              key={tab.id}
-              className={`tab-button ${activeTab === tab.id ? 'active' : ''}`}
-              onClick={() => {
-                setActiveTab(tab.id);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-                if (tab.id === 'notifications') {
-                  loadContacts();
-                }
-              }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              {tab.id === 'notifications' ? (
-                <>
-                  <FiMail /> Notifications {unreadCount > 0 && <span className="unread-badge">{unreadCount}</span>}
-                </>
-              ) : tab.id === 'artist-info' || tab.id === 'contact-info' || tab.id === 'hero-settings' ? (
-                tab.label
-              ) : (
-                `${tab.label} (${works[tab.id]?.length || 0})`
-              )}
-            </motion.button>
+        <nav className="admin-sidebar-nav" aria-label="Administration">
+          {NAV.map((group) => (
+            <div key={group.section} className="admin-sidebar-group">
+              <p className="admin-sidebar-group-title">{group.section}</p>
+              <ul>
+                {group.items.map((item) => {
+                  const Icon = item.icon;
+                  const count =
+                    GALLERY_TABS.has(item.id) ? works[item.id]?.length ?? 0 : null;
+                  const badge = item.id === 'notifications' && unreadCount > 0 ? unreadCount : null;
+                  return (
+                    <li key={item.id}>
+                      <button
+                        type="button"
+                        className={`admin-sidebar-link ${activeTab === item.id ? 'is-active' : ''}`}
+                        onClick={() => selectTab(item.id)}
+                      >
+                        <Icon className="admin-sidebar-link-icon" aria-hidden />
+                        <span className="admin-sidebar-link-label">{item.label}</span>
+                        {count !== null && <span className="admin-sidebar-count">{count}</span>}
+                        {badge !== null && <span className="admin-sidebar-badge">{badge}</span>}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
           ))}
-        </motion.div>
-        {activeTab !== 'artist-info' && activeTab !== 'contact-info' && activeTab !== 'notifications' && activeTab !== 'hero-settings' && (
-          <motion.button
-            className="btn-add"
-            onClick={handleAdd}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-          >
-            + Ajouter une œuvre
-          </motion.button>
-        )}
-      </div>
+        </nav>
 
-      <motion.div
-        className="admin-content"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        key={`content-${location.pathname}`}
-      >
+        <div className="admin-sidebar-foot">
+          <Link to="/galerie" className="admin-sidebar-foot-link">
+            <FiExternalLink aria-hidden />
+            Galerie publique
+          </Link>
+          <button type="button" className="admin-sidebar-foot-btn" onClick={handleLogout}>
+            <FiLogOut aria-hidden />
+            Déconnexion
+          </button>
+        </div>
+      </aside>
 
-        <AnimatePresence mode="wait">
-          {activeTab === 'notifications' ? (
-            <motion.div
-              key="notifications"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.3 }}
+      <div className="admin-main">
+        <header className="admin-main-header">
+          <div>
+            <h1>{activeMeta?.label ?? 'Administration'}</h1>
+            <p>
+              {GALLERY_TABS.has(activeTab)
+                ? 'Ajoutez, modifiez ou réorganisez les œuvres visibles sur le site.'
+                : 'Paramètres et contenus éditoriaux.'}
+            </p>
+          </div>
+          {GALLERY_TABS.has(activeTab) && (
+            <motion.button
+              type="button"
+              className="admin-main-cta"
+              onClick={() => {
+                setEditingWork(null);
+                setIsFormOpen(true);
+              }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
-              {contactsLoading ? (
+              Nouvelle entrée
+            </motion.button>
+          )}
+        </header>
+
+        <motion.div
+          className="admin-main-body"
+          key={activeTab}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25 }}
+        >
+          <AnimatePresence mode="wait">
+            {activeTab === 'notifications' ? (
+              contactsLoading ? (
                 <div className="admin-loading">
-                  <div className="loading-spinner"></div>
-                  <p>Chargement des messages...</p>
+                  <div className="loading-spinner" />
+                  <p>Chargement…</p>
                 </div>
               ) : (
                 <ContactList contacts={contacts} onUpdate={loadContacts} />
-              )}
-            </motion.div>
-          ) : activeTab === 'artist-info' ? (
-            <motion.div
-              key="artist-info"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.3 }}
-            >
+              )
+            ) : activeTab === 'artist-info' ? (
               <ArtistInfoForm />
-            </motion.div>
-          ) : activeTab === 'contact-info' ? (
-            <motion.div
-              key="contact-info"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.3 }}
-            >
+            ) : activeTab === 'contact-info' ? (
               <ContactInfoForm />
-            </motion.div>
-          ) : activeTab === 'hero-settings' ? (
-            <motion.div
-              key="hero-settings"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.3 }}
-            >
+            ) : activeTab === 'hero-settings' ? (
               <HeroSettingsForm />
-            </motion.div>
-          ) : (
-            <motion.div
-              key={`${activeTab}-${loading ? 'loading' : 'loaded'}-${location.pathname}`}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.3 }}
-            >
-              <WorkList type={activeTab} onEdit={handleEdit} />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
+            ) : activeTab === 'theme-settings' ? (
+              <ThemeSettingsForm />
+            ) : (
+              <WorkList
+                type={activeTab}
+                onEdit={(work) => {
+                  setEditingWork(work);
+                  setIsFormOpen(true);
+                }}
+              />
+            )}
+          </AnimatePresence>
+        </motion.div>
+      </div>
 
       <AnimatePresence>
-        {isFormOpen && (
+        {isFormOpen && GALLERY_TABS.has(activeTab) && (
           <WorkForm
-            key={`form-${editingWork?.id || 'new'}`}
             type={activeTab}
             work={editingWork}
-            onClose={handleCloseForm}
+            onClose={() => {
+              setIsFormOpen(false);
+              setEditingWork(null);
+            }}
           />
         )}
       </AnimatePresence>

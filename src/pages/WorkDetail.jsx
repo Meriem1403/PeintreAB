@@ -1,11 +1,67 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef, useLayoutEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaTimes, FaCalendar, FaMapMarkerAlt, FaEuroSign, FaChevronLeft, FaChevronRight, FaPalette, FaPencilAlt, FaEnvelope } from 'react-icons/fa';
+import {
+  FaTimes,
+  FaCalendar,
+  FaMapMarkerAlt,
+  FaEuroSign,
+  FaChevronLeft,
+  FaChevronRight,
+  FaEnvelope,
+  FaHashtag,
+  FaTag,
+  FaCheckCircle,
+} from 'react-icons/fa';
 import { useWorks } from '../contexts/WorksContext';
 import ContactWorkForm from '../components/ContactWorkForm';
 import { normalizeImageUrl } from '../utils/imageUrl';
 import './WorkDetail.css';
+
+const categoryLabel = (category) => {
+  if (category === 'peintures') return 'Peinture';
+  if (category === 'croquis') return 'Croquis';
+  return 'Événement';
+};
+
+const categoryCollectionLabel = (category) => {
+  if (category === 'peintures') return 'Collection peintures';
+  if (category === 'croquis') return 'Collection croquis';
+  return 'Agenda';
+};
+
+const isPlausibleDate = (value) => {
+  if (!value) return false;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return false;
+  const y = d.getFullYear();
+  return y >= 1850 && y <= 2100;
+};
+
+const formatWorkDate = (value) => {
+  if (!isPlausibleDate(value)) return null;
+  return new Date(value).toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+};
+
+const formatWorkDateRange = (start, end) => {
+  const a = formatWorkDate(start);
+  const b = formatWorkDate(end);
+  if (a && b) return `${a} — ${b}`;
+  return a || b || null;
+};
+
+const fitArtDimensions = (naturalW, naturalH, maxW, maxH) => {
+  if (!naturalW || !naturalH || maxW <= 0 || maxH <= 0) return null;
+  const scale = Math.min(maxW / naturalW, maxH / naturalH, 1);
+  return {
+    width: Math.max(1, Math.floor(naturalW * scale)),
+    height: Math.max(1, Math.floor(naturalH * scale)),
+  };
+};
 
 const WorkDetail = () => {
   const { category, id } = useParams();
@@ -13,231 +69,242 @@ const WorkDetail = () => {
   const location = useLocation();
   const { works, loading } = useWorks();
   const [imageLoading, setImageLoading] = useState(true);
+  const [artSize, setArtSize] = useState(null);
+  const [naturalSize, setNaturalSize] = useState(null);
   const [isContactFormOpen, setIsContactFormOpen] = useState(false);
+  const stageRef = useRef(null);
+  const clusterRef = useRef(null);
+  const frameMeasureRef = useRef(null);
+  const [light, setLight] = useState({ x: 50, y: 40 });
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
-  // S'assurer que categoryItems est toujours un tableau
   const categoryItems = useMemo(() => {
     if (!works || typeof works !== 'object') return [];
     const items = works[category] || [];
     return Array.isArray(items) ? items : [];
   }, [works, category]);
 
-  // Trouver l'œuvre actuelle - logique optimisée pour un chargement rapide
   const { currentWork, currentIndex } = useMemo(() => {
-    // PRIORITÉ 1: Chercher dans categoryItems (données fraîches de la base) si disponible
     if (categoryItems && categoryItems.length > 0) {
-      // Si on a un work dans location.state, chercher le même dans categoryItems pour avoir les données à jour
       if (location.state?.work) {
         const workFromState = location.state.work;
-        const foundIndex = categoryItems.findIndex(item => 
-          item && (item.id === workFromState.id || String(item.id) === String(workFromState.id))
+        const foundIndex = categoryItems.findIndex(
+          (item) =>
+            item && (item.id === workFromState.id || String(item.id) === String(workFromState.id))
         );
         if (foundIndex >= 0) {
-          // Utiliser le work depuis categoryItems (données fraîches) plutôt que location.state
-          const workFromDB = categoryItems[foundIndex];
-          console.log('✅ Œuvre trouvée dans categoryItems:', { id: workFromDB.id, titre: workFromDB.titre, adresse: workFromDB.adresse, lieu: workFromDB.lieu });
-          return { currentWork: workFromDB, currentIndex: foundIndex };
+          return { currentWork: categoryItems[foundIndex], currentIndex: foundIndex };
         }
-        // Fallback par titre
-        const byTitle = categoryItems.findIndex(item => 
-          item && item.titre === workFromState.titre
-        );
+        const byTitle = categoryItems.findIndex((item) => item && item.titre === workFromState.titre);
         if (byTitle >= 0) {
           return { currentWork: categoryItems[byTitle], currentIndex: byTitle };
         }
       }
-      
-      // PRIORITÉ 2: Chercher par ID dans l'URL si pas de location.state
+
       if (id) {
-        const foundById = categoryItems.findIndex(item => {
+        const foundById = categoryItems.findIndex((item) => {
           if (!item) return false;
           const itemId = String(item.id || '');
           const searchId = String(id || '');
           return itemId === searchId || itemId === String(Number(id)) || item.id === Number(id);
         });
-        
         if (foundById >= 0) {
-          console.log('✅ Œuvre trouvée via ID URL à l\'index', foundById);
           return { currentWork: categoryItems[foundById], currentIndex: foundById };
         }
       }
-      
-      // PRIORITÉ 3: Utiliser le premier item disponible
+
       if (categoryItems[0]) {
-        console.log('✅ Utilisation du premier item disponible (index 0)');
         return { currentWork: categoryItems[0], currentIndex: 0 };
       }
     }
-    
-    // Fallback: Utiliser location.state.work si categoryItems n'est pas encore chargé
+
     if (location.state?.work && (!categoryItems || categoryItems.length === 0)) {
       return { currentWork: location.state.work, currentIndex: 0 };
     }
 
-    // Si pas d'items ou chargement en cours, retourner null
     if (loading || !categoryItems || categoryItems.length === 0) {
       return { currentWork: null, currentIndex: -1 };
     }
 
-    // PRIORITÉ 2: Chercher par ID dans l'URL (numérique ou string)
-    if (id) {
-      const foundById = categoryItems.findIndex(item => {
-        if (!item) return false;
-        const itemId = String(item.id || '');
-        const searchId = String(id || '');
-        return itemId === searchId || itemId === String(Number(id)) || item.id === Number(id);
-      });
-      
-      if (foundById >= 0) {
-        console.log('✅ Œuvre trouvée via ID URL à l\'index', foundById);
-        return { currentWork: categoryItems[foundById], currentIndex: foundById };
-      }
-    }
-
-    // PRIORITÉ 3: Utiliser le premier item disponible
-    if (categoryItems[0]) {
-      console.log('✅ Utilisation du premier item disponible (index 0)');
-      return { currentWork: categoryItems[0], currentIndex: 0 };
-    }
-
-    // Aucun item trouvé
-    console.warn('❌ Aucune œuvre trouvée avec les paramètres:', { category, id, itemsCount: categoryItems.length });
     return { currentWork: null, currentIndex: -1 };
   }, [loading, categoryItems, id, location.state, category]);
 
-  // Navigation vers une œuvre
-  const navigateToWork = useCallback((targetIndex) => {
-    if (targetIndex < 0 || targetIndex >= categoryItems.length || !categoryItems[targetIndex]) {
-      console.warn('⚠️ Index invalide pour navigation:', targetIndex);
-      return;
-    }
-    
-    const targetWork = categoryItems[targetIndex];
-    if (!targetWork || !targetWork.id) {
-      console.warn('⚠️ Work invalide à l\'index:', targetIndex);
-      return;
-    }
+  const navigateToWork = useCallback(
+    (targetIndex) => {
+      if (targetIndex < 0 || targetIndex >= categoryItems.length || !categoryItems[targetIndex]) return;
+      const targetWork = categoryItems[targetIndex];
+      if (!targetWork?.id) return;
+      setImageLoading(true);
+      navigate(`/galerie/${category}/${String(targetWork.id)}`, { state: { work: targetWork } });
+    },
+    [categoryItems, category, navigate]
+  );
 
-    setImageLoading(true);
-    const workId = String(targetWork.id);
-    console.log('🔄 Navigation vers œuvre:', workId, 'à l\'index', targetIndex);
-    
-    try {
-      navigate(`/galerie/${category}/${workId}`, { state: { work: targetWork } });
-    } catch (error) {
-      console.error('❌ Erreur navigation:', error);
-      setImageLoading(false);
-    }
-  }, [categoryItems, category, navigate]);
+  const handlePrevious = useCallback(
+    (e) => {
+      e?.preventDefault?.();
+      e?.stopPropagation?.();
+      if (currentIndex > 0) navigateToWork(currentIndex - 1);
+    },
+    [currentIndex, navigateToWork]
+  );
 
-  const handlePrevious = useCallback((e) => {
-    e?.preventDefault?.();
-    e?.stopPropagation?.();
-    if (currentIndex > 0) {
-      navigateToWork(currentIndex - 1);
-    }
-  }, [currentIndex, navigateToWork]);
-
-  const handleNext = useCallback((e) => {
-    e?.preventDefault?.();
-    e?.stopPropagation?.();
-    if (currentIndex >= 0 && currentIndex < categoryItems.length - 1) {
-      navigateToWork(currentIndex + 1);
-    }
-  }, [currentIndex, categoryItems.length, navigateToWork]);
+  const handleNext = useCallback(
+    (e) => {
+      e?.preventDefault?.();
+      e?.stopPropagation?.();
+      if (currentIndex >= 0 && currentIndex < categoryItems.length - 1) navigateToWork(currentIndex + 1);
+    },
+    [currentIndex, categoryItems.length, navigateToWork]
+  );
 
   const handleClose = useCallback(() => {
     navigate('/galerie');
   }, [navigate]);
 
-  // Navigation clavier
+  useEffect(() => {
+    document.body.classList.add('exhibition-mode');
+    return () => document.body.classList.remove('exhibition-mode');
+  }, []);
+
   useEffect(() => {
     const handleKeyPress = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-
-      switch (e.key) {
-        case 'Escape':
-          handleClose();
-          break;
-        case 'ArrowLeft':
-          e.preventDefault();
-          handlePrevious();
-          break;
-        case 'ArrowRight':
-          e.preventDefault();
-          handleNext();
-          break;
-        default:
-          break;
+      if (e.key === 'Escape') handleClose();
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        handlePrevious();
+      }
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        handleNext();
       }
     };
-
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [handleClose, handlePrevious, handleNext]);
 
-  // Réinitialiser le chargement d'image quand l'œuvre change
+  const recomputeArtSize = useCallback(() => {
+    const naturalW = naturalSize?.width;
+    const naturalH = naturalSize?.height;
+    if (!naturalW || !naturalH) return;
+
+    const cluster = clusterRef.current;
+    const stage = stageRef.current;
+    if (!cluster || !stage) return;
+
+    const clusterStyle = getComputedStyle(cluster);
+    const gap = parseFloat(clusterStyle.columnGap || clusterStyle.gap) || 8;
+    const navButtons = cluster.querySelectorAll('.exhibition-nav');
+    let navTotal = 0;
+    navButtons.forEach((btn) => {
+      navTotal += btn.getBoundingClientRect().width;
+    });
+    const gapsTotal = gap * 2;
+
+    const maxFrameW = Math.max(
+      120,
+      cluster.clientWidth - navTotal - gapsTotal - 4
+    );
+    const maxFrameH = Math.max(120, stage.clientHeight - 8);
+
+    const next = fitArtDimensions(naturalW, naturalH, maxFrameW, maxFrameH);
+    if (!next) return;
+    setArtSize((prev) =>
+      prev && prev.width === next.width && prev.height === next.height ? prev : next
+    );
+  }, [naturalSize]);
+
   useEffect(() => {
     const nextImageUrl = normalizeImageUrl(currentWork?.image);
-    if (nextImageUrl) {
-      setImageLoading(true);
-      // Vérifier si l'image est déjà chargée (en cache)
-      const img = new Image();
-      
-      // Définir les handlers avant de définir src
-      img.onload = () => {
-        setImageLoading(false);
-      };
-      img.onerror = () => {
-        setImageLoading(false);
-      };
-      
-      // Définir src (déclenche le chargement si pas en cache)
-      img.src = nextImageUrl;
-      
-      // Si l'image est déjà en cache, onLoad ne se déclenchera pas
-      // Vérifier complete après un court délai pour permettre au navigateur de vérifier le cache
-      setTimeout(() => {
-        if (img.complete && img.naturalHeight !== 0) {
-          setImageLoading(false);
-        }
-      }, 50);
-    } else {
+    setArtSize(null);
+    setNaturalSize(null);
+    if (!nextImageUrl) {
       setImageLoading(false);
+      return;
     }
+    setImageLoading(true);
+    const img = new Image();
+    const applyDimensions = () => {
+      if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+        setNaturalSize({ width: img.naturalWidth, height: img.naturalHeight });
+      }
+      setImageLoading(false);
+    };
+    img.onload = applyDimensions;
+    img.onerror = () => setImageLoading(false);
+    img.src = nextImageUrl;
+    if (img.complete && img.naturalHeight !== 0) applyDimensions();
   }, [currentWork?.id, currentWork?.image]);
 
-  // Scroll en haut lors de l'ouverture d'une œuvre
+  useLayoutEffect(() => {
+    recomputeArtSize();
+  }, [recomputeArtSize, naturalSize, currentWork?.id]);
+
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const stage = stageRef.current;
+    const cluster = clusterRef.current;
+    if (!stage || !cluster) return undefined;
+
+    let rafId = 0;
+    const scheduleRecompute = () => {
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => recomputeArtSize());
+    };
+
+    const observer = new ResizeObserver(scheduleRecompute);
+    observer.observe(stage);
+    observer.observe(cluster);
+    window.addEventListener('resize', scheduleRecompute);
+    return () => {
+      cancelAnimationFrame(rafId);
+      observer.disconnect();
+      window.removeEventListener('resize', scheduleRecompute);
+    };
+  }, [recomputeArtSize, currentWork?.id]);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'auto' });
   }, [location.pathname]);
 
-  // ÉTAT: Chargement (seulement si pas de work dans location.state)
+  const onStageMove = (e) => {
+    const el = stageRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setLight({ x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.min(100, y)) });
+    if (typeof window !== 'undefined' && window.innerWidth >= 1100) {
+      setTilt({ x: 0, y: 0 });
+      return;
+    }
+    setTilt({
+      x: (y - 50) * 0.12,
+      y: (x - 50) * -0.12,
+    });
+  };
+
+  const onStageLeave = () => {
+    setTilt({ x: 0, y: 0 });
+    setLight({ x: 50, y: 40 });
+  };
+
   if (loading && !location.state?.work) {
     return (
-      <div className="work-detail">
-        <div className="work-detail-loading">
-          <div className="loading-spinner"></div>
-          <p>Chargement de l'œuvre...</p>
-        </div>
+      <div className="exhibition exhibition--loading">
+        <div className="exhibition-loader" />
+        <p>Préparation de la salle…</p>
       </div>
     );
   }
 
-  // ÉTAT: Pas d'œuvre trouvée (seulement après le chargement ou si vraiment pas trouvée)
   if (!loading && (!currentWork || currentIndex < 0)) {
     return (
-      <div className="work-detail">
-        <div className="work-detail-error">
-          <h2>Œuvre non trouvée</h2>
-          <p>L'œuvre que vous recherchez n'existe pas ou a été supprimée.</p>
-          <p style={{ fontSize: '0.85rem', color: '#999', marginTop: '1rem' }}>
-            Catégorie: {category || 'inconnue'}, ID: {id || 'inconnu'}
-          </p>
-          <button className="btn-back" onClick={handleClose}>
-            Retour à la galerie
-          </button>
-        </div>
+      <div className="exhibition exhibition--error">
+        <h2>Œuvre introuvable</h2>
+        <button type="button" className="exhibition-btn" onClick={handleClose}>
+          Retour à la galerie
+        </button>
       </div>
     );
   }
@@ -245,232 +312,284 @@ const WorkDetail = () => {
   const hasPrevious = currentIndex > 0;
   const hasNext = currentIndex >= 0 && currentIndex < categoryItems.length - 1;
   const imageUrl = normalizeImageUrl(currentWork.image);
+  const workKey = `${currentWork.id}-${category}`;
+  const dateLabel = currentWork.date_debut
+    ? formatWorkDateRange(currentWork.date_debut, currentWork.date_fin)
+    : formatWorkDate(currentWork.date);
+  const isArtwork = category === 'peintures' || category === 'croquis';
+  const showPriceRow = isArtwork || currentWork.prix || currentWork.is_sold;
+  let priceLabel = 'Sur demande';
+  if (currentWork.is_sold) priceLabel = 'Collection privée';
+  else if (currentWork.prix) priceLabel = `${currentWork.prix} €`;
 
-  // Rendu principal - TOUJOURS quelque chose si on arrive ici
+  let availabilityLabel = 'Présenté en galerie';
+  if (currentWork.is_sold) availabilityLabel = 'Acquise — hors vente';
+  else if (isArtwork) availabilityLabel = 'Disponible à l’acquisition';
+  else if (category === 'evenements') availabilityLabel = 'Événement à venir ou passé';
+
+  const catalogLine = `${String(currentIndex + 1).padStart(2, '0')} / ${String(categoryItems.length).padStart(2, '0')} · ${categoryCollectionLabel(category)}`;
+  const referenceLabel = currentWork.id
+    ? `AB-${String(category).slice(0, 3).toUpperCase()}-${String(currentWork.id).padStart(4, '0')}`
+    : null;
+
+  const showContact = !currentWork.is_sold && isArtwork;
+
   return (
-    <div className="work-detail">
-      <motion.div
-        key={`work-${currentWork.id || 'unknown'}-${category}`}
-        className="work-detail-container"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.2 }}
-      >
-        {/* Bouton fermer */}
-        <motion.button
-          className="work-detail-close"
-          onClick={handleClose}
-          whileHover={{ scale: 1.1, rotate: 90 }}
-          whileTap={{ scale: 0.9 }}
-          aria-label="Fermer"
-        >
+    <div
+      className="exhibition"
+      style={{
+        '--light-x': `${light.x}%`,
+        '--light-y': `${light.y}%`,
+      }}
+    >
+      <div className="exhibition-veil" aria-hidden="true" />
+      <div className="exhibition-ambient exhibition-ambient--a" aria-hidden="true" />
+      <div className="exhibition-ambient exhibition-ambient--b" aria-hidden="true" />
+      <div className="exhibition-spotlight" aria-hidden="true" />
+      <div className="exhibition-vignette" aria-hidden="true" />
+      <div className="exhibition-floor-glow" aria-hidden="true" />
+
+      <header className="exhibition-toolbar">
+        <button type="button" className="exhibition-icon-btn" onClick={handleClose} aria-label="Fermer">
           <FaTimes />
-        </motion.button>
+        </button>
+        <div className="exhibition-toolbar-center">
+          <span className="exhibition-room-label">{categoryLabel(category)}</span>
+          <span className="exhibition-index">
+            {String(currentIndex + 1).padStart(2, '0')}
+            <span className="exhibition-index-sep">/</span>
+            {String(categoryItems.length).padStart(2, '0')}
+          </span>
+        </div>
+        <div className="exhibition-toolbar-spacer" />
+      </header>
 
-        {/* Navigation gauche/droite */}
-        {hasPrevious && (
-          <motion.button
-            className="work-detail-nav work-detail-nav-left"
-            onClick={handlePrevious}
-            whileHover={{ scale: 1.15, x: -5 }}
-            whileTap={{ scale: 0.95 }}
-            aria-label="Œuvre précédente"
-          >
-            <FaChevronLeft />
-          </motion.button>
-        )}
-
-        {hasNext && (
-          <motion.button
-            className="work-detail-nav work-detail-nav-right"
-            onClick={handleNext}
-            whileHover={{ scale: 1.15, x: 5 }}
-            whileTap={{ scale: 0.95 }}
-            aria-label="Œuvre suivante"
-          >
-            <FaChevronRight />
-          </motion.button>
-        )}
-
-        {/* Contenu principal */}
-        <div className="work-detail-content">
-          {/* Image */}
-          {imageUrl && (
-            <motion.div
-              className="work-detail-image-wrapper"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.2 }}
+      <div className="exhibition-layout">
+        <section
+          className="exhibition-stage"
+          ref={stageRef}
+          onMouseMove={onStageMove}
+          onMouseLeave={onStageLeave}
+          onTouchMove={(e) => {
+            const t = e.touches[0];
+            if (t) onStageMove({ clientX: t.clientX, clientY: t.clientY });
+          }}
+        >
+          <div className="exhibition-art-cluster" ref={clusterRef}>
+            <button
+              type="button"
+              className={`exhibition-nav exhibition-nav--prev ${!hasPrevious ? 'is-hidden' : ''}`}
+              onClick={handlePrevious}
+              disabled={!hasPrevious}
+              aria-label="Œuvre précédente"
             >
-              <div className="work-detail-image">
-                {imageLoading && (
-                  <div className="image-loader">
-                    <div className="loader"></div>
-                  </div>
-                )}
-                <img
-                  src={imageUrl}
-                  alt={currentWork.titre || 'Œuvre'}
-                  onLoad={(e) => {
-                    setImageLoading(false);
-                    // S'assurer que l'image est visible même si elle était en cache
-                    if (e.target.complete) {
-                      setImageLoading(false);
-                    }
-                  }}
-                  onError={() => {
-                    console.warn('⚠️ Erreur chargement image:', imageUrl);
-                    setImageLoading(false);
-                  }}
-                  style={{ opacity: imageLoading ? 0 : 1, transition: 'opacity 0.3s' }}
-                />
-              </div>
-            </motion.div>
-          )}
+              <FaChevronLeft />
+            </button>
 
-          {/* Informations */}
-          <motion.div
-            className="work-detail-info"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.2, delay: 0.05 }}
-          >
-            <div className="work-detail-header">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={workKey}
+                className="exhibition-art-sculpt"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <motion.div
+                  className="exhibition-art-float"
+                  animate={{ y: [0, -10, 0] }}
+                  transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  <motion.div
+                    className="exhibition-art-tilt"
+                    style={{ rotateX: tilt.x, rotateY: tilt.y }}
+                    transition={{ type: 'spring', stiffness: 140, damping: 20 }}
+                  >
+                    <motion.div
+                      className="exhibition-art-piece"
+                      ref={frameMeasureRef}
+                      initial={{ opacity: 0.9 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                    >
+                      <div
+                        className="exhibition-art-canvas"
+                        style={
+                          artSize
+                            ? { width: artSize.width, height: artSize.height }
+                            : undefined
+                        }
+                      >
+                        {imageLoading && <div className="exhibition-art-loader" />}
+                        {imageUrl && (
+                          <motion.img
+                            src={imageUrl}
+                            alt={currentWork.titre || 'Œuvre'}
+                            className={imageLoading || !artSize ? 'is-loading' : ''}
+                            width={artSize?.width}
+                            height={artSize?.height}
+                            onLoad={(e) => {
+                              const el = e.currentTarget;
+                              if (el.naturalWidth > 0 && el.naturalHeight > 0) {
+                                setNaturalSize({
+                                  width: el.naturalWidth,
+                                  height: el.naturalHeight,
+                                });
+                              }
+                              setImageLoading(false);
+                            }}
+                            onError={() => setImageLoading(false)}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                          />
+                        )}
+                      </div>
+                    </motion.div>
+                    <div className="exhibition-pedestal-shadow" aria-hidden="true" />
+                  </motion.div>
+                </motion.div>
+              </motion.div>
+            </AnimatePresence>
+
+            <button
+              type="button"
+              className={`exhibition-nav exhibition-nav--next ${!hasNext ? 'is-hidden' : ''}`}
+              onClick={handleNext}
+              disabled={!hasNext}
+              aria-label="Œuvre suivante"
+            >
+              <FaChevronRight />
+            </button>
+          </div>
+        </section>
+
+        <motion.footer
+          className="exhibition-placard"
+          key={`placard-${workKey}`}
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <div className="exhibition-placard-inner">
+            <div className="exhibition-placard-intro">
+              <span className="exhibition-placard-type">{categoryLabel(category)}</span>
+              <p className="exhibition-placard-catalog">{catalogLine}</p>
               <h1>{currentWork.titre || 'Sans titre'}</h1>
-              <div className="work-detail-counter">
-                <span className="counter-current">{currentIndex + 1}</span>
-                <span className="counter-separator">/</span>
-                <span className="counter-total">{categoryItems.length}</span>
-              </div>
             </div>
 
-            {currentWork.description && (
-              <p className="work-detail-description">
-                {currentWork.description}
-              </p>
+            {(currentWork.description || isArtwork) && (
+              <section className="exhibition-placard-about" aria-labelledby="placard-about-heading">
+                <h2 id="placard-about-heading" className="exhibition-placard-section-title">
+                  À propos
+                </h2>
+                {currentWork.description ? (
+                  <p className="exhibition-placard-desc">{currentWork.description}</p>
+                ) : (
+                  <p className="exhibition-placard-desc exhibition-placard-desc--muted">
+                    Œuvre originale présentée dans la galerie en ligne. Renseignements sur la
+                    technique, le format ou la disponibilité sur simple demande.
+                  </p>
+                )}
+              </section>
             )}
 
-            <div className="work-detail-meta">
-              {(currentWork.prix || currentWork.is_sold) && (
-                <div className="meta-item">
-                  <div className="meta-icon-wrapper">
-                    <FaEuroSign className="meta-icon" />
-                  </div>
-                  <div className="meta-content">
-                    <span className="meta-label">Prix</span>
-                    <span className={`meta-value ${currentWork.is_sold ? 'sold-status' : ''}`}>
-                      {currentWork.is_sold ? 'Collection privée' : `${currentWork.prix}€`}
-                    </span>
+            <div className="exhibition-placard-divider" aria-hidden="true" />
+
+            <div className="exhibition-placard-facts">
+              <div className="exhibition-fact">
+                <FaCheckCircle className="exhibition-fact-icon" aria-hidden />
+                <div>
+                  <span className="exhibition-fact-label">Statut</span>
+                  <span className="exhibition-fact-value">{availabilityLabel}</span>
+                </div>
+              </div>
+
+              {showPriceRow && (
+                <div className="exhibition-fact">
+                  <FaEuroSign className="exhibition-fact-icon" aria-hidden />
+                  <div>
+                    <span className="exhibition-fact-label">Tarif</span>
+                    <span className="exhibition-fact-value">{priceLabel}</span>
                   </div>
                 </div>
               )}
 
-              {(currentWork.date || currentWork.date_debut) && (
-                <div className="meta-item">
-                  <div className="meta-icon-wrapper">
-                    <FaCalendar className="meta-icon" />
+              {dateLabel && (
+                <div className="exhibition-fact">
+                  <FaCalendar className="exhibition-fact-icon" aria-hidden />
+                  <div>
+                    <span className="exhibition-fact-label">Date</span>
+                    <span className="exhibition-fact-value">{dateLabel}</span>
                   </div>
-                  <div className="meta-content">
-                    <span className="meta-label">Date</span>
-                    <span className="meta-value">
-                      {currentWork.date_debut && currentWork.date_fin ? (
-                        <>
-                          {new Date(currentWork.date_debut).toLocaleDateString('fr-FR', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          })} - {new Date(currentWork.date_fin).toLocaleDateString('fr-FR', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          })}
-                        </>
-                      ) : (
-                        new Date(currentWork.date_debut || currentWork.date).toLocaleDateString('fr-FR', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        })
-                      )}
-                    </span>
+                </div>
+              )}
+
+              <div className="exhibition-fact">
+                <FaTag className="exhibition-fact-icon" aria-hidden />
+                <div>
+                  <span className="exhibition-fact-label">Univers</span>
+                  <span className="exhibition-fact-value">{categoryCollectionLabel(category)}</span>
+                </div>
+              </div>
+
+              {referenceLabel && (
+                <div className="exhibition-fact">
+                  <FaHashtag className="exhibition-fact-icon" aria-hidden />
+                  <div>
+                    <span className="exhibition-fact-label">Référence</span>
+                    <span className="exhibition-fact-value">{referenceLabel}</span>
                   </div>
                 </div>
               )}
 
               {(currentWork.lieu || currentWork.adresse) && (
-                <div className="meta-item">
-                  <div className="meta-icon-wrapper">
-                    <FaMapMarkerAlt className="meta-icon" />
-                  </div>
-                  <div className="meta-content">
-                    <span className="meta-label">Lieu</span>
+                <div className="exhibition-fact">
+                  <FaMapMarkerAlt className="exhibition-fact-icon" aria-hidden />
+                  <div>
+                    <span className="exhibition-fact-label">Lieu</span>
                     {currentWork.adresse ? (
-                      <a 
+                      <a
+                        className="exhibition-fact-value exhibition-fact-link"
                         href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(currentWork.adresse)}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="meta-value meta-link"
-                        onClick={(e) => e.stopPropagation()}
                       >
-                        {currentWork.lieu ? `${currentWork.lieu} - ${currentWork.adresse}` : currentWork.adresse}
+                        {currentWork.lieu || currentWork.adresse}
                       </a>
                     ) : (
-                      <span className="meta-value">{currentWork.lieu}</span>
+                      <span className="exhibition-fact-value">{currentWork.lieu}</span>
                     )}
                   </div>
                 </div>
               )}
-
-              <div className="meta-item">
-                <div className="meta-icon-wrapper">
-                  {category === 'peintures' ? (
-                    <FaPalette className="meta-icon" />
-                  ) : category === 'croquis' ? (
-                    <FaPencilAlt className="meta-icon" />
-                  ) : (
-                    <FaCalendar className="meta-icon" />
-                  )}
-                </div>
-                <div className="meta-content">
-                  <span className="meta-label">Type</span>
-                  <span className="meta-value">
-                    {category === 'peintures' ? 'Peinture' :
-                     category === 'croquis' ? 'Croquis' :
-                     'Événement'}
-                  </span>
-                </div>
-              </div>
             </div>
 
-            {/* Bouton "Cette œuvre m'intéresse" pour les œuvres disponibles */}
-            {!currentWork.is_sold && (category === 'peintures' || category === 'croquis') && (
-              <motion.button
-                className="work-interest-button"
-                onClick={() => setIsContactFormOpen(true)}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <FaEnvelope />
-                Cette œuvre m'intéresse
-              </motion.button>
+            {showContact && (
+              <div className="exhibition-placard-cta">
+                <p className="exhibition-placard-cta-hint">
+                  Une question sur cette œuvre, une visite ou un achat ?
+                </p>
+                <button
+                  type="button"
+                  className="exhibition-btn exhibition-btn--primary"
+                  onClick={() => setIsContactFormOpen(true)}
+                >
+                  <FaEnvelope aria-hidden />
+                  Cette œuvre m&apos;intéresse
+                </button>
+              </div>
             )}
-          </motion.div>
-        </div>
-      </motion.div>
+          </div>
+        </motion.footer>
+      </div>
 
-      {/* Modal formulaire de contact */}
       <AnimatePresence>
         {isContactFormOpen && (
           <ContactWorkForm
             work={currentWork}
             onClose={() => setIsContactFormOpen(false)}
-            onSuccess={() => {
-              console.log('Message envoyé avec succès');
-            }}
+            onSuccess={() => {}}
           />
         )}
       </AnimatePresence>

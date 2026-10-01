@@ -1,4 +1,9 @@
 :root {
+  --color-primary: var(--color-primary);
+  --color-accent: var(--color-accent);
+  --color-navbar: var(--color-primary);
+  --color-primary-rgb: 198, 172, 143;
+
   /* Support Windows avec Segoe UI en priorité */
   font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', Arial, sans-serif;
   line-height: 1.6;
@@ -43,3 +48,4 @@ a {
   color: inherit;
   text-decoration: none;
 }
+

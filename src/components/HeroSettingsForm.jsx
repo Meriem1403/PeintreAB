@@ -129,7 +129,7 @@ const HeroSettingsForm = ({ onUpdate }) => {
 
   return (
     <motion.div
-      className="hero-settings-form"
+      className="hero-settings-form app-form-panel"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
@@ -139,7 +139,7 @@ const HeroSettingsForm = ({ onUpdate }) => {
         Choisissez l'image qui apparaîtra en arrière-plan de la section hero sur la page d'accueil.
       </p>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="app-form">
         <div className="form-group">
           <label htmlFor="hero_image">URL de l'image</label>
           <input
@@ -151,8 +151,8 @@ const HeroSettingsForm = ({ onUpdate }) => {
             placeholder="/images/peintures/nom-image.jpg"
             required
           />
-          <small style={{ color: '#666', fontSize: '0.85rem', marginTop: '0.5rem', display: 'block' }}>
-            Chemin relatif vers l'image (ex: /images/peintures/image.jpg)
+          <small className="field-hint">
+            Chemin relatif (ex. /images/peintures/image.jpg)
           </small>
         </div>
 
@@ -160,13 +160,11 @@ const HeroSettingsForm = ({ onUpdate }) => {
           <label>Ou sélectionner une image existante</label>
           <div className="image-selector">
             {worksLoading ? (
-              <p style={{ color: '#999', fontStyle: 'italic' }}>
-                Chargement des images...
-              </p>
+              <p className="selector-empty">Chargement des images…</p>
             ) : availableImages.length > 0 ? (
               <>
-                <p style={{ color: '#666', fontSize: '0.9rem', marginBottom: '1rem' }}>
-                  {availableImages.length} image(s) disponible(s)
+                <p className="selector-meta">
+                  {availableImages.length} image{availableImages.length > 1 ? 's' : ''} disponible{availableImages.length > 1 ? 's' : ''}
                 </p>
                 <div className="image-grid">
                   {availableImages.slice(0, 30).map((img, index) => (
@@ -188,8 +186,8 @@ const HeroSettingsForm = ({ onUpdate }) => {
                 </div>
               </>
             ) : (
-              <p style={{ color: '#999', fontStyle: 'italic' }}>
-                Aucune image disponible. Ajoutez d'abord des œuvres avec des images.
+              <p className="selector-empty">
+                Aucune image disponible. Ajoutez d&apos;abord des œuvres avec des images.
               </p>
             )}
           </div>

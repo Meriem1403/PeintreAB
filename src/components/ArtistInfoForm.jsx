@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FaCheckCircle } from 'react-icons/fa';
 import { artistAPI } from '../utils/apiService';
+import ImageDropzone from './ImageDropzone';
 import './ArtistInfoForm.css';
 
 const ArtistInfoForm = ({ onUpdate }) => {
@@ -64,7 +65,7 @@ const ArtistInfoForm = ({ onUpdate }) => {
 
   return (
     <motion.div
-      className="artist-info-form"
+      className="artist-info-form app-form-panel"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
@@ -74,24 +75,14 @@ const ArtistInfoForm = ({ onUpdate }) => {
         Gérez votre photo et votre biographie qui apparaissent sur la page Biographie.
       </p>
 
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="photo">Photo (chemin relatif)</label>
-          <input
-            id="photo"
-            type="text"
-            value={photo}
-            onChange={(e) => setPhoto(e.target.value)}
-            placeholder="/images/accueil.jpg"
-            required
-          />
-          <small>Exemple: /images/accueil.jpg (doit être dans le dossier public/images)</small>
-          {photo && (
-            <div className="photo-preview">
-              <img src={photo} alt="Aperçu" onError={(e) => { e.target.style.display = 'none'; }} />
-            </div>
-          )}
-        </div>
+      <form onSubmit={handleSubmit} className="app-form">
+        <ImageDropzone
+          label="Photo de profil"
+          folder="artist"
+          value={photo}
+          onChange={setPhoto}
+          hint="Portrait affiché sur la page Biographie"
+        />
 
         <div className="form-group">
           <label htmlFor="biographie">Biographie</label>

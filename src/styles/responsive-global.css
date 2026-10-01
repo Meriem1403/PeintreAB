@@ -1,0 +1,59 @@
+html,
+body {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+  height: auto;
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  touch-action: manipulation;
+}
+
+@media (max-width: 768px) {
+  .work-detail {
+    height: auto;
+    min-height: 100dvh;
+    max-height: none;
+  }
+
+  .work-detail-container {
+    padding: 1.25rem 0.85rem 2rem;
+  }
+
+  .work-detail-nav-left {
+    left: 0.5rem;
+  }
+
+  .work-detail-nav-right {
+    right: 0.5rem;
+  }
+
+  .work-detail-close {
+    top: 0.85rem;
+    right: 0.85rem;
+  }
+
+  .admin {
+    padding: 2rem 0.85rem;
+  }
+
+  .admin-header h1 {
+    font-size: 2rem;
+  }
+
+  .admin-header h1::before,
+  .admin-header h1::after {
+    display: none;
+  }
+}

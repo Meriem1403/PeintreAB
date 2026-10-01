@@ -1,0 +1,57 @@
+.section-heading {
+  margin-bottom: clamp(2rem, 4vw, 3rem);
+  max-width: 42rem;
+}
+
+.section-heading--center {
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+.section-heading--left {
+  text-align: left;
+}
+
+.section-heading-eyebrow {
+  display: inline-block;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-primary, #c6ac8f);
+  margin-bottom: 0.65rem;
+}
+
+.section-heading-title {
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: clamp(1.75rem, 4vw, 2.35rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: #111;
+  margin: 0;
+}
+
+.section-heading-subtitle {
+  margin: 0.85rem 0 0;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #6b6560;
+  font-weight: 400;
+}
+
+.home-section-block {
+  padding: clamp(3.5rem, 8vw, 6rem) clamp(1.25rem, 4vw, 2.5rem);
+}
+
+.home-section-block .section-heading {
+  padding-left: clamp(0rem, 2vw, 1rem);
+}
+
+@media (min-width: 1024px) {
+  .featured-events-container .section-heading,
+  .featured-works-container .section-heading {
+    padding-left: max(1rem, calc((100% - 1200px) / 2));
+  }
+}

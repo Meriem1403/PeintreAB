@@ -16,7 +16,7 @@
 }
 
 .work-list-item.drag-over {
-  border-top: 3px solid #C6AC8F;
+  border-top: 3px solid var(--color-primary);
   margin-top: 1rem;
 }
 

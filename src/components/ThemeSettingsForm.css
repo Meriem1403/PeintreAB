@@ -1,0 +1,14 @@
+.theme-settings-loading {
+  text-align: center;
+  padding: 2rem;
+  color: var(--form-muted, #8a8580);
+}
+
+.theme-settings-message {
+  margin-top: 0.5rem;
+  margin-bottom: 0;
+}
+
+.theme-preview {
+  margin-bottom: 0.5rem;
+}

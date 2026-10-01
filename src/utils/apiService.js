@@ -5,16 +5,20 @@ const API_URL = import.meta.env.VITE_API_URL || '/api';
 const request = async (endpoint, options = {}) => {
   const token = localStorage.getItem('token');
   
+  const isFormData = options.body instanceof FormData;
   const config = {
     headers: {
-      'Content-Type': 'application/json',
       ...(token && { Authorization: `Bearer ${token}` }),
       ...options.headers,
     },
     ...options,
   };
 
-  if (config.body && typeof config.body === 'object' && !(config.body instanceof FormData)) {
+  if (!isFormData) {
+    config.headers['Content-Type'] = 'application/json';
+  }
+
+  if (config.body && typeof config.body === 'object' && !isFormData) {
     config.body = JSON.stringify(config.body);
   }
 
@@ -142,6 +146,17 @@ export const contactInfoAPI = {
 };
 
 // API des paramètres du site
+export const uploadAPI = {
+  uploadImage: async (file, folder = 'uploads') => {
+    const formData = new FormData();
+    formData.append('image', file);
+    return request(`/upload/image?folder=${encodeURIComponent(folder)}`, {
+      method: 'POST',
+      body: formData,
+    });
+  },
+};
+
 export const siteSettingsAPI = {
   get: async () => {
     return request('/site-settings');

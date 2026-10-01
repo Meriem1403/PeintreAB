@@ -10,16 +10,40 @@ export const useAuth = () => {
   return context;
 };
 
+const isTokenValid = (token) => {
+  if (!token) return false;
+
+  try {
+    const payloadPart = token.split('.')[1];
+    if (!payloadPart) return false;
+
+    const payload = JSON.parse(atob(payloadPart.replace(/-/g, '+').replace(/_/g, '/')));
+    if (payload.exp && payload.exp * 1000 <= Date.now()) {
+      return false;
+    }
+
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Vérifier si l'utilisateur est déjà connecté
     const token = localStorage.getItem('token');
-    if (token) {
+
+    if (isTokenValid(token)) {
       setIsAuthenticated(true);
+    } else {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('auth');
+      setIsAuthenticated(false);
     }
+
     setLoading(false);
   }, []);
 
