@@ -1,6 +1,12 @@
 import { useEffect, useRef } from 'react';
+import './ParticlesBackground.css';
 
-const ParticlesBackground = ({ containerId = 'particles-container', particleColor = '#ffffff', density = 'normal' }) => {
+const ParticlesBackground = ({
+  containerId = 'particles-container',
+  particleColor = '#ffffff',
+  density = 'normal',
+  interactive = true,
+}) => {
   const finalContainerId = containerId || 'particles-container';
   const particlesInstanceRef = useRef(null);
 
@@ -93,10 +99,10 @@ const ParticlesBackground = ({ containerId = 'particles-container', particleColo
               },
             },
             interactivity: {
-              detect_on: 'canvas',
+              detect_on: interactive ? 'window' : 'canvas',
               events: {
-                onhover: { enable: true, mode: 'repulse' },
-                onclick: { enable: true, mode: 'push' },
+                onhover: { enable: interactive, mode: 'repulse' },
+                onclick: { enable: interactive, mode: 'push' },
                 resize: true,
               },
               modes: {
@@ -105,8 +111,8 @@ const ParticlesBackground = ({ containerId = 'particles-container', particleColo
                   line_linked: { opacity: 0.8 },
                 },
                 repulse: {
-                  distance: 200,
-                  duration: 1.2,
+                  distance: 140,
+                  duration: 0.85,
                 },
                 push: { particles_nb: 4 },
               },
@@ -159,19 +165,19 @@ const ParticlesBackground = ({ containerId = 'particles-container', particleColo
         console.warn('⚠️ Erreur cleanup particles:', error);
       }
     };
-  }, [finalContainerId, particleColor, density]);
+  }, [finalContainerId, particleColor, density, interactive]);
 
   return (
     <div
       id={finalContainerId}
+      className={interactive ? 'particles-layer particles-layer--interactive' : 'particles-layer'}
       style={{
         position: 'absolute',
         top: 0,
         left: 0,
         width: '100%',
         height: '100%',
-        zIndex: 1,
-        pointerEvents: 'none',
+        zIndex: 2,
         backgroundColor: 'transparent',
         overflow: 'hidden',
       }}

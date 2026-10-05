@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { resolveAdminLinkPath } from '../constants/adminRoutes';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiMenu, FiX } from 'react-icons/fi';
 import './Navbar.css';
@@ -8,15 +9,18 @@ const Navbar = () => {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
 
+  const adminPath = useMemo(() => resolveAdminLinkPath(location.pathname), [location.pathname]);
+
   const navItems = [
     { path: '/', label: 'Accueil' },
     { path: '/galerie', label: 'Galerie' },
     { path: '/biographie', label: 'Biographie' },
     { path: '/contact', label: 'Contact' },
-    { path: '/admin', label: 'Admin' },
+    { path: adminPath, label: 'Admin' },
   ];
 
   const closeMenu = () => setMenuOpen(false);
+  const isBiographiePage = location.pathname === '/biographie';
 
   return (
     <motion.nav
@@ -25,14 +29,18 @@ const Navbar = () => {
       animate={{ y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <div className="navbar-container">
-        <motion.div
-          className="navbar-logo"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <Link to="/" onClick={closeMenu}>Alexandre Bindl</Link>
-        </motion.div>
+      <div className={`navbar-container ${isBiographiePage ? 'navbar-container--bio' : ''}`}>
+        {!isBiographiePage && (
+          <motion.div
+            className="navbar-logo"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Link to="/" onClick={closeMenu}>
+              Alexandre Bindl
+            </Link>
+          </motion.div>
+        )}
 
         <button
           type="button"
@@ -46,9 +54,14 @@ const Navbar = () => {
 
         <ul className={`navbar-menu ${menuOpen ? 'open' : ''}`}>
           {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
+            const isActive =
+              item.path === '/galerie'
+                ? location.pathname === '/galerie' || location.pathname.startsWith('/galerie/')
+                : item.label === 'Admin'
+                  ? location.pathname.startsWith('/admin')
+                  : location.pathname === item.path;
             return (
-              <li key={item.path}>
+              <li key={item.label === 'Admin' ? 'admin' : item.path}>
                 <Link
                   to={item.path}
                   className={isActive ? 'active' : ''}

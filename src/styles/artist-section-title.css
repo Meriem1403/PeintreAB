@@ -106,7 +106,8 @@
 }
 
 .artist-section-title--home-panel .artist-section-title-text {
-  font-size: clamp(2rem, 4.2vw, 3.15rem);
+  font-size: clamp(2.1rem, 4.5vw, 3.35rem);
+  font-weight: 300;
 }
 
 .artist-section-title--home-panel .artist-section-title-lead {

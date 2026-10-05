@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { WorksProvider } from './contexts/WorksContext';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -12,6 +12,8 @@ import Contact from './pages/Contact';
 import WorkDetail from './pages/WorkDetail';
 import Admin from './pages/Admin';
 import Login from './pages/Login';
+import NotFound from './pages/NotFound';
+import { adminTabPath, DEFAULT_ADMIN_TAB } from './constants/adminRoutes';
 import './App.css';
 
 function App() {
@@ -26,19 +28,29 @@ function App() {
               <ErrorBoundary>
                 <Routes>
                   <Route path="/" element={<Home />} />
-                  <Route path="/galerie" element={<Galerie />} />
                   <Route path="/galerie/:category/:id" element={<WorkDetail />} />
+                  <Route path="/galerie/:category" element={<Galerie />} />
+                  <Route path="/galerie" element={<Galerie />} />
                   <Route path="/biographie" element={<Biographie />} />
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/login" element={<Login />} />
-                  <Route 
-                    path="/admin" 
+                  <Route
+                    path="/admin"
+                    element={
+                      <ProtectedRoute>
+                        <Navigate to={adminTabPath(DEFAULT_ADMIN_TAB)} replace />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/:tab"
                     element={
                       <ProtectedRoute>
                         <Admin />
                       </ProtectedRoute>
-                    } 
+                    }
                   />
+                  <Route path="*" element={<NotFound />} />
                 </Routes>
               </ErrorBoundary>
             </div>

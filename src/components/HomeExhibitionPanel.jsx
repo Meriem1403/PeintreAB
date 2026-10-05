@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import ArtistSectionTitle from './ArtistSectionTitle';
+import GeometricBackground from './GeometricBackground';
 import HomeCarousel from './HomeCarousel';
 
 /** Panneau plein écran — fond continu (aucun calque décoratif). */
@@ -25,6 +26,7 @@ const HomeExhibitionPanel = ({
     onMouseEnter={onMouseEnter}
     onMouseLeave={onMouseLeave}
   >
+    <GeometricBackground density="medium" theme="light" />
     <div className="home-panel-frame">
       <header className="home-panel-head">
         <ArtistSectionTitle
