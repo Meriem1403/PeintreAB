@@ -1,0 +1,199 @@
+.privacy-page {
+  --pp-ink: #14110f;
+  --pp-muted: #5c534a;
+  --pp-paper: #ece5da;
+  --pp-card: #fffcf8;
+  min-height: 100%;
+  background: var(--pp-paper);
+  color: var(--pp-ink);
+}
+
+.privacy-page__hero {
+  padding: clamp(1.75rem, 4vh, 2.75rem) clamp(1.25rem, 4vw, 2.5rem);
+  border-bottom: 1px solid rgba(20, 17, 15, 0.1);
+}
+
+.privacy-page__hero-inner {
+  max-width: 40rem;
+  margin: 0 auto;
+  text-align: center;
+  padding-left: clamp(0.5rem, 2vw, 1rem);
+  border-left: 2px solid rgba(198, 172, 143, 0.55);
+}
+
+.privacy-page__kicker {
+  margin: 0 0 0.65rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--color-primary, #c6ac8f);
+}
+
+.privacy-page__title {
+  margin: 0;
+  font-family: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+  font-size: clamp(2rem, 5.5vw, 3.25rem);
+  font-weight: 300;
+  font-style: italic;
+  line-height: 1.08;
+}
+
+.privacy-page__hero-lead {
+  margin: 1rem auto 0;
+  max-width: 34rem;
+  font-size: clamp(1rem, 2vw, 1.15rem);
+  line-height: 1.55;
+  color: var(--pp-muted);
+}
+
+.privacy-page__version {
+  margin: 0.85rem 0 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  color: #8a8580;
+}
+
+.privacy-page__body {
+  padding: clamp(1.5rem, 3vw, 2.5rem) clamp(1rem, 2.5vw, 2.5rem) clamp(3rem, 6vh, 4rem);
+}
+
+.privacy-page__layout {
+  max-width: 960px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 200px) minmax(0, 1fr);
+  gap: clamp(1.5rem, 4vw, 2.5rem);
+  align-items: start;
+}
+
+.privacy-page__toc {
+  position: sticky;
+  top: 5.5rem;
+  padding: 1rem 1.1rem;
+  background: var(--pp-card);
+  border: 1px solid rgba(20, 17, 15, 0.08);
+  border-radius: 12px;
+}
+
+.privacy-page__toc-title {
+  margin: 0 0 0.65rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--pp-muted);
+}
+
+.privacy-page__toc ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.privacy-page__toc a {
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  color: var(--pp-ink);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+
+.privacy-page__toc a:hover {
+  color: var(--color-primary-dark, #8a7048);
+  border-bottom-color: rgba(198, 172, 143, 0.45);
+}
+
+.privacy-page__article {
+  min-width: 0;
+}
+
+.privacy-page__section {
+  margin-bottom: 2rem;
+  padding-bottom: 1.75rem;
+  border-bottom: 1px solid rgba(20, 17, 15, 0.08);
+  scroll-margin-top: 5rem;
+}
+
+.privacy-page__section:last-of-type {
+  border-bottom: none;
+}
+
+.privacy-page__section h2 {
+  margin: 0 0 0.75rem;
+  font-family: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+  font-size: 1.45rem;
+  font-weight: 500;
+  font-style: italic;
+  color: var(--pp-ink);
+}
+
+.privacy-page__section p {
+  margin: 0 0 0.75rem;
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  color: var(--pp-muted);
+}
+
+.privacy-page__section ul {
+  margin: 0;
+  padding-left: 1.15rem;
+  color: var(--pp-muted);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+.privacy-page__section li {
+  margin-bottom: 0.45rem;
+}
+
+.privacy-page__contact-card {
+  margin-top: 2rem;
+  padding: 1.35rem 1.5rem;
+  background: var(--pp-card);
+  border: 1px solid rgba(var(--color-primary-rgb, 198, 172, 143), 0.35);
+  border-radius: 14px;
+  box-shadow: 0 8px 28px rgba(20, 17, 15, 0.06);
+}
+
+.privacy-page__contact-card h2 {
+  margin: 0 0 0.65rem;
+  font-family: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+  font-size: 1.35rem;
+  font-style: italic;
+}
+
+.privacy-page__contact-card p {
+  margin: 0 0 1rem;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--pp-muted);
+}
+
+.privacy-page__cta {
+  display: inline-flex;
+}
+
+.privacy-page__contact-note {
+  margin-top: 0.85rem !important;
+  margin-bottom: 0 !important;
+  font-size: 0.8125rem !important;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .privacy-page__layout {
+    grid-template-columns: 1fr;
+  }
+
+  .privacy-page__toc {
+    position: static;
+  }
+
+  .privacy-page__hero-inner {
+    text-align: left;
+  }
+}

@@ -136,6 +136,7 @@ const AtelierFooter = ({ onBackToTop, onGoToFooter }) => {
               <Link to="/galerie">Galerie</Link>
               <Link to="/biographie">Biographie</Link>
               <Link to="/contact">Contact</Link>
+              <Link to="/confidentialite">Confidentialité</Link>
             </nav>
           </motion.div>
 

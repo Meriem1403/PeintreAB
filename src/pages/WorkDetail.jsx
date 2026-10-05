@@ -697,6 +697,10 @@ const WorkDetail = () => {
         {isContactFormOpen && (
           <ContactWorkForm
             work={currentWork}
+            categoryLabel={categoryLabel(category)}
+            referenceLabel={referenceLabel}
+            priceLabel={!currentWork.is_sold && currentWork.prix ? `${currentWork.prix} €` : priceLabel}
+            imageUrl={imageUrl}
             onClose={() => setIsContactFormOpen(false)}
             onSuccess={() => {}}
           />

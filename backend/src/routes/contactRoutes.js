@@ -2,6 +2,7 @@ import express from 'express';
 import {
   createContact,
   getAllContacts,
+  getContactsSummary,
   markContactAsRead,
   replyContact,
   deleteContact,
@@ -14,6 +15,7 @@ const router = express.Router();
 router.post('/', createContact);
 
 // Routes protégées (admin seulement)
+router.get('/summary', authenticateToken, getContactsSummary);
 router.get('/', authenticateToken, getAllContacts);
 router.put('/:id/read', authenticateToken, markContactAsRead);
 router.post('/:id/reply', authenticateToken, replyContact);

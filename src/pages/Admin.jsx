@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate, useLocation, useParams, Navigate } from 'react-router-dom';
 import {
   DEFAULT_ADMIN_TAB,
@@ -29,7 +29,7 @@ import { useWorks } from '../contexts/WorksContext';
 import { contactsAPI } from '../utils/apiService';
 import WorkForm from '../components/WorkForm';
 import WorkList from '../components/WorkList';
-import ContactList from '../components/ContactList';
+import InboxAdmin, { isUnread } from '../components/InboxAdmin';
 import ArtistInfoForm from '../components/ArtistInfoForm';
 import ContactInfoForm from '../components/ContactInfoForm';
 import HeroSettingsForm from '../components/HeroSettingsForm';
@@ -38,6 +38,8 @@ import SiteQrSettingsForm from '../components/SiteQrSettingsForm';
 import VisitorsAdmin from '../components/VisitorsAdmin';
 import TicketScannerAdmin from '../components/TicketScannerAdmin';
 import './Admin.css';
+import '../styles/adminTypography.css';
+import '../styles/adminResponsive.css';
 
 const NAV = [
   {
@@ -86,6 +88,10 @@ const Admin = () => {
   const [contacts, setContacts] = useState([]);
   const [contactsLoading, setContactsLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const prevUnreadRef = useRef(null);
+  const notifyPermissionRef = useRef(
+    typeof Notification !== 'undefined' ? Notification.permission : 'denied'
+  );
 
   useEffect(() => {
     rememberAdminTab(activeTab);
@@ -95,9 +101,39 @@ const Admin = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [location.pathname]);
 
+  const loadContacts = useCallback(async (silent = false) => {
+    try {
+      if (!silent) setContactsLoading(true);
+      const data = await contactsAPI.getAll();
+      setContacts(data || []);
+    } catch (error) {
+      console.error('Erreur lors du chargement des contacts:', error);
+      if (!silent) setContacts([]);
+    } finally {
+      if (!silent) setContactsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     loadContacts();
-  }, []);
+  }, [loadContacts]);
+
+  useEffect(() => {
+    const poll = () => loadContacts(true);
+    const interval = setInterval(poll, 20000);
+    const onFocus = () => loadContacts(true);
+    window.addEventListener('focus', onFocus);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', onFocus);
+    };
+  }, [loadContacts]);
+
+  useEffect(() => {
+    if (activeTab === 'notifications') {
+      loadContacts(true);
+    }
+  }, [activeTab, loadContacts]);
 
   useEffect(() => {
     if (!sidebarOpen) return undefined;
@@ -108,20 +144,44 @@ const Admin = () => {
     };
   }, [sidebarOpen]);
 
-  const loadContacts = async () => {
-    try {
-      setContactsLoading(true);
-      const data = await contactsAPI.getAll();
-      setContacts(data || []);
-    } catch (error) {
-      console.error('Erreur lors du chargement des contacts:', error);
-      setContacts([]);
-    } finally {
-      setContactsLoading(false);
+  const unreadCount = contacts.filter(isUnread).length;
+
+  useEffect(() => {
+    if (contactsLoading || prevUnreadRef.current === null) {
+      prevUnreadRef.current = unreadCount;
+      return;
+    }
+    if (unreadCount > prevUnreadRef.current && notifyPermissionRef.current === 'granted') {
+      const delta = unreadCount - prevUnreadRef.current;
+      try {
+        new Notification('PeintreAB — nouveau message', {
+          body:
+            delta === 1
+              ? 'Un message vient d’arriver dans la boîte de réception.'
+              : `${delta} nouveaux messages dans la boîte de réception.`,
+          tag: 'peintreab-inbox',
+        });
+      } catch {
+        /* ignore */
+      }
+    }
+    prevUnreadRef.current = unreadCount;
+  }, [unreadCount, contactsLoading]);
+
+  const requestBrowserNotify = async () => {
+    if (typeof Notification === 'undefined') {
+      alert('Les notifications navigateur ne sont pas disponibles sur ce navigateur.');
+      return;
+    }
+    const perm = await Notification.requestPermission();
+    notifyPermissionRef.current = perm;
+    if (perm === 'granted') {
+      new Notification('Alertes activées', {
+        body: 'Vous serez prévenu lors de nouveaux messages (admin ouvert).',
+        tag: 'peintreab-inbox-setup',
+      });
     }
   };
-
-  const unreadCount = contacts.filter((c) => !c.read).length;
 
   const selectTab = (tabId) => {
     if (!isValidAdminTab(tabId)) return;
@@ -231,11 +291,13 @@ const Admin = () => {
             <p className="admin-main-header-desc">
               {GALLERY_TABS.has(activeTab)
                 ? 'Ajoutez, modifiez ou réorganisez les œuvres visibles sur le site.'
-                : activeTab === 'visiteurs'
-                  ? 'Aperçu, inscrits, contacts et emails — par événement.'
-                  : activeTab === 'scan'
-                    ? 'Contrôle des billets en plein écran — caméra ou saisie manuelle.'
-                    : 'Paramètres et contenus éditoriaux.'}
+                : activeTab === 'notifications'
+                  ? 'Messages du site — demandes d’achat, page Contact et œuvres. Actualisation automatique toutes les 20 s.'
+                  : activeTab === 'visiteurs'
+                    ? 'Aperçu, inscrits, contacts et emails — par événement.'
+                    : activeTab === 'scan'
+                      ? 'Contrôle des billets en plein écran — caméra ou saisie manuelle.'
+                      : 'Paramètres et contenus éditoriaux.'}
             </p>
             {GALLERY_TABS.has(activeTab) && (
               <motion.button
@@ -256,7 +318,9 @@ const Admin = () => {
 
         <motion.div
           className={`admin-main-body${
-            activeTab === 'visiteurs' || activeTab === 'scan' ? ' admin-main-body--wide' : ''
+            activeTab === 'visiteurs' || activeTab === 'scan' || activeTab === 'notifications'
+              ? ' admin-main-body--wide'
+              : ''
           }`}
           key={activeTab}
           initial={{ opacity: 0, y: 8 }}
@@ -271,7 +335,11 @@ const Admin = () => {
                   <p>Chargement…</p>
                 </div>
               ) : (
-                <ContactList contacts={contacts} onUpdate={loadContacts} />
+                <InboxAdmin
+                  contacts={contacts}
+                  onUpdate={loadContacts}
+                  onEnableBrowserNotify={requestBrowserNotify}
+                />
               )
             ) : activeTab === 'artist-info' ? (
               <ArtistInfoForm />

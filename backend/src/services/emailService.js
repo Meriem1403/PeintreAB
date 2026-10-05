@@ -112,8 +112,14 @@ export const sendContactNotification = async (contactData, workData = null) => {
     Message: ${message}
   `;
 
+  const adminTo =
+    process.env.ADMIN_NOTIFY_EMAIL ||
+    process.env.EMAIL_USER ||
+    process.env.EMAIL_FROM ||
+    'dev@peintreab.local';
+
   return await sendEmail({
-    to: process.env.EMAIL_USER || process.env.EMAIL_FROM,
+    to: adminTo,
     subject: workData
       ? `Nouvelle demande pour l'œuvre: ${workData.titre}`
       : `Nouveau contact: ${subjectLine}`,

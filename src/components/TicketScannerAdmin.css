@@ -40,8 +40,9 @@
 
 .vscan-empty h2 {
   margin: 0.5rem 0;
-  font-family: 'Cormorant Garamond', serif;
-  font-weight: 400;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 1.125rem;
   color: #1c1917;
 }
 
@@ -216,7 +217,7 @@
 
 .vscan-result__lead {
   margin: 0 0 0.35rem;
-  font-family: 'Cormorant Garamond', serif;
+  font-family: inherit;
   font-size: 1.45rem;
   color: #1c1917;
 }

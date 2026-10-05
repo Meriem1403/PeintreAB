@@ -1,0 +1,85 @@
+/**
+ * Responsive global — espace admin (overflow, grilles, formulaires)
+ */
+
+.admin-shell {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: clip;
+}
+
+.admin-main {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: clip;
+}
+
+.admin-main-body,
+.admin-main-body--wide {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.admin-main-body > * {
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* Formulaires admin */
+@media (max-width: 640px) {
+  .admin-shell .app-form-panel {
+    padding: 1.25rem 1rem;
+    border-radius: 12px;
+  }
+
+  .admin-shell .app-form-panel > h2,
+  .admin-shell .app-form-panel > .app-form-title {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .admin-shell .admin-main-header-sub-row {
+    padding-left: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.65rem;
+  }
+
+  .admin-shell .admin-main-menu {
+    transform: none;
+    align-self: flex-start;
+  }
+
+  .admin-shell .admin-main-header-title-row {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-shell .admin-main {
+    padding: 0.75rem 0.75rem 1.5rem;
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
+  }
+
+  .admin-shell .admin-main-header-desc {
+    font-size: 0.8125rem;
+  }
+}
+
+.admin-shell .inbox,
+.admin-shell .vdash,
+.admin-shell .vscan {
+  box-sizing: border-box;
+}
+
+.admin-shell .vdash-body {
+  min-width: 0;
+}
+
+.admin-main:has(.admin-main-body--wide) {
+  padding-left: clamp(0.65rem, 2vw, 1.5rem);
+  padding-right: clamp(0.65rem, 2vw, 1.5rem);
+}

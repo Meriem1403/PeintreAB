@@ -9,6 +9,7 @@ import Home from './pages/Home';
 import Galerie from './pages/Galerie';
 import Biographie from './pages/Biographie';
 import Contact from './pages/Contact';
+import Privacy from './pages/Privacy';
 import WorkDetail from './pages/WorkDetail';
 import Admin from './pages/Admin';
 import Login from './pages/Login';
@@ -34,6 +35,7 @@ function App() {
                   <Route path="/galerie" element={<Galerie />} />
                   <Route path="/biographie" element={<Biographie />} />
                   <Route path="/contact" element={<Contact />} />
+                  <Route path="/confidentialite" element={<Privacy />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/billet/:code" element={<TicketPage />} />
                   <Route
