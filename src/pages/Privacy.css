@@ -185,6 +185,10 @@
 }
 
 @media (max-width: 768px) {
+  .privacy-page {
+    padding-bottom: max(2rem, env(safe-area-inset-bottom, 0px));
+  }
+
   .privacy-page__layout {
     grid-template-columns: 1fr;
   }
@@ -195,5 +199,10 @@
 
   .privacy-page__hero-inner {
     text-align: left;
+  }
+
+  .privacy-page__cta {
+    width: 100%;
+    justify-content: center;
   }
 }

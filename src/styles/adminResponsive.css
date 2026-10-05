@@ -6,6 +6,7 @@
   width: 100%;
   max-width: 100vw;
   overflow-x: clip;
+  min-height: calc(100dvh - var(--admin-nav-offset, 72px));
 }
 
 .admin-main {
@@ -13,6 +14,7 @@
   max-width: 100%;
   min-width: 0;
   overflow-x: clip;
+  overflow-y: visible;
 }
 
 .admin-main-body,
@@ -20,6 +22,7 @@
   width: 100%;
   max-width: 100%;
   min-width: 0;
+  overflow: visible;
 }
 
 .admin-main-body > * {
@@ -38,14 +41,24 @@
   .admin-shell .app-form-panel > .app-form-title {
     font-size: 1.2rem;
   }
+
+  .admin-shell .app-form .form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-shell .app-form .form-actions .brand-btn,
+  .admin-shell .app-form .form-actions button {
+    width: 100%;
+  }
 }
 
 @media (max-width: 900px) {
   .admin-shell .admin-main-header-sub-row {
-    padding-left: 0;
+    padding-left: 0 !important;
     flex-direction: column;
     align-items: stretch;
-    gap: 0.65rem;
+    gap: 0.75rem;
   }
 
   .admin-shell .admin-main-menu {
@@ -54,7 +67,18 @@
   }
 
   .admin-shell .admin-main-header-title-row {
-    align-items: flex-start;
+    align-items: center;
+  }
+
+  .admin-shell .admin-main-cta {
+    width: 100%;
+    align-self: stretch;
+    justify-content: center;
+    min-height: 2.75rem;
+    white-space: normal;
+    text-align: center;
+    padding: 0.65rem 1rem;
+    font-size: 0.8125rem;
   }
 }
 
@@ -67,6 +91,10 @@
   .admin-shell .admin-main-header-desc {
     font-size: 0.8125rem;
   }
+
+  .admin-shell .admin-main-header-title-row h1 {
+    font-size: 1.25rem;
+  }
 }
 
 .admin-shell .inbox,
@@ -77,9 +105,122 @@
 
 .admin-shell .vdash-body {
   min-width: 0;
+  overflow: visible;
 }
 
 .admin-main:has(.admin-main-body--wide) {
   padding-left: clamp(0.65rem, 2vw, 1.5rem);
   padding-right: clamp(0.65rem, 2vw, 1.5rem);
+}
+
+/* Boîte de réception : défilement page, pas de panneau figé */
+@media (max-width: 1024px) {
+  .admin-shell .inbox-panel {
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible;
+    flex: none;
+  }
+
+  .admin-shell .inbox-panel .inbox-pane--list,
+  .admin-shell .inbox-panel .inbox-pane--detail {
+    flex: none;
+    min-height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .admin-shell .inbox-list {
+    overflow: visible;
+    flex: none;
+    max-height: none;
+  }
+
+  .admin-shell .inbox-pane--detail {
+    overflow: visible;
+  }
+
+  .admin-shell .inbox-detail__actions {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .admin-shell .inbox-detail__actions .brand-btn,
+  .admin-shell .inbox-detail__actions .inbox-detail__icon-btn {
+    width: 100%;
+    min-height: 2.75rem;
+  }
+
+  .admin-shell .inbox-detail__actions .inbox-detail__icon-btn {
+    width: 100%;
+    height: auto;
+  }
+}
+
+/* Visiteurs & scan : boutons et onglets */
+@media (max-width: 640px) {
+  .admin-shell .vdash-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+    border-radius: 14px;
+    scrollbar-width: none;
+  }
+
+  .admin-shell .vdash-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .admin-shell .vdash-tabs__btn {
+    flex-shrink: 0;
+    min-height: 2.75rem;
+  }
+
+  .admin-shell .vdash-btn,
+  .admin-shell .vdash-btn--soft {
+    min-height: 2.75rem;
+    justify-content: center;
+  }
+
+  .admin-shell .vdash-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-shell .vdash-toolbar--spread {
+    gap: 0.65rem;
+  }
+
+  .admin-shell .vdash-toolbar--spread .vdash-btn--soft {
+    width: 100%;
+  }
+
+  .admin-shell .vdash-chips--scroll {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.25rem;
+  }
+
+  .admin-shell .vdash-email__actions .brand-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-shell .work-list-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .admin-shell .work-list-pagination {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .admin-shell .work-list-pagination__btn {
+    width: 100%;
+  }
 }

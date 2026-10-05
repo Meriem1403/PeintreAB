@@ -337,8 +337,10 @@
 
   .pagination-button,
   .pagination-number {
-    width: 36px;
-    height: 36px;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    width: auto;
+    height: auto;
     font-size: 0.85rem;
   }
 

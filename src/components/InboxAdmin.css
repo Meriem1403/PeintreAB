@@ -810,15 +810,26 @@
   .inbox-panel {
     display: flex;
     flex-direction: column;
-    min-height: min(70dvh, calc(100dvh - var(--admin-nav-offset, 72px) - 12rem));
+    min-height: 0;
     max-height: none;
+    overflow: visible;
   }
 
   .inbox-panel .inbox-pane--list,
   .inbox-panel .inbox-pane--detail {
-    flex: 1;
-    min-height: 0;
+    flex: none;
+    min-height: auto;
     max-height: none;
+    overflow: visible;
+  }
+
+  .inbox-list {
+    overflow: visible;
+    flex: none;
+  }
+
+  .inbox-pane--detail {
+    overflow: visible;
   }
 
   .inbox-pane--list {

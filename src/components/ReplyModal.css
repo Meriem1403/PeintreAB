@@ -22,5 +22,11 @@
 @media (max-width: 768px) {
   .reply-modal-actions {
     flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .reply-modal-actions .brand-btn {
+    width: 100%;
+    min-height: 2.75rem;
   }
 }

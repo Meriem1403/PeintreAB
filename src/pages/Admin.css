@@ -334,10 +334,11 @@
 
   .admin-main-header-sub-row {
     display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.65rem;
     min-width: 0;
-    padding-left: calc(2.5rem + 0.65rem);
+    padding-left: 0;
   }
 
   .admin-main-menu {
@@ -375,13 +376,17 @@
 
   .admin-main-cta {
     flex-shrink: 0;
-    align-self: center;
+    align-self: stretch;
     transform: none;
     grid-row: unset;
     grid-column: unset;
-    padding: 0.5rem 0.85rem;
-    font-size: 0.75rem;
-    white-space: nowrap;
+    width: 100%;
+    min-height: 2.75rem;
+    padding: 0.65rem 1rem;
+    font-size: 0.8125rem;
+    white-space: normal;
+    text-align: center;
+    justify-content: center;
     box-shadow: 0 2px 10px rgba(var(--color-primary-rgb, 198, 172, 143), 0.3);
   }
 
