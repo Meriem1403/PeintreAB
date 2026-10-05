@@ -20,6 +20,9 @@ import {
   FiPhone,
   FiMenu,
   FiX,
+  FiUsers,
+  FiMaximize2,
+  FiGrid,
 } from 'react-icons/fi';
 import { useAuth } from '../contexts/AuthContext';
 import { useWorks } from '../contexts/WorksContext';
@@ -31,6 +34,9 @@ import ArtistInfoForm from '../components/ArtistInfoForm';
 import ContactInfoForm from '../components/ContactInfoForm';
 import HeroSettingsForm from '../components/HeroSettingsForm';
 import ThemeSettingsForm from '../components/ThemeSettingsForm';
+import SiteQrSettingsForm from '../components/SiteQrSettingsForm';
+import VisitorsAdmin from '../components/VisitorsAdmin';
+import TicketScannerAdmin from '../components/TicketScannerAdmin';
 import './Admin.css';
 
 const NAV = [
@@ -49,11 +55,19 @@ const NAV = [
       { id: 'theme-settings', label: 'Couleurs', icon: FiDroplet },
       { id: 'artist-info', label: 'Artiste', icon: FiUser },
       { id: 'contact-info', label: 'Contact', icon: FiPhone },
+      { id: 'site-qr', label: 'QR site', icon: FiGrid },
     ],
   },
   {
     section: 'Messages',
     items: [{ id: 'notifications', label: 'Boîte de réception', icon: FiMail }],
+  },
+  {
+    section: 'Public',
+    items: [
+      { id: 'visiteurs', label: 'Visiteurs & billets', icon: FiUsers },
+      { id: 'scan', label: 'Scan entrée', icon: FiMaximize2 },
+    ],
   },
 ];
 
@@ -217,7 +231,11 @@ const Admin = () => {
             <p className="admin-main-header-desc">
               {GALLERY_TABS.has(activeTab)
                 ? 'Ajoutez, modifiez ou réorganisez les œuvres visibles sur le site.'
-                : 'Paramètres et contenus éditoriaux.'}
+                : activeTab === 'visiteurs'
+                  ? 'Aperçu, inscrits, contacts et emails — par événement.'
+                  : activeTab === 'scan'
+                    ? 'Contrôle des billets en plein écran — caméra ou saisie manuelle.'
+                    : 'Paramètres et contenus éditoriaux.'}
             </p>
             {GALLERY_TABS.has(activeTab) && (
               <motion.button
@@ -237,7 +255,9 @@ const Admin = () => {
         </header>
 
         <motion.div
-          className="admin-main-body"
+          className={`admin-main-body${
+            activeTab === 'visiteurs' || activeTab === 'scan' ? ' admin-main-body--wide' : ''
+          }`}
           key={activeTab}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -261,6 +281,12 @@ const Admin = () => {
               <HeroSettingsForm />
             ) : activeTab === 'theme-settings' ? (
               <ThemeSettingsForm />
+            ) : activeTab === 'site-qr' ? (
+              <SiteQrSettingsForm />
+            ) : activeTab === 'visiteurs' ? (
+              <VisitorsAdmin />
+            ) : activeTab === 'scan' ? (
+              <TicketScannerAdmin />
             ) : (
               <WorkList
                 type={activeTab}

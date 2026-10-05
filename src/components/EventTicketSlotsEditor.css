@@ -1,0 +1,201 @@
+.event-slots-editor__sync {
+  margin: 0 0 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-primary, #a89278);
+}
+
+.event-slots-editor .form-switch-row {
+  margin-bottom: 1rem;
+}
+
+.event-slots-editor__uniform-fields {
+  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: 1px dashed rgba(var(--color-primary-rgb, 198, 172, 143), 0.45);
+  background: rgba(var(--color-primary-rgb, 198, 172, 143), 0.06);
+}
+
+.event-slots-editor__capacity-line {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.event-slots-editor__capacity-line--collapsed {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.event-slots-editor__capacity-line .form-group,
+.event-slots-editor__uniform-fields .form-group {
+  margin-bottom: 0;
+}
+
+.event-slots-editor__capacity-spacer {
+  min-height: 0;
+}
+
+.event-slots-editor__capacity-collapsed {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--form-muted, #8a8580);
+  font-style: italic;
+}
+
+.event-slots-editor__list {
+  margin-top: 0.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.event-slots-editor__list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--form-muted, #8a8580);
+}
+
+.event-slots-editor__add {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8125rem;
+  font-family: inherit;
+  font-weight: 500;
+  border: 1px solid var(--form-border, #e8e4df);
+  border-radius: 999px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.event-slots-editor__add:hover {
+  background: var(--form-bg-hover, #f5f3ef);
+}
+
+.event-slots-editor__row {
+  padding: 1rem;
+  border: 1px solid var(--form-border, #e8e4df);
+  border-radius: 12px;
+  background: var(--form-bg, #faf9f7);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.event-slots-editor__row-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.75rem;
+}
+
+.event-slots-editor__expand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-primary, #a89278);
+  cursor: pointer;
+  text-align: left;
+}
+
+.event-slots-editor__expand:hover {
+  text-decoration: underline;
+}
+
+.event-slots-editor__expand--open {
+  color: #78716c;
+}
+
+.event-slots-editor__remove {
+  width: 2.75rem;
+  height: calc(
+    var(--form-field-padding-y, 0.8125rem) * 2 + 1.45 * 0.9375rem + 2px
+  );
+  margin: 0;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  border: 1px solid var(--form-border, #e8e4df);
+  border-radius: 14px;
+  background: #fff;
+  color: #78716c;
+  cursor: pointer;
+}
+
+.event-slots-editor__capacity-line:not(.event-slots-editor__capacity-line--collapsed)
+  .event-slots-editor__remove {
+  align-self: end;
+  justify-self: end;
+}
+
+.event-slots-editor__capacity-line--collapsed .event-slots-editor__remove {
+  align-self: center;
+}
+
+.event-slots-editor__remove:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.event-slots-editor__remove:not(:disabled):hover {
+  color: #b91c1c;
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+@media (max-width: 640px) {
+  .event-slots-editor__row-main {
+    grid-template-columns: 1fr;
+  }
+
+  /* Déplié : garder Places | Quota | suppr. sur une ligne si possible */
+  .event-slots-editor__capacity-line:not(.event-slots-editor__capacity-line--collapsed) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  }
+
+  .event-slots-editor__capacity-line--collapsed {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .event-slots-editor__remove {
+    width: 2.75rem;
+    max-width: none;
+  }
+}
+
+@media (max-width: 400px) {
+  .event-slots-editor__capacity-line:not(.event-slots-editor__capacity-line--collapsed) {
+    grid-template-columns: 1fr auto;
+  }
+
+  .event-slots-editor__capacity-line:not(.event-slots-editor__capacity-line--collapsed)
+    .form-group:first-of-type {
+    grid-column: 1 / -1;
+  }
+}

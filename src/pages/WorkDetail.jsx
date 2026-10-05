@@ -20,6 +20,8 @@ import {
 } from 'react-icons/fa';
 import { useWorks } from '../contexts/WorksContext';
 import ContactWorkForm from '../components/ContactWorkForm';
+import EventRegistrationForm from '../components/EventRegistrationForm';
+import { isEventPast } from '../utils/eventDates';
 import { normalizeImageUrl } from '../utils/imageUrl';
 import './WorkDetail.css';
 
@@ -77,7 +79,9 @@ const WorkDetail = () => {
   const [artSize, setArtSize] = useState(null);
   const [naturalSize, setNaturalSize] = useState(null);
   const [isContactFormOpen, setIsContactFormOpen] = useState(false);
+  const [isRegistrationOpen, setIsRegistrationOpen] = useState(false);
   const [isArtFullscreen, setIsArtFullscreen] = useState(false);
+  const isEventPage = category === 'evenements';
   const stageRef = useRef(null);
   const clusterRef = useRef(null);
   const frameMeasureRef = useRef(null);
@@ -166,26 +170,36 @@ const WorkDetail = () => {
 
   useEffect(() => {
     document.body.classList.add('exhibition-mode');
-    return () => document.body.classList.remove('exhibition-mode');
-  }, []);
+    if (isEventPage) {
+      document.body.classList.add('exhibition-mode--scroll');
+    }
+    return () => {
+      document.body.classList.remove('exhibition-mode');
+      document.body.classList.remove('exhibition-mode--scroll');
+    };
+  }, [isEventPage]);
 
   useEffect(() => {
     setIsArtFullscreen(false);
   }, [currentWork?.id, category]);
 
   useEffect(() => {
-    if (!isArtFullscreen) return undefined;
+    if (!isArtFullscreen && !isRegistrationOpen) return undefined;
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
       document.body.style.overflow = prevOverflow;
     };
-  }, [isArtFullscreen]);
+  }, [isArtFullscreen, isRegistrationOpen]);
 
   useEffect(() => {
     const handleKeyPress = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
       if (e.key === 'Escape') {
+        if (isRegistrationOpen) {
+          setIsRegistrationOpen(false);
+          return;
+        }
         if (isArtFullscreen) {
           setIsArtFullscreen(false);
           return;
@@ -204,7 +218,7 @@ const WorkDetail = () => {
     };
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [handleClose, handlePrevious, handleNext, isArtFullscreen]);
+  }, [handleClose, handlePrevious, handleNext, isArtFullscreen, isRegistrationOpen]);
 
   const recomputeArtSize = useCallback(() => {
     const naturalW = naturalSize?.width;
@@ -359,10 +373,15 @@ const WorkDetail = () => {
     : null;
 
   const showContact = !currentWork.is_sold && isArtwork;
+  const showEventRegistration =
+    isEventPage &&
+    currentWork.ticket_mode &&
+    currentWork.ticket_mode !== 'closed' &&
+    !isEventPast(currentWork.date_fin);
 
   return (
     <div
-      className="exhibition"
+      className={`exhibition${isEventPage ? ' exhibition--event' : ''}`}
       style={{
         '--light-x': `${light.x}%`,
         '--light-y': `${light.y}%`,
@@ -608,7 +627,7 @@ const WorkDetail = () => {
                 </p>
                 <button
                   type="button"
-                  className="exhibition-btn exhibition-btn--primary"
+                  className="brand-btn brand-btn--primary brand-btn--pill brand-btn--block exhibition-btn exhibition-btn--primary"
                   onClick={() => setIsContactFormOpen(true)}
                 >
                   <FaEnvelope aria-hidden />
@@ -616,6 +635,29 @@ const WorkDetail = () => {
                 </button>
               </div>
             )}
+
+            {showEventRegistration && (
+              <div className="exhibition-placard-cta">
+                <p className="exhibition-placard-cta-hint">
+                  Réservez votre place — billet par email avec QR code à l&apos;entrée.
+                </p>
+                <button
+                  type="button"
+                  className="brand-btn brand-btn--primary brand-btn--pill brand-btn--block exhibition-btn exhibition-btn--primary"
+                  onClick={() => setIsRegistrationOpen(true)}
+                >
+                  Je participe
+                </button>
+              </div>
+            )}
+            {isEventPage &&
+              currentWork.ticket_mode &&
+              currentWork.ticket_mode !== 'closed' &&
+              isEventPast(currentWork.date_fin) && (
+                <p className="exhibition-placard-desc exhibition-placard-desc--muted">
+                  Événement terminé — inscriptions closes.
+                </p>
+              )}
           </div>
         </motion.footer>
       </div>
@@ -658,6 +700,55 @@ const WorkDetail = () => {
             onClose={() => setIsContactFormOpen(false)}
             onSuccess={() => {}}
           />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isRegistrationOpen && showEventRegistration && (
+          <motion.div
+            className="exhibition-registration-overlay"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="exhibition-registration-dialog-title"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsRegistrationOpen(false)}
+          >
+            <motion.div
+              className="exhibition-registration-dialog"
+              initial={{ opacity: 0, y: 24, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 16, scale: 0.98 }}
+              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <header className="exhibition-registration-dialog__head">
+                <div>
+                  <p className="exhibition-registration-dialog__eyebrow">Inscription</p>
+                  <h2 id="exhibition-registration-dialog-title">
+                    {currentWork.titre || 'Événement'}
+                  </h2>
+                </div>
+                <button
+                  type="button"
+                  className="exhibition-registration-dialog__close"
+                  aria-label="Fermer"
+                  onClick={() => setIsRegistrationOpen(false)}
+                >
+                  <FaTimes />
+                </button>
+              </header>
+              <div className="exhibition-registration-dialog__body">
+                <EventRegistrationForm
+                  eventId={currentWork.id}
+                  eventTitle={currentWork.titre}
+                  inModal
+                  onClose={() => setIsRegistrationOpen(false)}
+                />
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

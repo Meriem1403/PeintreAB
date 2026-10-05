@@ -9,6 +9,7 @@
     "start": "node src/server.js",
     "migrate": "node migrations/migrate.js",
     "seed": "node migrations/seedData.js",
+    "seed:visitors": "node migrations/seedVisitorsFixtures.js",
     "scan-seed": "node migrations/scanAndSeed.js",
     "remove-no-images": "node migrations/removeWorksWithoutImages.js",
     "export-data": "node migrations/exportData.js",
@@ -25,7 +26,8 @@
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.16",
-    "pg": "^8.13.1"
+    "pg": "^8.13.1",
+    "qrcode": "^1.5.4"
   },
   "devDependencies": {
     "nodemon": "^3.1.9"

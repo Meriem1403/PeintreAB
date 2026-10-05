@@ -4,6 +4,7 @@ import './index.css'
 import './styles/browser-fallbacks.css'
 import './styles/responsive-global.css'
 import './styles/forms.css'
+import './styles/brand-buttons.css'
 import './styles/artist-section-title.css'
 import App from './App.jsx'
 

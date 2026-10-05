@@ -21,8 +21,10 @@ const formatExhibitDate = (item) => {
 
 const GalleryItem = ({ item, index, onClick, refined = false }) => {
   const itemRef = useRef(null);
+  const artRef = useRef(null);
   const animationRef = useRef(null);
   const [imageReady, setImageReady] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const reduceMotion = useReducedMotion();
 
   useEffect(() => {
@@ -38,7 +40,26 @@ const GalleryItem = ({ item, index, onClick, refined = false }) => {
 
   useEffect(() => {
     setImageReady(false);
+    setImageError(false);
   }, [item?.id, item?.image]);
+
+  const imageSrc = item?.image ? normalizeImageUrl(item.image) : null;
+
+  useEffect(() => {
+    if (!refined || !imageSrc) return undefined;
+
+    const syncFromCache = () => {
+      const img = artRef.current;
+      if (img?.complete && img.naturalWidth > 0) {
+        setImageReady(true);
+        setImageError(false);
+      }
+    };
+
+    syncFromCache();
+    const raf = requestAnimationFrame(syncFromCache);
+    return () => cancelAnimationFrame(raf);
+  }, [refined, imageSrc, item?.id, item?.image]);
 
   const handleClick = () => {
     if (onClick && item) {
@@ -50,7 +71,6 @@ const GalleryItem = ({ item, index, onClick, refined = false }) => {
     return null;
   }
 
-  const imageSrc = item.image ? normalizeImageUrl(item.image) : null;
   const exhibitDate = formatExhibitDate(item);
   const showPrice = item.prix && !item.is_sold;
   const showLieu = Boolean(item.lieu || item.adresse);
@@ -86,38 +106,58 @@ const GalleryItem = ({ item, index, onClick, refined = false }) => {
         role="button"
         aria-label={`Voir ${item.titre || 'œuvre'}`}
       >
-        {imageSrc && (
-          <div
-            className={`item-image featured-work-image galerie-exhibit__media ${imageReady ? 'is-ready' : 'is-loading'}`}
-          >
-            <div className="galerie-exhibit__spot" aria-hidden />
-            {!imageReady && <div className="galerie-exhibit__loader" aria-hidden />}
-            <div className="galerie-exhibit__light galerie-exhibit__light--warm" aria-hidden />
-            <div className="galerie-exhibit__light galerie-exhibit__light--cool" aria-hidden />
-            <div className="galerie-exhibit__glint" aria-hidden />
-            <motion.img
-              src={imageSrc}
-              alt={item.titre || 'Œuvre'}
-              loading="lazy"
-              draggable={false}
-              className={`galerie-exhibit__art ${imageReady ? 'is-loaded' : ''}`}
-              initial={reduceMotion ? false : { opacity: 0, scale: 0.97 }}
-              animate={{ opacity: imageReady ? 1 : 0, scale: 1 }}
-              transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
-              whileHover={
-                reduceMotion
-                  ? undefined
-                  : { scale: 1.03, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } }
-              }
-              onLoad={() => setImageReady(true)}
-              onError={() => setImageReady(true)}
-            />
-            <div className="image-overlay" />
-            <div className={`availability-badge ${item.is_sold ? 'sold' : 'available'}`}>
-              {item.is_sold ? 'Collection privée' : 'Disponible'}
-            </div>
+        <div
+          className={`item-image featured-work-image galerie-exhibit__media ${imageReady ? 'is-ready' : 'is-loading'} ${imageError ? 'is-error' : ''}`}
+        >
+          <div className="galerie-exhibit__spot" aria-hidden />
+          {!imageReady && !imageError && <div className="galerie-exhibit__loader" aria-hidden />}
+          {imageError && (
+            <p className="galerie-exhibit__media-fallback" aria-hidden>
+              Affiche indisponible
+            </p>
+          )}
+          {imageSrc && !imageError && (
+            <>
+              <div className="galerie-exhibit__light galerie-exhibit__light--warm" aria-hidden />
+              <div className="galerie-exhibit__light galerie-exhibit__light--cool" aria-hidden />
+              <div className="galerie-exhibit__glint" aria-hidden />
+              <motion.img
+                ref={artRef}
+                src={imageSrc}
+                alt={item.titre || 'Œuvre'}
+                loading="lazy"
+                decoding="async"
+                draggable={false}
+                className={`galerie-exhibit__art ${imageReady ? 'is-loaded' : ''}`}
+                initial={reduceMotion ? false : { opacity: 0, scale: 0.97 }}
+                animate={{ opacity: imageReady ? 1 : 0, scale: 1 }}
+                transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+                whileHover={
+                  reduceMotion
+                    ? undefined
+                    : { scale: 1.03, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } }
+                }
+                onLoad={() => {
+                  setImageReady(true);
+                  setImageError(false);
+                }}
+                onError={() => {
+                  setImageError(true);
+                  setImageReady(false);
+                }}
+              />
+            </>
+          )}
+          {!imageSrc && !imageError && (
+            <p className="galerie-exhibit__media-fallback" aria-hidden>
+              Sans visuel
+            </p>
+          )}
+          <div className="image-overlay" />
+          <div className={`availability-badge ${item.is_sold ? 'sold' : 'available'}`}>
+            {item.is_sold ? 'Collection privée' : 'Disponible'}
           </div>
-        )}
+        </div>
         <figcaption className="galerie-exhibit__caption featured-work-info">
           <div className="galerie-exhibit__caption-main">
             <h3 className="galerie-exhibit__title">{item.titre || 'Sans titre'}</h3>

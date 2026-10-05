@@ -1,21 +1,25 @@
 .admin-shell {
+  --admin-nav-offset: 72px;
   display: grid;
   grid-template-columns: minmax(240px, 280px) 1fr;
-  min-height: calc(100vh - 80px);
+  align-items: stretch;
+  min-height: calc(100dvh - var(--admin-nav-offset));
   background: #f4f1ec;
 }
 
 .admin-sidebar {
   position: sticky;
-  top: 72px;
-  align-self: start;
-  height: calc(100vh - 72px);
+  top: var(--admin-nav-offset);
+  align-self: stretch;
+  min-height: calc(100dvh - var(--admin-nav-offset));
+  max-height: calc(100dvh - var(--admin-nav-offset));
   display: flex;
   flex-direction: column;
   padding: 1.5rem 1rem 1.25rem;
   background: #1c1917;
   color: #e7e5e4;
   border-right: 1px solid rgba(255, 255, 255, 0.06);
+  overflow: hidden;
 }
 
 .admin-sidebar-brand {
@@ -193,7 +197,9 @@
 
 .admin-main {
   min-width: 0;
+  min-height: calc(100dvh - var(--admin-nav-offset));
   padding: clamp(1.25rem, 3vw, 2rem) clamp(1rem, 3vw, 2.5rem) 3rem;
+  background: #f4f1ec;
 }
 
 .admin-main-header {
@@ -260,6 +266,20 @@
 
 .admin-main-body {
   max-width: 1100px;
+}
+
+.admin-main-body--wide {
+  max-width: none;
+  width: 100%;
+}
+
+.admin-main:has(.admin-main-body--wide) {
+  padding-left: clamp(0.85rem, 2vw, 1.5rem);
+  padding-right: clamp(0.85rem, 2vw, 1.5rem);
+}
+
+.admin-main:has(.admin-main-body--wide) .admin-main-header-desc {
+  max-width: 52rem;
 }
 
 .admin-loading {

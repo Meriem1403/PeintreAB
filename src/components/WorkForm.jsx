@@ -1,9 +1,30 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useWorks } from '../contexts/WorksContext';
 import FormSwitch from './FormSwitch';
 import ImageDropzone from './ImageDropzone';
+import EventTicketSlotsEditor from './EventTicketSlotsEditor';
+import { worksAPI } from '../utils/apiService';
+import {
+  buildSlotsFromEventDates,
+  emptySlot,
+  formatDurationLabel,
+  isEventPast,
+} from '../utils/eventDates';
 import './WorkForm.css';
+
+const formatDateField = (dateValue) => {
+  if (!dateValue) return '';
+  if (typeof dateValue === 'string' && dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    return dateValue;
+  }
+  const date = new Date(dateValue);
+  if (isNaN(date.getTime())) return '';
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 const WorkForm = ({ type, work, onClose }) => {
   const { addWork, updateWork } = useWorks();
@@ -19,45 +40,113 @@ const WorkForm = ({ type, work, onClose }) => {
     adresse: '',
     is_sold: false,
     is_featured: false,
+    ticket_mode: 'closed',
   });
+  const [ticketSlots, setTicketSlots] = useState([emptySlot()]);
+  const [registrationsOpen, setRegistrationsOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  const eventDuration = useMemo(() => {
+    if (type !== 'evenements') return null;
+    return formatDurationLabel(formData.date_debut, formData.date_fin);
+  }, [type, formData.date_debut, formData.date_fin]);
+
+  const eventEnded = useMemo(
+    () => type === 'evenements' && isEventPast(formData.date_fin),
+    [type, formData.date_fin]
+  );
 
   useEffect(() => {
     if (work) {
-      const formatDate = (dateValue) => {
-        if (!dateValue) return '';
-        if (typeof dateValue === 'string' && dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
-          return dateValue;
-        }
-        const date = new Date(dateValue);
-        if (isNaN(date.getTime())) return '';
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-      };
-
       setFormData({
         titre: work.titre || '',
         description: work.description || '',
         prix: work.prix || '',
         image: work.image || '',
-        date: formatDate(work.date),
-        date_debut: formatDate(work.date_debut),
-        date_fin: formatDate(work.date_fin),
+        date: formatDateField(work.date),
+        date_debut: formatDateField(work.date_debut),
+        date_fin: formatDateField(work.date_fin),
         lieu: work.lieu || '',
         adresse: work.adresse || '',
         is_sold: work.is_sold || false,
         is_featured: work.is_featured || false,
+        ticket_mode: work.ticket_mode || 'closed',
       });
     }
   }, [work]);
 
+  useEffect(() => {
+    if (type !== 'evenements' || !work?.id) {
+      if (type === 'evenements' && !work) {
+        setTicketSlots([emptySlot()]);
+        setRegistrationsOpen(false);
+      }
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const full = await worksAPI.getById(work.id);
+        if (cancelled) return;
+        const d1 = formatDateField(full.date_debut);
+        const d2 = formatDateField(full.date_fin);
+        const apiSlots = full.ticket_slots?.length
+          ? full.ticket_slots.map((s) => ({
+              label: s.label || '',
+              slot_date: formatDateField(s.slot_date),
+              capacity_mode: s.capacity_mode || 'limited',
+              capacity: s.capacity ?? '',
+            }))
+          : [];
+        setTicketSlots(
+          d1 && d2 && d2 >= d1
+            ? buildSlotsFromEventDates(d1, d2, apiSlots)
+            : apiSlots.length
+              ? apiSlots
+              : [emptySlot()]
+        );
+        const past = isEventPast(d2);
+        setRegistrationsOpen(full.ticket_mode !== 'closed' && !past);
+      } catch (err) {
+        console.error(err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [work?.id, type, work]);
+
+  useEffect(() => {
+    if (eventEnded) setRegistrationsOpen(false);
+  }, [eventEnded]);
+
+  const applyDateRangeToSlots = (debut, fin, previousSlots) => {
+    if (!debut || !fin || fin < debut) return;
+    setTicketSlots(buildSlotsFromEventDates(debut, fin, previousSlots));
+  };
+
   const handleChange = (e) => {
     const { name, value, type: inputType, checked } = e.target;
+    const nextValue = inputType === 'checkbox' ? checked : value;
+
+    if (type === 'evenements' && (name === 'date_debut' || name === 'date_fin')) {
+      setFormData((prev) => {
+        const next = { ...prev, [name]: nextValue };
+        setTicketSlots((prevSlots) => {
+          const built = buildSlotsFromEventDates(next.date_debut, next.date_fin, prevSlots);
+          return built;
+        });
+        if (name === 'date_fin' && isEventPast(nextValue)) {
+          setRegistrationsOpen(false);
+        }
+        return next;
+      });
+      return;
+    }
+
     setFormData((prev) => ({
       ...prev,
-      [name]: inputType === 'checkbox' ? checked : value,
+      [name]: nextValue,
     }));
   };
 
@@ -65,14 +154,21 @@ const WorkForm = ({ type, work, onClose }) => {
     e.preventDefault();
     setSaving(true);
     try {
+      const openRegs = registrationsOpen && !eventEnded;
+      const payload = {
+        ...formData,
+        ticket_mode: type === 'evenements' ? (openRegs ? 'open' : 'closed') : 'closed',
+        ticket_slots: type === 'evenements' && openRegs ? ticketSlots : [],
+      };
       if (work) {
-        await updateWork(type, work.id, formData);
+        await updateWork(type, work.id, payload);
       } else {
-        await addWork(type, formData);
+        await addWork(type, payload);
       }
       onClose();
     } catch (err) {
       console.error(err);
+      window.alert(err.message || 'Erreur lors de l’enregistrement');
     } finally {
       setSaving(false);
     }
@@ -154,7 +250,7 @@ const WorkForm = ({ type, work, onClose }) => {
                     placeholder="1200"
                   />
                 </div>
-                <div className="form-group">
+                <div className="form-group form-group--date">
                   <label htmlFor="work-date">Date</label>
                   <input
                     id="work-date"
@@ -170,29 +266,51 @@ const WorkForm = ({ type, work, onClose }) => {
             {type === 'evenements' && (
               <>
                 <div className="form-row">
-                  <div className="form-group">
+                  <div className="form-group form-group--date">
                     <label htmlFor="work-date-debut">Début *</label>
-                    <input
-                      id="work-date-debut"
-                      type="date"
-                      name="date_debut"
-                      value={formData.date_debut}
-                      onChange={handleChange}
-                      required
-                    />
+                    <div className="form-date-shell">
+                      <input
+                        id="work-date-debut"
+                        type="date"
+                        name="date_debut"
+                        value={formData.date_debut}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
                   </div>
-                  <div className="form-group">
+                  <div className="form-group form-group--date">
                     <label htmlFor="work-date-fin">Fin *</label>
-                    <input
-                      id="work-date-fin"
-                      type="date"
-                      name="date_fin"
-                      value={formData.date_fin}
-                      onChange={handleChange}
-                      required
-                    />
+                    <div className="form-date-shell">
+                      <input
+                        id="work-date-fin"
+                        type="date"
+                        name="date_fin"
+                        value={formData.date_fin}
+                        onChange={handleChange}
+                        min={formData.date_debut || undefined}
+                        required
+                      />
+                    </div>
                   </div>
                 </div>
+                {eventDuration && (
+                  <p className="work-form__duration" role="status">
+                    Durée : <strong>{eventDuration.dayWord}</strong> ({eventDuration.range})
+                  </p>
+                )}
+                {formData.date_debut &&
+                  formData.date_fin &&
+                  formData.date_fin < formData.date_debut && (
+                    <p className="work-form__duration work-form__duration--error">
+                      La date de fin doit être après le début.
+                    </p>
+                  )}
+                {eventEnded && (
+                  <p className="work-form__duration work-form__duration--warn">
+                    Événement terminé — les inscriptions sont fermées automatiquement.
+                  </p>
+                )}
                 <div className="form-group">
                   <label htmlFor="work-lieu">Lieu</label>
                   <input
@@ -216,6 +334,20 @@ const WorkForm = ({ type, work, onClose }) => {
                     required
                   />
                   <small className="field-hint">Utilisée pour le lien Google Maps</small>
+                </div>
+                <div className="form-block" style={{ marginTop: '1rem' }}>
+                  <h3 className="form-block-title">Billetterie</h3>
+                  <EventTicketSlotsEditor
+                    enabled={registrationsOpen && !eventEnded}
+                    onEnabledChange={(v) => !eventEnded && setRegistrationsOpen(v)}
+                    slots={ticketSlots}
+                    onChange={setTicketSlots}
+                    duration={eventDuration}
+                    datesValid={
+                      Boolean(formData.date_debut && formData.date_fin) &&
+                      formData.date_fin >= formData.date_debut
+                    }
+                  />
                 </div>
               </>
             )}

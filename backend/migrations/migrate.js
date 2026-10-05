@@ -190,6 +190,12 @@ Formé dans les techniques classiques de la peinture à l''huile, Alexandre dév
     `);
     console.log('✅ Colonnes texte sections Atelier ajoutées/vérifiées dans site_settings');
 
+    await pool.query(`
+      ALTER TABLE site_settings
+      ADD COLUMN IF NOT EXISTS public_site_url VARCHAR(500)
+    `);
+    console.log('✅ Colonne public_site_url vérifiée dans site_settings');
+
     // Ajouter work_id à la table contacts si elle n'existe pas
     try {
       await pool.query(`
@@ -199,6 +205,138 @@ Formé dans les techniques classiques de la peinture à l''huile, Alexandre dév
       console.log('✅ Colonne work_id ajoutée/vérifiée dans la table contacts');
     } catch (error) {
       console.log('ℹ️ Vérification de la colonne work_id dans contacts');
+    }
+
+    // Billetterie événements
+    await pool.query(`
+      ALTER TABLE works
+      ADD COLUMN IF NOT EXISTS ticket_mode VARCHAR(24) DEFAULT 'closed',
+      ADD COLUMN IF NOT EXISTS ticket_capacity INTEGER
+    `);
+    console.log('✅ Colonnes billetterie ajoutées/vérifiées dans works');
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS visitors (
+        id SERIAL PRIMARY KEY,
+        email VARCHAR(255) NOT NULL UNIQUE,
+        first_name VARCHAR(120) NOT NULL,
+        last_name VARCHAR(120) NOT NULL,
+        phone VARCHAR(50),
+        marketing_opt_in BOOLEAN DEFAULT FALSE NOT NULL,
+        marketing_consent_at TIMESTAMP,
+        privacy_policy_version VARCHAR(32),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS event_registrations (
+        id SERIAL PRIMARY KEY,
+        work_id INTEGER NOT NULL REFERENCES works(id) ON DELETE CASCADE,
+        visitor_id INTEGER NOT NULL REFERENCES visitors(id) ON DELETE CASCADE,
+        ticket_code UUID NOT NULL,
+        status VARCHAR(20) DEFAULT 'confirmed' NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(work_id, visitor_id),
+        UNIQUE(ticket_code)
+      )
+    `);
+    console.log('✅ Tables visitors et event_registrations créées/vérifiées');
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS event_ticket_slots (
+        id SERIAL PRIMARY KEY,
+        work_id INTEGER NOT NULL REFERENCES works(id) ON DELETE CASCADE,
+        label VARCHAR(200) NOT NULL,
+        slot_date DATE,
+        capacity_mode VARCHAR(16) NOT NULL DEFAULT 'limited',
+        capacity INTEGER,
+        display_order INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    await pool.query(`
+      ALTER TABLE event_registrations
+      ADD COLUMN IF NOT EXISTS slot_id INTEGER REFERENCES event_ticket_slots(id) ON DELETE SET NULL
+    `);
+
+    await pool.query(`
+      ALTER TABLE event_registrations
+      DROP CONSTRAINT IF EXISTS event_registrations_work_id_visitor_id_key
+    `);
+
+    await pool.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS event_registrations_legacy_unique
+      ON event_registrations (work_id, visitor_id)
+      WHERE slot_id IS NULL
+    `);
+
+    await pool.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS event_registrations_slot_unique
+      ON event_registrations (work_id, visitor_id, slot_id)
+      WHERE slot_id IS NOT NULL
+    `);
+
+    await pool.query(`
+      ALTER TABLE event_registrations
+      ADD COLUMN IF NOT EXISTS checked_in_at TIMESTAMP
+    `);
+    console.log('✅ Colonne checked_in_at vérifiée sur event_registrations');
+
+    await pool.query(`
+      ALTER TABLE event_registrations
+      ADD COLUMN IF NOT EXISTS party_size INTEGER NOT NULL DEFAULT 1
+    `);
+    console.log('✅ Colonne party_size vérifiée sur event_registrations');
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS event_registration_tickets (
+        id SERIAL PRIMARY KEY,
+        registration_id INTEGER NOT NULL REFERENCES event_registrations(id) ON DELETE CASCADE,
+        ticket_code UUID NOT NULL UNIQUE,
+        ticket_index INTEGER NOT NULL,
+        checked_in_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(registration_id, ticket_index)
+      )
+    `);
+    console.log('✅ Table event_registration_tickets créée/vérifiée');
+
+    const regsForTickets = await pool.query(
+      `SELECT id, ticket_code, party_size, checked_in_at FROM event_registrations`
+    );
+    for (const reg of regsForTickets.rows) {
+      const total = Math.max(1, Number(reg.party_size) || 1);
+      for (let idx = 1; idx <= total; idx += 1) {
+        const code =
+          idx === 1
+            ? reg.ticket_code
+            : (await import('crypto')).default.randomUUID();
+        await pool.query(
+          `INSERT INTO event_registration_tickets (registration_id, ticket_code, ticket_index, checked_in_at)
+           VALUES ($1, $2, $3, $4)
+           ON CONFLICT (registration_id, ticket_index) DO NOTHING`,
+          [reg.id, code, idx, idx === 1 ? reg.checked_in_at : null]
+        );
+      }
+    }
+    if (regsForTickets.rows.length > 0) {
+      console.log('✅ Billets individuels (QR) synchronisés pour les inscriptions existantes');
+    }
+
+    console.log('✅ Tables créneaux billetterie créées/vérifiées');
+
+    const { migrateLegacyTicketToSlots } = await import('../src/services/ticketSlots.js');
+    const legacyEvents = await pool.query(
+      `SELECT * FROM works WHERE type = 'evenements' AND ticket_mode NOT IN ('closed', 'open')`
+    );
+    for (const row of legacyEvents.rows) {
+      await migrateLegacyTicketToSlots(row);
+    }
+    if (legacyEvents.rows.length > 0) {
+      console.log(`✅ ${legacyEvents.rows.length} événement(s) migré(s) vers créneaux billetterie`);
     }
 
     // Créer un utilisateur admin par défaut si aucun n'existe

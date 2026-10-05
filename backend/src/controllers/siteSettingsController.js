@@ -1,18 +1,39 @@
 import pool from '../config/database.js';
 import { normalizeImageUrl } from '../utils/imageUrl.js';
+import { urlQrDataUrl } from '../services/ticketQr.js';
 import {
   DEFAULT_ATELIER_HERO_COPY,
   DEFAULT_ATELIER_SECTION_COPY,
 } from '../constants/atelierHeroCopy.js';
+
+const DEFAULT_PUBLIC_SITE_URL =
+  process.env.FRONTEND_URL?.replace(/\/$/, '') || 'https://www.alexandrebindl.fr';
 
 const DEFAULT_SETTINGS = {
   hero_image: '/images/peintures/2025-2-le-cours.jpg',
   primary_color: '#C6AC8F',
   accent_color: '#B89A7A',
   navbar_color: '#C6AC8F',
+  public_site_url: DEFAULT_PUBLIC_SITE_URL,
   ...DEFAULT_ATELIER_HERO_COPY,
   ...DEFAULT_ATELIER_SECTION_COPY,
 };
+
+function normalizePublicSiteUrl(raw) {
+  if (raw == null || raw === '') return null;
+  let url = String(raw).trim();
+  if (!url) return null;
+  if (!/^https?:\/\//i.test(url)) {
+    url = `https://${url}`;
+  }
+  try {
+    const parsed = new URL(url);
+    if (!['http:', 'https:'].includes(parsed.protocol)) return null;
+    return parsed.href.replace(/\/$/, '');
+  } catch {
+    return null;
+  }
+}
 
 export const getSiteSettings = async (req, res) => {
   try {
@@ -52,7 +73,14 @@ export const updateSiteSettings = async (req, res) => {
       atelier_works_index,
       atelier_works_title,
       atelier_works_intro,
+      public_site_url,
     } = req.body;
+
+    const normalizedSiteUrl =
+      public_site_url !== undefined ? normalizePublicSiteUrl(public_site_url) : undefined;
+    if (public_site_url !== undefined && public_site_url !== '' && normalizedSiteUrl === null) {
+      return res.status(400).json({ error: 'URL du site invalide (utilisez https://…)' });
+    }
 
     const existing = await pool.query('SELECT * FROM site_settings ORDER BY id DESC LIMIT 1');
 
@@ -66,9 +94,10 @@ export const updateSiteSettings = async (req, res) => {
            atelier_hero_lead_suffix,
            atelier_events_index, atelier_events_title, atelier_events_intro,
            atelier_works_index, atelier_works_title, atelier_works_intro,
+           public_site_url,
            updated_at
          )
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, CURRENT_TIMESTAMP)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, CURRENT_TIMESTAMP)
          RETURNING *`,
         [
           hero_image || DEFAULT_SETTINGS.hero_image,
@@ -88,6 +117,7 @@ export const updateSiteSettings = async (req, res) => {
           atelier_works_index ?? DEFAULT_SETTINGS.atelier_works_index,
           atelier_works_title ?? DEFAULT_SETTINGS.atelier_works_title,
           atelier_works_intro ?? DEFAULT_SETTINGS.atelier_works_intro,
+          normalizedSiteUrl ?? DEFAULT_SETTINGS.public_site_url,
         ]
       );
     } else {
@@ -110,8 +140,9 @@ export const updateSiteSettings = async (req, res) => {
              atelier_works_index = COALESCE($15, atelier_works_index),
              atelier_works_title = COALESCE($16, atelier_works_title),
              atelier_works_intro = COALESCE($17, atelier_works_intro),
+             public_site_url = COALESCE($18, public_site_url),
              updated_at = CURRENT_TIMESTAMP
-         WHERE id = $18
+         WHERE id = $19
          RETURNING *`,
         [
           hero_image ?? null,
@@ -131,6 +162,7 @@ export const updateSiteSettings = async (req, res) => {
           atelier_works_index ?? null,
           atelier_works_title ?? null,
           atelier_works_intro ?? null,
+          normalizedSiteUrl ?? null,
           existing.rows[0].id,
         ]
       );
@@ -143,5 +175,25 @@ export const updateSiteSettings = async (req, res) => {
   } catch (error) {
     console.error('Erreur lors de la mise à jour des paramètres du site:', error);
     res.status(500).json({ error: 'Erreur serveur' });
+  }
+};
+
+export const getWebsiteQr = async (req, res) => {
+  try {
+    let url = normalizePublicSiteUrl(req.query.url);
+    if (!url) {
+      const result = await pool.query(
+        'SELECT public_site_url FROM site_settings ORDER BY id DESC LIMIT 1'
+      );
+      url = normalizePublicSiteUrl(result.rows[0]?.public_site_url) || DEFAULT_SETTINGS.public_site_url;
+    }
+    if (!url) {
+      return res.status(400).json({ error: 'Configurez l’URL du site pour générer le QR code' });
+    }
+    const qr_data_url = await urlQrDataUrl(url);
+    res.json({ url, qr_data_url });
+  } catch (error) {
+    console.error('getWebsiteQr:', error);
+    res.status(500).json({ error: 'Impossible de générer le QR code' });
   }
 };

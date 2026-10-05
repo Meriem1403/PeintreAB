@@ -8,6 +8,7 @@ import artistRoutes from './routes/artistRoutes.js';
 import contactInfoRoutes from './routes/contactInfoRoutes.js';
 import siteSettingsRoutes from './routes/siteSettingsRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
+import eventRoutes from './routes/eventRoutes.js';
 import pool from './config/database.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -37,6 +38,7 @@ app.use('/api/artist', artistRoutes);
 app.use('/api/contact-info', contactInfoRoutes);
 app.use('/api/site-settings', siteSettingsRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/events', eventRoutes);
 
 // Route de santé
 app.get('/api/health', (req, res) => {
