@@ -1,0 +1,214 @@
+/**
+ * Typographie outil — lisibilité prioritaire dans l’espace admin
+ * (sans-serif, contrastes renforcés, tailles minimales)
+ */
+
+.admin-shell {
+  --admin-ui-font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+    Arial, sans-serif;
+  --admin-text: #1c1917;
+  --admin-text-secondary: #44403c;
+  --admin-text-muted: #57534e;
+  --admin-text-subtle: #78716c;
+  font-family: var(--admin-ui-font);
+  font-size: 16px;
+  line-height: 1.5;
+  letter-spacing: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.admin-shell .admin-main,
+.admin-shell .admin-sidebar,
+.admin-shell input,
+.admin-shell textarea,
+.admin-shell select,
+.admin-shell button {
+  font-family: var(--admin-ui-font);
+}
+
+/* ——— En-tête page ——— */
+.admin-shell .admin-main-header-title-row h1 {
+  font-family: var(--admin-ui-font);
+  font-weight: 650;
+  font-style: normal;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  color: var(--admin-text);
+}
+
+.admin-shell .admin-main-header-desc {
+  color: var(--admin-text-muted);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
+@media (max-width: 900px) {
+  .admin-shell .admin-main-header-desc {
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+}
+
+/* ——— Sidebar ——— */
+.admin-shell .admin-sidebar-link {
+  font-weight: 500;
+  font-size: 0.9375rem;
+  color: #e7e5e4;
+}
+
+.admin-shell .admin-sidebar-group-title {
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  color: #a8a29e;
+}
+
+.admin-shell .admin-sidebar-count,
+.admin-shell .admin-sidebar-badge {
+  font-size: 0.75rem;
+}
+
+.admin-shell .admin-sidebar-foot-link,
+.admin-shell .admin-sidebar-foot-btn {
+  font-size: 0.875rem;
+}
+
+/* ——— Formulaires admin ——— */
+.admin-shell .app-form-panel > h2,
+.admin-shell .app-form-panel > .app-form-title {
+  font-family: var(--admin-ui-font);
+  font-weight: 650;
+  font-size: 1.375rem;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.admin-shell .app-form .form-section h3 {
+  font-family: var(--admin-ui-font);
+  font-weight: 600;
+  font-size: 1.125rem;
+  letter-spacing: -0.015em;
+}
+
+.admin-shell .app-form .form-group label,
+.admin-shell .app-form .form-group > label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--admin-text-secondary);
+  letter-spacing: normal;
+}
+
+.admin-shell .app-form .form-block-title {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  color: var(--admin-text-subtle);
+}
+
+.admin-shell .app-form-panel .form-description,
+.admin-shell .app-form-panel .app-form-intro {
+  color: var(--admin-text-muted);
+  font-size: 0.9375rem;
+}
+
+.admin-shell .app-form input,
+.admin-shell .app-form textarea,
+.admin-shell .app-form select {
+  font-size: 1rem;
+  line-height: 1.45;
+}
+
+/* ——— Tableaux de bord (inbox, visiteurs, scan) ——— */
+.admin-shell :is(
+    .inbox-metric__value,
+    .inbox-pane__title,
+    .inbox-detail__subject,
+    .inbox-detail__work-title,
+    .inbox-empty h2,
+    .vdash-metric__value,
+    .adb-cover__title,
+    .vscan-empty h2
+  ) {
+  font-family: inherit;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.admin-shell .inbox-metric__value,
+.admin-shell .vdash-metric__value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+}
+
+.admin-shell .inbox-metric__label,
+.admin-shell .vdash-metric__label {
+  font-size: 0.8125rem;
+  color: var(--admin-text-muted);
+}
+
+.admin-shell .inbox-pane__title {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.admin-shell .inbox-detail__subject {
+  font-size: clamp(1.125rem, 2.5vw, 1.375rem);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.admin-shell .inbox-row__name,
+.admin-shell .inbox-row__subject {
+  font-size: 0.875rem;
+}
+
+.admin-shell .inbox-row__preview,
+.admin-shell .inbox-row__time {
+  font-size: 0.8125rem;
+}
+
+.admin-shell .inbox-tag {
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+}
+
+.admin-shell .inbox-segment__btn {
+  font-size: 0.75rem;
+}
+
+.admin-shell .inbox-detail__message {
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  color: var(--admin-text);
+}
+
+.admin-shell .adb-cover__title {
+  font-size: clamp(1.25rem, 3vw, 1.75rem);
+  font-weight: 650;
+  line-height: 1.2;
+}
+
+.admin-shell .adb-cover__meta {
+  font-size: 0.875rem;
+}
+
+/* ——— Liste œuvres ——— */
+.admin-shell .work-list-pagination__hint {
+  font-size: 0.8125rem;
+}
+
+.admin-shell .work-list-page-zone {
+  font-size: 0.875rem;
+  color: var(--admin-text-muted);
+}
+
+.admin-shell .empty-state {
+  font-size: 1rem;
+  color: var(--admin-text-muted);
+}
+
+.admin-shell .admin-loading {
+  font-size: 0.9375rem;
+  color: var(--admin-text-muted);
+}

@@ -96,8 +96,8 @@
   background: transparent;
   color: #d6d3d1;
   font-family: inherit;
-  font-size: 0.875rem;
-  font-weight: 450;
+  font-size: 0.9375rem;
+  font-weight: 500;
   text-align: left;
   cursor: pointer;
   transition: background 0.2s ease, color 0.2s ease;
@@ -225,13 +225,13 @@
   margin: 0;
   grid-row: 1;
   grid-column: 1;
-  font-family: 'Cormorant Garamond', 'Playfair Display', serif;
-  font-size: clamp(1.85rem, 3vw, 2.35rem);
-  font-weight: 400;
-  font-style: italic;
+  font-family: inherit;
+  font-size: clamp(1.5rem, 2.8vw, 1.875rem);
+  font-weight: 650;
+  font-style: normal;
   color: #1c1917;
-  letter-spacing: 0.02em;
-  line-height: 1.1;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
 }
 
 .admin-main-header-desc {
@@ -239,9 +239,9 @@
   grid-row: 2;
   grid-column: 1;
   font-size: 0.9375rem;
-  color: #78716c;
+  color: #57534e;
   max-width: 36rem;
-  line-height: 1.45;
+  line-height: 1.55;
 }
 
 .admin-main-cta {
@@ -359,8 +359,8 @@
   .admin-main-header-title-row h1 {
     flex: 1 1 auto;
     min-width: 0;
-    font-size: clamp(1.65rem, 5.5vw, 1.85rem);
-    line-height: 1.05;
+    font-size: clamp(1.35rem, 5vw, 1.625rem);
+    line-height: 1.2;
     transform: none;
   }
 
@@ -368,8 +368,8 @@
     flex: 1 1 auto;
     margin-top: 0;
     padding-left: 0;
-    font-size: 0.8125rem;
-    line-height: 1.35;
+    font-size: 0.875rem;
+    line-height: 1.5;
     max-width: none;
   }
 

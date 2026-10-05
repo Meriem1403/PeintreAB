@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { eventsAPI } from '../utils/apiService';
-import { PRIVACY_POLICY_SUMMARY } from '../constants/privacy';
+import { PRIVACY_POLICY_PATH, PRIVACY_POLICY_SUMMARY } from '../constants/privacy';
 import FormSwitch from './FormSwitch';
 import '../styles/forms.css';
 import './EventRegistrationForm.css';
@@ -370,8 +370,12 @@ const EventRegistrationForm = ({ eventId, eventTitle, inModal = false, onClose, 
                     description={
                       <>
                         {PRIVACY_POLICY_SUMMARY}{' '}
+                        <Link to={PRIVACY_POLICY_PATH} className="event-registration__link">
+                          Politique de confidentialité
+                        </Link>
+                        {' · '}
                         <Link to="/contact" className="event-registration__link">
-                          Nous contacter
+                          Contact
                         </Link>
                       </>
                     }

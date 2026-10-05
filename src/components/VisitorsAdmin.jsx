@@ -12,12 +12,15 @@ import {
   FiUserCheck,
   FiUsers,
   FiTrendingUp,
+  FiEdit3,
 } from 'react-icons/fi';
 import { eventsAPI } from '../utils/apiService';
 import { useWorks } from '../contexts/WorksContext';
 import { formatDurationLabel, isEventPast } from '../utils/eventDates';
 import { adminTabPath } from '../constants/adminRoutes';
 import '../styles/adminEventShell.css';
+import AdminPagination from './AdminPagination';
+import { ADMIN_PAGE_SIZES, paginate } from '../utils/adminPagination';
 import './VisitorsAdmin.css';
 
 const TABS = [
@@ -64,8 +67,111 @@ const formatDate = (value) => {
   });
 };
 
+const slotDateParts = (value) => {
+  if (!value) return null;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return null;
+  const weekday = d.toLocaleDateString('fr-FR', { weekday: 'short' }).replace(/\.$/, '');
+  const month = d.toLocaleDateString('fr-FR', { month: 'short' }).replace(/\.$/, '');
+  return {
+    weekday,
+    day: d.toLocaleDateString('fr-FR', { day: 'numeric' }),
+    month,
+    year: d.getFullYear(),
+  };
+};
+
 const initials = (first, last) =>
   `${(first || '?').charAt(0)}${(last || '').charAt(0)}`.toUpperCase();
+
+const GUEST_TICKETS_INLINE_MAX = 4;
+
+const GuestTickets = ({ ticketLinks }) => {
+  if (!ticketLinks.length) return null;
+
+  const renderPill = (t, multi) => (
+    <Link
+      key={t.ticket_code}
+      className={`vdash-guest__ticket-pill ${t.checked_in_at ? 'is-scanned' : ''}`}
+      to={`/billet/${t.ticket_code}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      title={
+        t.checked_in_at
+          ? `Billet ${t.ticket_index || ''} — déjà scanné`
+          : `Ouvrir le billet ${t.ticket_index || ''} (QR)`
+      }
+    >
+      {multi ? `#${t.ticket_index || '?'}` : 'QR'}
+      <FiExternalLink aria-hidden />
+    </Link>
+  );
+
+  if (ticketLinks.length === 1) {
+    const t = ticketLinks[0];
+    return (
+      <div className="vdash-guest__tickets">
+        <Link
+          className="vdash-guest__ticket vdash-guest__ticket--primary"
+          to={`/billet/${t.ticket_code}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Billet QR
+          <FiExternalLink aria-hidden />
+        </Link>
+      </div>
+    );
+  }
+
+  const scanned = ticketLinks.filter((t) => t.checked_in_at).length;
+
+  if (ticketLinks.length <= GUEST_TICKETS_INLINE_MAX) {
+    return (
+      <div className="vdash-guest__tickets">
+        <p className="vdash-guest__tickets-meta">
+          <span>{ticketLinks.length} billets</span>
+          {scanned > 0 && (
+            <span>
+              {scanned}/{ticketLinks.length} scanné{ticketLinks.length > 1 ? 's' : ''}
+            </span>
+          )}
+        </p>
+        <div className="vdash-guest__tickets-grid">{ticketLinks.map((t) => renderPill(t, true))}</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="vdash-guest__tickets">
+      <div className="vdash-guest__tickets-bar">
+        <div className="vdash-guest__tickets-meta">
+          <span className="vdash-guest__tickets-count">{ticketLinks.length} billets</span>
+          {scanned > 0 && (
+            <span className="vdash-guest__tickets-scan">
+              {scanned}/{ticketLinks.length} scannés
+            </span>
+          )}
+        </div>
+        <Link
+          className="vdash-guest__ticket vdash-guest__ticket--primary vdash-guest__ticket--sm"
+          to={`/billet/${ticketLinks[0].ticket_code}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Billet 1
+          <FiExternalLink aria-hidden />
+        </Link>
+      </div>
+      <details className="vdash-guest__tickets-details">
+        <summary>Voir les {ticketLinks.length} billets</summary>
+        <div className="vdash-guest__tickets-grid vdash-guest__tickets-grid--dense">
+          {ticketLinks.map((t) => renderPill(t, true))}
+        </div>
+      </details>
+    </div>
+  );
+};
 
 const AttendanceRing = ({ checked, total }) => {
   const pct = total > 0 ? Math.round((checked / total) * 100) : 0;
@@ -109,6 +215,8 @@ const VisitorsAdmin = () => {
   const [activeTab, setActiveTab] = useState('contacts');
   const [guestSearch, setGuestSearch] = useState('');
   const [contactSearch, setContactSearch] = useState('');
+  const [guestsPage, setGuestsPage] = useState(1);
+  const [contactsPage, setContactsPage] = useState(1);
 
   const selectedEvent = useMemo(
     () => events.find((ev) => String(ev.id) === String(selectedEventId)),
@@ -190,15 +298,34 @@ const VisitorsAdmin = () => {
       const capacity = slot.unlimited ? null : Number(slot.capacity);
       const fill =
         capacity != null && capacity > 0 ? Math.min(100, Math.round((count / capacity) * 100)) : null;
+      const remaining =
+        capacity != null ? Math.max(0, capacity - count) : null;
       return {
         ...slot,
         count,
         checkedIn,
         waiting: count - checkedIn,
+        remaining,
         fill,
       };
     });
   }, [ticketInfo, registrations]);
+
+  const slotsTotals = useMemo(() => {
+    if (!slotBreakdown.length) return null;
+    return slotBreakdown.reduce(
+      (acc, slot) => {
+        acc.registered += slot.count;
+        acc.checkedIn += slot.checkedIn;
+        if (!slot.unlimited && slot.capacity != null) {
+          acc.capacity += Number(slot.capacity);
+          acc.remaining += slot.remaining ?? 0;
+        }
+        return acc;
+      },
+      { registered: 0, checkedIn: 0, capacity: 0, remaining: 0 }
+    );
+  }, [slotBreakdown]);
 
   const openGuestsForSlot = (slotId) => {
     setSlotFilter(slotId === 'all' ? 'all' : String(slotId));
@@ -236,6 +363,7 @@ const VisitorsAdmin = () => {
     }
     setSlotFilter('all');
     setGuestSearch('');
+    setGuestsPage(1);
     (async () => {
       setRegsLoading(true);
       try {
@@ -279,6 +407,40 @@ const VisitorsAdmin = () => {
         (v.email || '').toLowerCase().includes(q)
     );
   }, [visitors, contactSearch]);
+
+  useEffect(() => {
+    setGuestsPage(1);
+  }, [slotFilter, guestSearch]);
+
+  useEffect(() => {
+    setContactsPage(1);
+  }, [contactSearch]);
+
+  useEffect(() => {
+    const totalPages = Math.max(
+      1,
+      Math.ceil(filteredRegistrations.length / ADMIN_PAGE_SIZES.guests)
+    );
+    if (guestsPage > totalPages) setGuestsPage(totalPages);
+  }, [filteredRegistrations.length, guestsPage]);
+
+  useEffect(() => {
+    const totalPages = Math.max(
+      1,
+      Math.ceil(filteredContacts.length / ADMIN_PAGE_SIZES.contacts)
+    );
+    if (contactsPage > totalPages) setContactsPage(totalPages);
+  }, [filteredContacts.length, contactsPage]);
+
+  const guestsPagination = useMemo(
+    () => paginate(filteredRegistrations, guestsPage, ADMIN_PAGE_SIZES.guests),
+    [filteredRegistrations, guestsPage]
+  );
+
+  const contactsPagination = useMemo(
+    () => paginate(filteredContacts, contactsPage, ADMIN_PAGE_SIZES.contacts),
+    [filteredContacts, contactsPage]
+  );
 
   const handleInvite = async () => {
     if (!selectedEventId) return;
@@ -619,8 +781,12 @@ const VisitorsAdmin = () => {
                         : 'Répartition par jour de l’exposition.'}
                     </p>
                   </div>
-                  <Link to={adminTabPath('evenements')} className="vdash-surface__action">
-                    Modifier
+                  <Link
+                    to={adminTabPath('evenements')}
+                    className="vdash-btn vdash-btn--soft vdash-schedule__edit"
+                  >
+                    <FiEdit3 aria-hidden />
+                    Créneaux
                   </Link>
                 </header>
 
@@ -631,63 +797,142 @@ const VisitorsAdmin = () => {
                     Billetterie sans créneaux par jour — quota unique sur l&apos;événement.
                   </p>
                 ) : (
-                  <ul className="vdash-day-list">
-                    {slotBreakdown.map((slot) => (
-                      <li key={slot.id}>
-                        <button
-                          type="button"
-                          className={`vdash-day-card ${!slot.registration_open ? 'is-full' : ''}`}
-                          onClick={() => openGuestsForSlot(slot.id)}
-                        >
-                          <div className="vdash-day-card__head">
-                            <div>
-                              <strong>{slot.label}</strong>
-                              {slot.slot_date && (
-                                <time dateTime={slot.slot_date}>{formatDate(slot.slot_date)}</time>
-                              )}
-                            </div>
-                            <span
-                              className={`vdash-day-card__status ${
-                                !slot.registration_open ? 'is-full' : 'is-open'
-                              }`}
-                            >
-                              {!slot.unlimited && !slot.registration_open
-                                ? 'Complet'
-                                : 'Ouvert'}
-                            </span>
-                          </div>
-                          <div className="vdash-day-card__metrics">
-                            <span>
-                              <em>{slot.count}</em> inscrit{slot.count !== 1 ? 's' : ''}
-                            </span>
-                            <span>
-                              <em>{slot.checkedIn}</em> entré{slot.checkedIn !== 1 ? 's' : ''}
-                            </span>
-                            <span>
-                              {slot.unlimited ? (
-                                <>Illimité</>
-                              ) : (
-                                <>
-                                  <em>{slot.remaining ?? slot.capacity - slot.count}</em> libre
-                                  {(slot.remaining ?? slot.capacity - slot.count) !== 1 ? 's' : ''}
-                                </>
-                              )}
-                            </span>
-                          </div>
-                          {slot.fill != null && (
-                            <div className="vdash-day-card__bar">
-                              <span style={{ width: `${slot.fill}%` }} />
-                            </div>
-                          )}
-                          {!slot.unlimited && (
-                            <span className="vdash-day-card__quota">
-                              {slot.count} / {slot.capacity} places
-                            </span>
-                          )}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="vdash-schedule">
+                    {slotsTotals && slotsTotals.capacity > 0 && (
+                      <div className="vdash-schedule__summary">
+                        <span>
+                          <strong>{slotsTotals.registered}</strong> inscrits au total
+                        </span>
+                        <span>
+                          <strong>{slotsTotals.checkedIn}</strong> entrés
+                        </span>
+                        <span>
+                          <strong>{slotsTotals.remaining}</strong> places libres
+                        </span>
+                        <span className="vdash-schedule__summary-muted">
+                          {slotsTotals.registered} / {slotsTotals.capacity} places
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="vdash-schedule__table" role="table" aria-label="Planning par jour">
+                      <div className="vdash-schedule__row vdash-schedule__row--head" role="row">
+                        <span role="columnheader">Jour</span>
+                        <span role="columnheader">Statut</span>
+                        <span role="columnheader" className="vdash-schedule__num">
+                          Inscrits
+                        </span>
+                        <span role="columnheader" className="vdash-schedule__num">
+                          Entrés
+                        </span>
+                        <span role="columnheader" className="vdash-schedule__num">
+                          Libres
+                        </span>
+                        <span role="columnheader">Remplissage</span>
+                      </div>
+
+                      <ul className="vdash-schedule__body">
+                        {slotBreakdown.map((slot) => {
+                          const parts = slotDateParts(slot.slot_date);
+                          const isFull = !slot.unlimited && !slot.registration_open;
+                          const free = slot.unlimited
+                            ? null
+                            : slot.remaining ?? Math.max(0, Number(slot.capacity) - slot.count);
+                          return (
+                            <li key={slot.id} role="none">
+                              <button
+                                type="button"
+                                role="row"
+                                className={`vdash-schedule__row vdash-schedule__row--data ${
+                                  isFull ? 'is-full' : ''
+                                }`}
+                                onClick={() => openGuestsForSlot(slot.id)}
+                                title={`Voir les inscrits — ${slot.label}`}
+                              >
+                                <span className="vdash-schedule__day" role="cell">
+                                  {parts ? (
+                                    <>
+                                      <time
+                                        dateTime={slot.slot_date}
+                                        className="vdash-schedule__date"
+                                      >
+                                        <span className="vdash-schedule__date-wd">{parts.weekday}</span>
+                                        <span className="vdash-schedule__date-d">{parts.day}</span>
+                                        <span className="vdash-schedule__date-my">
+                                          <span className="vdash-schedule__date-m">{parts.month}</span>
+                                          <span className="vdash-schedule__date-y">{parts.year}</span>
+                                        </span>
+                                      </time>
+                                      <span className="vdash-schedule__label-wrap">
+                                        <span className="vdash-schedule__label">{slot.label}</span>
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <span className="vdash-schedule__label-wrap">
+                                      <span className="vdash-schedule__label">{slot.label}</span>
+                                    </span>
+                                  )}
+                                </span>
+
+                                <span className="vdash-schedule__status-wrap" role="cell">
+                                  <span
+                                    className={`vdash-schedule__status ${
+                                      isFull ? 'is-full' : 'is-open'
+                                    }`}
+                                  >
+                                    {isFull ? 'Complet' : 'Ouvert'}
+                                  </span>
+                                </span>
+
+                                <span className="vdash-schedule__num" role="cell">
+                                  {slot.count}
+                                </span>
+                                <span className="vdash-schedule__num" role="cell">
+                                  {slot.checkedIn}
+                                </span>
+                                <span className="vdash-schedule__num" role="cell">
+                                  {slot.unlimited ? '∞' : free}
+                                </span>
+
+                                <div className="vdash-schedule__metrics-mobile" aria-hidden>
+                                  <span>
+                                    <strong>{slot.count}</strong> inscrit{slot.count !== 1 ? 's' : ''}
+                                  </span>
+                                  <span>
+                                    <strong>{slot.checkedIn}</strong> entré{slot.checkedIn !== 1 ? 's' : ''}
+                                  </span>
+                                  <span>
+                                    {slot.unlimited ? (
+                                      <>Quota illimité</>
+                                    ) : (
+                                      <>
+                                        <strong>{free}</strong> libre{free !== 1 ? 's' : ''}
+                                      </>
+                                    )}
+                                  </span>
+                                </div>
+
+                                <span className="vdash-schedule__fill" role="cell">
+                                  {slot.unlimited ? (
+                                    <span className="vdash-schedule__fill-label">Sans quota</span>
+                                  ) : (
+                                    <>
+                                      <div className="vdash-schedule__bar">
+                                        <span style={{ width: `${slot.fill ?? 0}%` }} />
+                                      </div>
+                                      <span className="vdash-schedule__fill-label">
+                                        {slot.count} / {slot.capacity}
+                                      </span>
+                                    </>
+                                  )}
+                                </span>
+                              </button>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  </div>
                 )}
               </section>
             </div>
@@ -708,7 +953,7 @@ const VisitorsAdmin = () => {
                 />
               </div>
               {ticketInfo?.uses_slots && ticketInfo.slots?.length > 0 && (
-                <div className="vdash-chips" role="group" aria-label="Filtrer par créneau">
+                <div className="vdash-chips vdash-chips--scroll" role="group" aria-label="Filtrer par créneau">
                   <button
                     type="button"
                     className={`vdash-chip ${slotFilter === 'all' ? 'is-active' : ''}`}
@@ -738,64 +983,62 @@ const VisitorsAdmin = () => {
                 <p>Aucun inscrit{guestSearch || slotFilter !== 'all' ? ' pour ce filtre' : ''}.</p>
               </div>
             ) : (
+              <>
               <ul className="vdash-guest-grid">
-                {filteredRegistrations.map((r) => {
+                {guestsPagination.pageItems.map((r) => {
                   const scan = registrationScanState(r);
                   const ticketLinks = ticketsForRegistration(r);
                   return (
                   <li key={r.id} className="vdash-guest">
-                    <div className="vdash-guest__avatar" aria-hidden>
-                      {initials(r.first_name, r.last_name)}
-                    </div>
-                    <div className="vdash-guest__body">
-                      <div className="vdash-guest__row">
-                        <span className="vdash-guest__name">
-                          {r.first_name} {r.last_name}
-                        </span>
-                        {scan.complete ? (
-                          <span className="vdash-tag vdash-tag--ok">Entré</span>
-                        ) : scan.checked > 0 ? (
-                          <span className="vdash-tag vdash-tag--ok">
-                            {scan.checked}/{scan.total} scanné{scan.total > 1 ? 's' : ''}
+                    <div className="vdash-guest__top">
+                      <div className="vdash-guest__avatar" aria-hidden>
+                        {initials(r.first_name, r.last_name)}
+                      </div>
+                      <div className="vdash-guest__body">
+                        <div className="vdash-guest__row">
+                          <span className="vdash-guest__name">
+                            {r.first_name} {r.last_name}
                           </span>
-                        ) : (
-                          <span className="vdash-tag vdash-tag--wait">Non scanné</span>
-                        )}
-                      </div>
-                      <a className="vdash-guest__email" href={`mailto:${r.email}`}>
-                        {r.email}
-                      </a>
-                      <div className="vdash-guest__meta">
-                        {ticketInfo?.uses_slots && r.slot_label && (
-                          <span className="vdash-guest__slot">{r.slot_label}</span>
-                        )}
-                        <span>Inscrit le {formatDateTime(r.created_at)}</span>
-                        {r.marketing_opt_in && (
-                          <span className="vdash-tag vdash-tag--opt">Opt-in</span>
-                        )}
+                          {scan.complete ? (
+                            <span className="vdash-tag vdash-tag--ok">Entré</span>
+                          ) : scan.checked > 0 ? (
+                            <span className="vdash-tag vdash-tag--ok">
+                              {scan.checked}/{scan.total} scanné{scan.total > 1 ? 's' : ''}
+                            </span>
+                          ) : (
+                            <span className="vdash-tag vdash-tag--wait">Non scanné</span>
+                          )}
+                        </div>
+                        <a className="vdash-guest__email" href={`mailto:${r.email}`}>
+                          {r.email}
+                        </a>
+                        <div className="vdash-guest__meta">
+                          {ticketInfo?.uses_slots && r.slot_label && (
+                            <span className="vdash-guest__slot">{r.slot_label}</span>
+                          )}
+                          <span>Inscrit le {formatDateTime(r.created_at)}</span>
+                          {r.marketing_opt_in && (
+                            <span className="vdash-tag vdash-tag--opt">Opt-in</span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                    {ticketLinks.length > 0 && (
-                      <div className="vdash-guest__tickets">
-                        {ticketLinks.map((t) => (
-                          <Link
-                            key={t.ticket_code}
-                            className="vdash-guest__ticket"
-                            to={`/billet/${t.ticket_code}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            title="Ouvrir le billet (QR)"
-                          >
-                            {ticketLinks.length > 1 ? `Billet ${t.ticket_index || '?'}` : 'Billet QR'}
-                            <FiExternalLink aria-hidden />
-                          </Link>
-                        ))}
-                      </div>
-                    )}
+                    <GuestTickets ticketLinks={ticketLinks} />
                   </li>
                 );
                 })}
               </ul>
+              <AdminPagination
+                page={guestsPagination.safePage}
+                totalPages={guestsPagination.totalPages}
+                total={guestsPagination.total}
+                from={guestsPagination.from}
+                to={guestsPagination.to}
+                onPageChange={setGuestsPage}
+                itemLabel="inscrits"
+                ariaLabel="Pagination des inscrits"
+              />
+              </>
             )}
           </section>
         )}
@@ -829,8 +1072,9 @@ const VisitorsAdmin = () => {
                 <p>Aucun contact.</p>
               </div>
             ) : (
+              <>
               <ul className="vdash-guest-grid vdash-guest-grid--contacts">
-                {filteredContacts.map((v) => (
+                {contactsPagination.pageItems.map((v) => (
                   <li key={v.id} className="vdash-guest vdash-guest--contact">
                     <div className="vdash-guest__avatar" aria-hidden>
                       {initials(v.first_name, v.last_name)}
@@ -877,51 +1121,101 @@ const VisitorsAdmin = () => {
                   </li>
                 ))}
               </ul>
+              <AdminPagination
+                page={contactsPagination.safePage}
+                totalPages={contactsPagination.totalPages}
+                total={contactsPagination.total}
+                from={contactsPagination.from}
+                to={contactsPagination.to}
+                onPageChange={setContactsPage}
+                itemLabel="contacts"
+                ariaLabel="Pagination des contacts"
+              />
+              </>
             )}
           </section>
         )}
 
         {activeTab === 'marketing' && (
-          <section className="vdash-panel vdash-panel--narrow app-form">
-            <h3 className="vdash-panel__heading">Invitation par email</h3>
-            <p className="vdash-panel__intro">
-              Message envoyé aux <strong>{marketingStats.optIn}</strong> personnes ayant accepté le
-              marketing (toute la base). L&apos;événement « {selectedEvent?.titre} » sert de
-              contexte dans le lien.
-            </p>
-            <div className="form-group">
-              <label htmlFor="invite-msg">Message personnalisé (optionnel)</label>
-              <textarea
-                id="invite-msg"
-                rows={5}
-                value={inviteMsg}
-                onChange={(e) => setInviteMsg(e.target.value)}
-                placeholder="Ex. : nous avons hâte de vous accueillir pour le vernissage…"
-              />
+          <section className="vdash-email" aria-labelledby="vdash-email-title">
+            <header className="vdash-email__head">
+              <div className="vdash-email__title-row">
+                <span className="vdash-email__icon" aria-hidden>
+                  <FiMail />
+                </span>
+                <div>
+                  <h3 id="vdash-email-title" className="vdash-email__title">
+                    Invitation par email
+                  </h3>
+                  <p className="vdash-email__subtitle">
+                    Envoi aux contacts opt-in (toute la base). Le lien mène vers l&apos;exposition
+                    sélectionnée ci-dessus
+                    {selectedEvent?.titre ? (
+                      <>
+                        {' '}
+                        — <strong className="vdash-email__event-inline">{selectedEvent.titre}</strong>
+                      </>
+                    ) : null}
+                    .
+                  </p>
+                </div>
+              </div>
+              <div className="vdash-email__audience" aria-label="Nombre de destinataires">
+                <span className="vdash-email__audience-value">{marketingStats.optIn}</span>
+                <span className="vdash-email__audience-label">opt-in</span>
+              </div>
+            </header>
+
+            <div className="vdash-email__composer app-form">
+              <div className="form-group vdash-email__field">
+                <label htmlFor="invite-msg">Message personnalisé (optionnel)</label>
+                <textarea
+                  id="invite-msg"
+                  rows={6}
+                  value={inviteMsg}
+                  onChange={(e) => setInviteMsg(e.target.value)}
+                  placeholder="Ex. : nous avons hâte de vous accueillir pour le vernissage…"
+                  className="vdash-email__textarea"
+                />
+                <p className="vdash-email__field-hint">
+                  Ce texte s&apos;ajoute au modèle d&apos;email ; laissez vide pour l&apos;invitation
+                  standard.
+                </p>
+              </div>
+
+              <div className="vdash-email__actions form-actions">
+                <button
+                  type="button"
+                  className="btn-submit vdash-email__submit"
+                  onClick={handleInvite}
+                  disabled={!selectedEventId || inviting || marketingStats.optIn === 0}
+                >
+                  <FiSend aria-hidden />
+                  <span>
+                    {inviting
+                      ? 'Envoi en cours…'
+                      : `Envoyer à ${marketingStats.optIn} opt-in`}
+                  </span>
+                </button>
+              </div>
+
+              {inviteStatus && (
+                <p
+                  className={`vdash-status vdash-email__status ${
+                    inviteStatus.toLowerCase().includes('échec') ? 'is-error' : ''
+                  }`}
+                  role="status"
+                >
+                  {inviteStatus}
+                </p>
+              )}
+              {marketingStats.optIn === 0 && (
+                <p className="vdash-email__empty vdash-muted">
+                  Aucun contact opt-in pour le moment — activez le consentement marketing à
+                  l&apos;inscription.
+                </p>
+              )}
             </div>
-            <div className="form-actions">
-              <button
-                type="button"
-                className="btn-submit"
-                onClick={handleInvite}
-                disabled={!selectedEventId || inviting || marketingStats.optIn === 0}
-              >
-                <FiSend aria-hidden />
-                {inviting ? 'Envoi…' : `Envoyer à ${marketingStats.optIn} opt-in`}
-              </button>
-            </div>
-            {inviteStatus && (
-              <p
-                className={`vdash-status ${
-                  inviteStatus.toLowerCase().includes('échec') ? 'is-error' : ''
-                }`}
-              >
-                {inviteStatus}
-              </p>
-            )}
-            {marketingStats.optIn === 0 && (
-              <p className="vdash-muted">Aucun contact opt-in pour le moment.</p>
-            )}
           </section>
         )}
       </div>

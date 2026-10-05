@@ -1,6 +1,11 @@
 import pool from '../config/database.js';
 import { sendContactNotification, sendContactConfirmation, sendReply } from '../services/emailService.js';
 
+const mapContactRow = (row) => ({
+  ...row,
+  is_read: row.read === true,
+});
+
 export const createContact = async (req, res) => {
   try {
     const { name, email, subject, message, work_id } = req.body;
@@ -39,7 +44,7 @@ export const createContact = async (req, res) => {
 
     res.status(201).json({
       message: 'Message envoyé avec succès',
-      contact: result.rows[0],
+      contact: mapContactRow(result.rows[0]),
     });
   } catch (error) {
     console.error('Erreur lors de la création du contact:', error);
@@ -62,9 +67,23 @@ export const getAllContacts = async (req, res) => {
       LEFT JOIN works w ON c.work_id = w.id
       ORDER BY c.created_at DESC
     `);
-    res.json(result.rows);
+    res.json(result.rows.map(mapContactRow));
   } catch (error) {
     console.error('Erreur lors de la récupération des contacts:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+};
+
+export const getContactsSummary = async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT COUNT(*)::int AS total,
+             COUNT(*) FILTER (WHERE "read" IS NOT TRUE)::int AS unread
+      FROM contacts
+    `);
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('getContactsSummary:', error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -73,7 +92,7 @@ export const markContactAsRead = async (req, res) => {
   try {
     const { id } = req.params;
     const result = await pool.query(
-      'UPDATE contacts SET read = true WHERE id = $1 RETURNING *',
+      'UPDATE contacts SET "read" = TRUE WHERE id = $1 RETURNING *',
       [id]
     );
 
@@ -81,7 +100,7 @@ export const markContactAsRead = async (req, res) => {
       return res.status(404).json({ error: 'Contact non trouvé' });
     }
 
-    res.json(result.rows[0]);
+    res.json(mapContactRow(result.rows[0]));
   } catch (error) {
     console.error('Erreur lors de la mise à jour du contact:', error);
     res.status(500).json({ error: 'Erreur serveur' });
@@ -125,7 +144,7 @@ export const replyContact = async (req, res) => {
     }
 
     // Marquer le contact comme lu après réponse
-    await pool.query('UPDATE contacts SET read = true WHERE id = $1', [id]);
+    await pool.query('UPDATE contacts SET "read" = TRUE WHERE id = $1', [id]);
 
     res.json({ message: 'Réponse envoyée avec succès' });
   } catch (error) {

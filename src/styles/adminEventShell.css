@@ -50,8 +50,25 @@
 .adb-cover__inner {
   position: relative;
   z-index: 1;
-  padding: 1.15rem clamp(1rem, 2.5vw, 1.75rem) 1.35rem;
+  padding: 1.15rem clamp(0.75rem, 2.5vw, 1.75rem) 1.35rem;
   color: #fafaf9;
+  max-width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .adb-cover {
+    border-radius: 12px;
+    min-height: 0;
+  }
+
+  .adb-cover__title {
+    max-width: 100%;
+  }
+
+  .adb-cover__inner {
+    padding: 1rem 0.85rem 1.15rem;
+  }
 }
 
 .adb-cover__row {
@@ -102,9 +119,9 @@
 
 .adb-cover__title {
   margin: 0.35rem 0 0.4rem;
-  font-family: 'Cormorant Garamond', 'Playfair Display', serif;
-  font-size: clamp(1.5rem, 3.5vw, 2.25rem);
-  font-weight: 400;
+  font-family: inherit;
+  font-size: clamp(1.25rem, 3vw, 1.75rem);
+  font-weight: 650;
   line-height: 1.12;
   max-width: 32ch;
   color: #fff;
