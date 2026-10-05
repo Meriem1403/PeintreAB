@@ -4,7 +4,9 @@ const FormSwitch = ({ id, name, checked, onChange, label, description }) => (
       <span className="form-switch-label" id={`${id}-label`}>
         {label}
       </span>
-      {description && <span className="form-switch-desc">{description}</span>}
+      {description != null && description !== '' && (
+        <span className="form-switch-desc">{description}</span>
+      )}
     </div>
     <label className="form-switch" htmlFor={id}>
       <input

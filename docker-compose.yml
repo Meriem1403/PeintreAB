@@ -47,6 +47,8 @@ services:
       - JWT_EXPIRES_IN=7d
       - PORT=3000
       - FRONTEND_URL=http://localhost:5173
+      # Dev Docker : Mailpit capture les mails (override Gmail du .env monté).
+      # Interface : http://localhost:8025 — prod : retirer ces 4 lignes et configurer Gmail dans .env
       - EMAIL_HOST=mailpit
       - EMAIL_PORT=1025
       - EMAIL_USER=dev@peintreab.local
@@ -85,6 +87,7 @@ services:
       - ./index.html:/app/index.html
       - ./vite.config.js:/app/vite.config.js
       - ./package.json:/app/package.json
+      - ./package-lock.json:/app/package-lock.json
       - /app/node_modules
     environment:
       - NODE_ENV=development
@@ -92,6 +95,8 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+    # package.json est monté depuis l'hôte : synchroniser node_modules au démarrage
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
     stdin_open: true
     tty: true
 

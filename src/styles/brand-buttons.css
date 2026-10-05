@@ -1,0 +1,89 @@
+/* Boutons — charte site (couleurs thème, Contact + app-form) */
+
+.brand-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.8125rem 1.35rem;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  text-align: center;
+  border: 1px solid transparent;
+  border-radius: var(--form-radius-sm, 8px);
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.15s ease,
+    box-shadow 0.2s ease;
+}
+
+.brand-btn--pill {
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+}
+
+.brand-btn--block {
+  width: 100%;
+}
+
+.brand-btn--primary {
+  color: #ffffff;
+  background: var(--color-primary, #c6ac8f);
+  box-shadow: 0 2px 8px rgba(var(--color-primary-rgb, 198, 172, 143), 0.35);
+}
+
+.brand-btn--primary:hover:not(:disabled) {
+  background: var(--color-accent, #b89a7a);
+  box-shadow: 0 4px 12px rgba(var(--color-primary-rgb, 198, 172, 143), 0.4);
+  transform: translateY(-1px);
+}
+
+.brand-btn--secondary {
+  color: var(--form-label, #4a4540);
+  background: #ffffff;
+  border-color: var(--form-border, #e8e4df);
+}
+
+.brand-btn--secondary:hover:not(:disabled) {
+  background: var(--form-bg, #faf9f7);
+  border-color: #d4cfc8;
+  color: var(--form-text, #1a1a1a);
+}
+
+.brand-btn--ghost-on-dark {
+  color: rgba(255, 255, 255, 0.82);
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow: none;
+}
+
+.brand-btn--ghost-on-dark:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #ffffff;
+  transform: none;
+}
+
+.brand-btn--icon {
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  flex-shrink: 0;
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.brand-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}

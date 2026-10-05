@@ -1,1 +1,29 @@
 /* WorkForm — modale et champs : src/styles/forms.css */
+
+.work-form__duration {
+  margin: 0 0 1rem;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: #44403c;
+  background: rgba(var(--color-primary-rgb, 198, 172, 143), 0.12);
+  border-radius: 10px;
+  border: 1px solid rgba(var(--color-primary-rgb, 198, 172, 143), 0.25);
+}
+
+.work-form__duration strong {
+  font-weight: 600;
+  color: #1c1917;
+}
+
+.work-form__duration--warn {
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: #92400e;
+}
+
+.work-form__duration--error {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}

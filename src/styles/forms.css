@@ -19,6 +19,11 @@
   --form-success-bg: #f0fdf4;
   --form-success-border: #bbf7d0;
   --form-success-text: #15803d;
+  --form-field-padding-y: 0.8125rem;
+  --form-field-padding-x: 1rem;
+  --form-field-icon-gap: 1rem;
+  --form-field-icon-size: 1.125rem;
+  --form-select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
 }
 
 /* Panneau admin / page */
@@ -86,16 +91,20 @@
 .app-form input[type='tel'],
 .app-form input[type='date'],
 .app-form input[type='datetime-local'],
+.app-form input[type='time'],
 .app-form textarea,
-.app-form select {
+.app-form select,
+.form-group select {
   width: 100%;
-  padding: 0.8125rem 1rem;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: var(--form-field-padding-y) var(--form-field-padding-x);
   font-size: 0.9375rem;
   font-family: inherit;
   font-weight: 400;
   line-height: 1.45;
   color: var(--form-text);
-  background: #ffffff;
+  background-color: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 14px;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
@@ -105,6 +114,85 @@
     background-color 0.2s ease;
 }
 
+/* Listes déroulantes — chevron dans le champ (pas de double icône native) */
+.app-form select,
+.form-group select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: calc(
+    var(--form-field-padding-x) + var(--form-field-icon-size) + var(--form-field-icon-gap)
+  );
+  background-image: var(--form-select-chevron);
+  background-repeat: no-repeat;
+  background-position: right var(--form-field-icon-gap) center;
+  background-size: var(--form-field-icon-size) var(--form-field-icon-size);
+  cursor: pointer;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.app-form select option,
+.form-group select option {
+  color: var(--form-text);
+  background: #ffffff;
+}
+
+/* Champs date — coque + icône calendrier alignée */
+.app-form .form-date-shell {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+
+.app-form .form-date-shell input[type='date'],
+.app-form .form-date-shell input[type='datetime-local'],
+.app-form .form-date-shell input[type='time'],
+.app-form .form-group--date > input[type='date'],
+.app-form .form-group--date > input[type='datetime-local'],
+.app-form .form-group--date > input[type='time'] {
+  display: block;
+  width: 100%;
+  padding-right: calc(
+    var(--form-field-padding-x) + var(--form-field-icon-size) + 0.5rem
+  );
+  min-height: calc(var(--form-field-padding-y) * 2 + 1.45 * 0.9375rem + 2px);
+}
+
+.app-form .form-date-shell input[type='date']::-webkit-calendar-picker-indicator,
+.app-form .form-date-shell input[type='datetime-local']::-webkit-calendar-picker-indicator,
+.app-form .form-date-shell input[type='time']::-webkit-calendar-picker-indicator,
+.app-form .form-group--date > input[type='date']::-webkit-calendar-picker-indicator,
+.app-form .form-group--date > input[type='datetime-local']::-webkit-calendar-picker-indicator,
+.app-form .form-group--date > input[type='time']::-webkit-calendar-picker-indicator {
+  position: absolute;
+  right: var(--form-field-icon-gap);
+  top: 50%;
+  transform: translateY(-50%);
+  width: var(--form-field-icon-size);
+  height: var(--form-field-icon-size);
+  margin: 0;
+  padding: 0;
+  opacity: 0.85;
+  cursor: pointer;
+}
+
+.app-form .form-date-shell input[type='date'],
+.app-form .form-date-shell input[type='datetime-local'],
+.app-form .form-date-shell input[type='time'] {
+  position: relative;
+}
+
+.app-form .form-date-shell input[type='date']::-webkit-date-and-time-value,
+.app-form .form-date-shell input[type='datetime-local']::-webkit-date-and-time-value,
+.app-form .form-group--date > input[type='date']::-webkit-date-and-time-value,
+.app-form .form-group--date > input[type='datetime-local']::-webkit-date-and-time-value {
+  text-align: left;
+  min-width: 0;
+  margin: 0;
+}
+
 .app-form textarea {
   resize: vertical;
   min-height: 120px;
@@ -112,18 +200,30 @@
 
 .app-form input:hover:not(:disabled):not(:focus),
 .app-form textarea:hover:not(:disabled):not(:focus),
-.app-form select:hover:not(:disabled):not(:focus) {
-  background: var(--form-bg-hover);
+.app-form select:hover:not(:disabled):not(:focus),
+.form-group select:hover:not(:disabled):not(:focus) {
+  background-color: var(--form-bg-hover);
   border-color: #d4cfc8;
+}
+
+.app-form select:hover:not(:disabled):not(:focus),
+.form-group select:hover:not(:disabled):not(:focus) {
+  background-image: var(--form-select-chevron);
 }
 
 .app-form input:focus,
 .app-form textarea:focus,
-.app-form select:focus {
+.app-form select:focus,
+.form-group select:focus {
   outline: none;
-  background: #ffffff;
+  background-color: #ffffff;
   border-color: var(--form-border-focus);
   box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb, 198, 172, 143), 0.22);
+}
+
+.app-form select:focus,
+.form-group select:focus {
+  background-image: var(--form-select-chevron);
 }
 
 .app-form input::placeholder,
@@ -133,9 +233,16 @@
 
 .app-form input:disabled,
 .app-form textarea:disabled,
-.app-form select:disabled {
+.app-form select:disabled,
+.form-group select:disabled {
   opacity: 0.65;
   cursor: not-allowed;
+}
+
+/* Conteneur sûr en modale / grilles étroites */
+.app-form .form-group,
+.form-modal-body .form-group {
+  min-width: 0;
 }
 
 .app-form .field-hint,
@@ -740,6 +847,12 @@
 }
 
 @media (max-width: 768px) {
+  :root {
+    --form-field-icon-gap: 0.75rem;
+    --form-field-icon-size: 1rem;
+    --form-field-padding-x: 0.875rem;
+  }
+
   .app-form-panel {
     padding: 1.5rem 1.25rem;
     border-radius: 12px;
@@ -755,6 +868,14 @@
   .form-modal-body {
     padding-left: 1.25rem;
     padding-right: 1.25rem;
+  }
+
+  .app-form select,
+  .form-group select,
+  .app-form input[type='date'],
+  .app-form input[type='datetime-local'],
+  .app-form input[type='time'] {
+    font-size: 1rem;
   }
 
   .app-form .form-actions {

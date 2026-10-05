@@ -2,11 +2,22 @@ body.exhibition-mode {
   overflow: hidden;
 }
 
+body.exhibition-mode.exhibition-mode--scroll {
+  overflow: auto;
+}
+
 body.exhibition-mode .navbar {
   opacity: 0;
   pointer-events: none;
   transform: translateY(-100%);
   transition: opacity 0.45s ease, transform 0.45s ease;
+}
+
+/* Fiches événement scrollables : garder la navigation du site visible */
+body.exhibition-mode.exhibition-mode--scroll .navbar {
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
 }
 
 .exhibition {
@@ -637,31 +648,7 @@ body.exhibition-mode .navbar {
 }
 
 .exhibition-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.55rem;
-  padding: 0.9rem 1.35rem;
-  font-family: inherit;
-  font-size: 0.875rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  border-radius: 999px;
-  border: none;
-  cursor: pointer;
   white-space: nowrap;
-  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
-}
-
-.exhibition-btn--primary {
-  background: var(--color-primary, #c6ac8f);
-  color: #1a1512;
-  box-shadow: 0 8px 28px rgba(var(--color-primary-rgb, 198, 172, 143), 0.35);
-}
-
-.exhibition-btn--primary:hover {
-  background: var(--color-accent, #b89a7a);
-  transform: translateY(-2px);
 }
 
 .exhibition-btn--primary {
@@ -868,4 +855,142 @@ body.exhibition-mode .navbar {
     gap: 0.35rem;
   }
 
+}
+
+/* ——— Pages événement : défilement + fiche lisible ——— */
+.exhibition--event {
+  position: relative;
+  inset: auto;
+  z-index: 1;
+  min-height: calc(100dvh - 4.5rem);
+  overflow-x: hidden;
+  overflow-y: visible;
+}
+
+.exhibition--event .exhibition-layout {
+  flex: none;
+  min-height: auto;
+  overflow: visible;
+}
+
+.exhibition--event .exhibition-stage {
+  flex: none;
+  min-height: min(48vh, 420px);
+  max-height: min(62vh, 560px);
+  overflow: hidden;
+}
+
+@media (min-width: 1100px) {
+  .exhibition--event .exhibition-layout {
+    overflow: visible;
+    align-items: start;
+  }
+
+  .exhibition--event .exhibition-placard {
+    max-height: none;
+    overflow: visible;
+    align-self: start;
+  }
+
+  .exhibition--event .exhibition-placard-inner {
+    max-height: none;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .exhibition--event .exhibition-stage {
+    min-height: min(55vh, 520px);
+    max-height: min(75vh, 720px);
+  }
+}
+
+.exhibition-registration-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(4, 3, 2, 0.72);
+  backdrop-filter: blur(6px);
+}
+
+@media (min-width: 640px) {
+  .exhibition-registration-overlay {
+    align-items: center;
+    padding: 1.5rem;
+  }
+}
+
+.exhibition-registration-dialog {
+  width: min(100%, 520px);
+  max-height: min(92dvh, 820px);
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #1a1714 0%, #0f0e0c 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px 18px 0 0;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+}
+
+@media (min-width: 640px) {
+  .exhibition-registration-dialog {
+    border-radius: 18px;
+  }
+}
+
+.exhibition-registration-dialog__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.15rem 1.25rem 0.85rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.exhibition-registration-dialog__eyebrow {
+  margin: 0 0 0.25rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-primary, #c6ac8f);
+}
+
+.exhibition-registration-dialog__head h2 {
+  margin: 0;
+  font-family: 'Cormorant Garamond', 'Playfair Display', serif;
+  font-size: clamp(1.35rem, 3vw, 1.65rem);
+  font-weight: 400;
+  font-style: italic;
+  line-height: 1.2;
+  color: #fafaf9;
+}
+
+.exhibition-registration-dialog__close {
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  color: #fafaf9;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.exhibition-registration-dialog__close:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.exhibition-registration-dialog__body {
+  padding: 1rem 1.25rem 1.35rem;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }

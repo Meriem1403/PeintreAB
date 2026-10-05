@@ -8,7 +8,10 @@ export const ADMIN_TAB_IDS = [
   'theme-settings',
   'artist-info',
   'contact-info',
+  'site-qr',
   'notifications',
+  'visiteurs',
+  'scan',
 ];
 
 const ADMIN_TAB_SET = new Set(ADMIN_TAB_IDS);

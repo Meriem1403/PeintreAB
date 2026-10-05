@@ -13,6 +13,7 @@ import WorkDetail from './pages/WorkDetail';
 import Admin from './pages/Admin';
 import Login from './pages/Login';
 import NotFound from './pages/NotFound';
+import TicketPage from './pages/TicketPage';
 import { adminTabPath, DEFAULT_ADMIN_TAB } from './constants/adminRoutes';
 import './App.css';
 
@@ -34,6 +35,7 @@ function App() {
                   <Route path="/biographie" element={<Biographie />} />
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/login" element={<Login />} />
+                  <Route path="/billet/:code" element={<TicketPage />} />
                   <Route
                     path="/admin"
                     element={

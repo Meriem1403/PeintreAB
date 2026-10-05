@@ -157,15 +157,36 @@ export const uploadAPI = {
   },
 };
 
+export const eventsAPI = {
+  getTicketInfo: (workId) => request(`/events/${workId}/ticket-info`),
+  register: (workId, body) =>
+    request(`/events/${workId}/register`, { method: 'POST', body }),
+  getTicket: (code) => request(`/events/tickets/${code}`),
+  listVisitors: () => request('/events/admin/visitors'),
+  listRegistrations: (workId) => request(`/events/admin/${workId}/registrations`),
+  inviteOptedIn: (workId, body = {}) =>
+    request(`/events/admin/${workId}/invite-opted-in`, { method: 'POST', body }),
+  checkIn: (code, body = {}) =>
+    request('/events/admin/tickets/check-in', {
+      method: 'POST',
+      body: { code, ...body },
+    }),
+};
+
 export const siteSettingsAPI = {
   get: async () => {
     return request('/site-settings');
   },
-  
+
   update: async (data) => {
     return request('/site-settings', {
       method: 'PUT',
       body: data,
     });
+  },
+
+  getWebsiteQr: async (url) => {
+    const q = url?.trim() ? `?url=${encodeURIComponent(url.trim())}` : '';
+    return request(`/site-settings/website-qr${q}`);
   },
 };

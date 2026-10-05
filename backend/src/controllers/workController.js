@@ -1,5 +1,7 @@
 import pool from '../config/database.js';
 import { normalizeImageUrl, normalizeWork } from '../utils/imageUrl.js';
+import { fetchSlotsForWork, replaceTicketSlots } from '../services/ticketSlots.js';
+import { isEventPast } from '../utils/eventDates.js';
 
 export const getAllWorks = async (req, res) => {
   try {
@@ -31,7 +33,11 @@ export const getWorkById = async (req, res) => {
       return res.status(404).json({ error: 'Œuvre non trouvée' });
     }
 
-    res.json(normalizeWork(result.rows[0]));
+    const work = normalizeWork(result.rows[0]);
+    if (work.type === 'evenements') {
+      work.ticket_slots = await fetchSlotsForWork(work.id);
+    }
+    res.json(work);
   } catch (error) {
     console.error('Erreur lors de la récupération de l\'œuvre:', error);
     res.status(500).json({ error: 'Erreur serveur' });
@@ -40,10 +46,42 @@ export const getWorkById = async (req, res) => {
 
 export const createWork = async (req, res) => {
   try {
-    const { type, titre, description, prix, image, date, date_debut, date_fin, lieu, adresse, is_sold, is_featured, display_order } = req.body;
+    const {
+      type,
+      titre,
+      description,
+      prix,
+      image,
+      date,
+      date_debut,
+      date_fin,
+      lieu,
+      adresse,
+      is_sold,
+      is_featured,
+      display_order,
+      ticket_mode,
+      ticket_capacity,
+      ticket_slots,
+    } = req.body;
 
     if (!type || !titre) {
       return res.status(400).json({ error: 'Type et titre sont requis' });
+    }
+
+    let eventTicketMode =
+      type === 'evenements' ? ticket_mode || 'closed' : 'closed';
+    if (type === 'evenements' && isEventPast({ date_fin: date_fin || date_debut })) {
+      eventTicketMode = 'closed';
+    }
+    if (type === 'evenements' && eventTicketMode === 'open') {
+      const slots = Array.isArray(ticket_slots) ? ticket_slots : [];
+      const valid = slots.filter((s) => String(s.label || '').trim());
+      if (valid.length === 0) {
+        return res.status(400).json({
+          error: 'Ajoutez au moins un créneau (jour) avec un libellé pour ouvrir les inscriptions',
+        });
+      }
     }
 
     // Si display_order n'est pas fourni, utiliser le max + 1 pour cette catégorie
@@ -59,15 +97,15 @@ export const createWork = async (req, res) => {
     }
 
     const result = await pool.query(
-      `INSERT INTO works (type, titre, description, prix, image, date, date_debut, date_fin, lieu, adresse, is_sold, is_featured, display_order)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+      `INSERT INTO works (type, titre, description, prix, image, date, date_debut, date_fin, lieu, adresse, is_sold, is_featured, display_order, ticket_mode, ticket_capacity)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
        RETURNING *`,
       [
-        type, 
-        titre, 
-        description || null, 
-        prix || null, 
-        normalizeImageUrl(image) || null, 
+        type,
+        titre,
+        description || null,
+        prix || null,
+        normalizeImageUrl(image) || null,
         date || null,
         date_debut || null,
         date_fin || null,
@@ -75,11 +113,31 @@ export const createWork = async (req, res) => {
         adresse || null,
         is_sold || false,
         is_featured || false,
-        finalDisplayOrder
+        finalDisplayOrder,
+        eventTicketMode,
+        null,
       ]
     );
 
-    res.status(201).json(normalizeWork(result.rows[0]));
+    const created = result.rows[0];
+    try {
+      if (type === 'evenements') {
+        if (eventTicketMode === 'open') {
+          await replaceTicketSlots(created.id, ticket_slots);
+        } else {
+          await replaceTicketSlots(created.id, []);
+        }
+      }
+    } catch (slotErr) {
+      await pool.query('DELETE FROM works WHERE id = $1', [created.id]);
+      return res.status(400).json({ error: slotErr.message || 'Créneaux invalides' });
+    }
+
+    const work = normalizeWork(created);
+    if (type === 'evenements') {
+      work.ticket_slots = await fetchSlotsForWork(work.id);
+    }
+    res.status(201).json(work);
   } catch (error) {
     console.error('Erreur lors de la création de l\'œuvre:', error);
     res.status(500).json({ error: 'Erreur serveur' });
@@ -89,8 +147,40 @@ export const createWork = async (req, res) => {
 export const updateWork = async (req, res) => {
   try {
     const { id } = req.params;
-    const { titre, description, prix, image, date, date_debut, date_fin, lieu, adresse, is_sold, is_featured, display_order } = req.body;
+    const {
+      titre,
+      description,
+      prix,
+      image,
+      date,
+      date_debut,
+      date_fin,
+      lieu,
+      adresse,
+      is_sold,
+      is_featured,
+      display_order,
+      ticket_mode,
+      ticket_capacity,
+      ticket_slots,
+    } = req.body;
     console.log('🔄 Mise à jour œuvre:', { id, adresse, lieu, date_debut, date_fin });
+
+    const existingWork = await pool.query('SELECT type FROM works WHERE id = $1', [id]);
+    if (existingWork.rows.length === 0) {
+      return res.status(404).json({ error: 'Œuvre non trouvée' });
+    }
+    const workType = existingWork.rows[0].type;
+
+    if (workType === 'evenements' && ticket_mode === 'open') {
+      const slots = Array.isArray(ticket_slots) ? ticket_slots : [];
+      const valid = slots.filter((s) => String(s.label || '').trim());
+      if (valid.length === 0) {
+        return res.status(400).json({
+          error: 'Ajoutez au moins un créneau (jour) avec un libellé pour ouvrir les inscriptions',
+        });
+      }
+    }
 
     // Construire la requête SQL dynamiquement pour gérer les booléens correctement
     const updates = [];
@@ -146,6 +236,15 @@ export const updateWork = async (req, res) => {
       updates.push(`display_order = $${paramIndex++}`);
       params.push(parseInt(display_order, 10));
     }
+    if (ticket_mode !== undefined) {
+      updates.push(`ticket_mode = $${paramIndex++}`);
+      params.push(ticket_mode || 'closed');
+    }
+    if (ticket_capacity !== undefined) {
+      updates.push(`ticket_capacity = $${paramIndex++}`);
+      const cap = ticket_capacity === '' || ticket_capacity == null ? null : parseInt(ticket_capacity, 10);
+      params.push(cap != null && !Number.isNaN(cap) ? cap : null);
+    }
 
     updates.push(`updated_at = CURRENT_TIMESTAMP`);
 
@@ -163,9 +262,28 @@ export const updateWork = async (req, res) => {
       return res.status(404).json({ error: 'Œuvre non trouvée' });
     }
 
-    res.json(normalizeWork(result.rows[0]));
+    let savedRow = result.rows[0];
+    if (workType === 'evenements' && isEventPast(savedRow)) {
+      await pool.query(`UPDATE works SET ticket_mode = 'closed' WHERE id = $1`, [id]);
+      savedRow = (await pool.query('SELECT * FROM works WHERE id = $1', [id])).rows[0];
+    } else if (workType === 'evenements' && ticket_mode !== undefined) {
+      if (ticket_mode === 'open') {
+        await replaceTicketSlots(id, ticket_slots || []);
+      } else if (ticket_mode === 'closed') {
+        await replaceTicketSlots(id, []);
+      }
+    }
+
+    const work = normalizeWork(savedRow);
+    if (workType === 'evenements') {
+      work.ticket_slots = await fetchSlotsForWork(id);
+    }
+    res.json(work);
   } catch (error) {
     console.error('Erreur lors de la mise à jour de l\'œuvre:', error);
+    if (error.message?.includes('Capacité invalide')) {
+      return res.status(400).json({ error: error.message });
+    }
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
