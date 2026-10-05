@@ -1,7 +1,29 @@
+/**
+ * Responsive global — scroll, safe areas, zones tactiles
+ */
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
 html,
 body {
   width: 100%;
-  overflow-x: hidden;
+  overflow-x: clip;
+}
+
+body {
+  min-height: 100dvh;
+  padding-left: env(safe-area-inset-left, 0);
+  padding-right: env(safe-area-inset-right, 0);
+}
+
+#root,
+.app {
+  min-height: 100dvh;
+  width: 100%;
+  max-width: 100%;
 }
 
 img,
@@ -20,6 +42,38 @@ select {
   touch-action: manipulation;
 }
 
+/* Cibles tactiles minimales (WCAG 2.5.5) */
+@media (max-width: 768px) {
+  .brand-btn:not(.brand-btn--icon) {
+    min-height: 2.75rem;
+    padding-top: 0.65rem;
+    padding-bottom: 0.65rem;
+  }
+
+  .brand-btn--icon {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .pagination-button,
+  .pagination-number {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+
+  .work-list-pagination__btn,
+  .admin-pagination__btn {
+    min-height: 2.75rem;
+    padding: 0.55rem 1rem;
+  }
+
+  .inbox-tool-btn,
+  .inbox-segment__btn {
+    min-height: 2.75rem;
+  }
+}
+
+/* Fiche œuvre legacy (si classes work-detail présentes) */
 @media (max-width: 768px) {
   .work-detail {
     height: auto;
@@ -29,6 +83,7 @@ select {
 
   .work-detail-container {
     padding: 1.25rem 0.85rem 2rem;
+    padding-bottom: max(2rem, env(safe-area-inset-bottom, 0px));
   }
 
   .work-detail-nav-left {
@@ -43,17 +98,59 @@ select {
     top: 0.85rem;
     right: 0.85rem;
   }
+}
 
-  .admin {
-    padding: 2rem 0.85rem;
+/* Modales formulaire plein écran mobile */
+@media (max-width: 640px) {
+  .form-modal-overlay {
+    align-items: stretch;
+    justify-content: stretch;
+    padding: 0;
   }
 
-  .admin-header h1 {
-    font-size: 2rem;
+  .form-modal {
+    max-width: none;
+    width: 100%;
+    max-height: 100dvh;
+    height: 100%;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
   }
 
-  .admin-header h1::before,
-  .admin-header h1::after {
-    display: none;
+  .form-modal-header {
+    padding: 1rem 1rem 0.85rem;
+    padding-top: max(1rem, env(safe-area-inset-top, 0px));
+  }
+
+  .form-modal-close {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .form-modal-body {
+    padding: 1rem 1rem max(1.25rem, env(safe-area-inset-bottom, 0px));
+  }
+
+  .form-modal-body .form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .form-modal-body .form-actions .brand-btn,
+  .form-modal-body .form-actions button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .login-page {
+    min-height: 100dvh;
+    padding: 1.25rem;
+    padding-bottom: max(1.25rem, env(safe-area-inset-bottom, 0px));
+  }
+
+  .login-card {
+    padding: 1.75rem 1.35rem;
   }
 }

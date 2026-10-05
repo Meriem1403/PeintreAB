@@ -1187,6 +1187,18 @@
   line-height: 1.45;
 }
 
+@media (max-width: 640px) {
+  .vdash-email__actions.form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .vdash-email__submit {
+    width: 100%;
+    min-height: 2.75rem;
+  }
+}
+
 @media (min-width: 641px) {
   .vdash-email__actions.form-actions {
     justify-content: flex-end;

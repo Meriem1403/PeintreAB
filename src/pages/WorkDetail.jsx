@@ -25,6 +25,8 @@ import { isEventPast } from '../utils/eventDates';
 import { normalizeImageUrl } from '../utils/imageUrl';
 import './WorkDetail.css';
 
+const COMPACT_EXHIBITION_MQ = '(max-width: 1099px)';
+
 const categoryLabel = (category) => {
   if (category === 'peintures') return 'Peinture';
   if (category === 'croquis') return 'Croquis';
@@ -168,16 +170,27 @@ const WorkDetail = () => {
     navigate(isValidGalleryCategory(category) ? galleryPath(category) : '/galerie');
   }, [category, navigate]);
 
+  const [compactExhibition, setCompactExhibition] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia(COMPACT_EXHIBITION_MQ).matches : false
+  );
+
+  useEffect(() => {
+    const mq = window.matchMedia(COMPACT_EXHIBITION_MQ);
+    const onChange = (e) => setCompactExhibition(e.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+
   useEffect(() => {
     document.body.classList.add('exhibition-mode');
-    if (isEventPage) {
+    if (isEventPage || compactExhibition) {
       document.body.classList.add('exhibition-mode--scroll');
     }
     return () => {
       document.body.classList.remove('exhibition-mode');
       document.body.classList.remove('exhibition-mode--scroll');
     };
-  }, [isEventPage]);
+  }, [isEventPage, compactExhibition]);
 
   useEffect(() => {
     setIsArtFullscreen(false);

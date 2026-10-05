@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { resolveAdminLinkPath } from '../constants/adminRoutes';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -21,6 +21,15 @@ const Navbar = () => {
 
   const closeMenu = () => setMenuOpen(false);
   const isBiographiePage = location.pathname === '/biographie';
+
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [menuOpen]);
 
   return (
     <motion.nav

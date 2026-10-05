@@ -386,11 +386,11 @@
   }
 
   .vscan-stage {
-    min-height: 52vh;
+    min-height: 0;
   }
 
   .vscan-stage__view {
-    min-height: 42vh;
+    min-height: min(50vh, 420px);
   }
 
   .vscan-stage__bar {
@@ -399,7 +399,19 @@
   }
 
   .vscan-btn--primary,
-  .vscan-btn--muted {
+  .vscan-btn--muted,
+  .vscan-btn--soft {
     width: 100%;
+    min-height: 2.75rem;
+  }
+
+  .vscan-manual {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .vscan-manual input {
+    min-height: 2.75rem;
+    font-size: 1rem;
   }
 }
