@@ -2,6 +2,11 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
+import {
+  adminTabPath,
+  DEFAULT_ADMIN_TAB,
+  isValidAdminTab,
+} from '../constants/adminRoutes';
 import { FiUser, FiLock } from 'react-icons/fi';
 import './Login.css';
 
@@ -12,7 +17,17 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const redirectPath = location.state?.from || '/admin';
+  const resolveRedirect = () => {
+    const from = location.state?.from;
+    if (!from || typeof from !== 'string') return adminTabPath(DEFAULT_ADMIN_TAB);
+    if (from === '/admin') return adminTabPath(DEFAULT_ADMIN_TAB);
+    if (from.startsWith('/admin/')) {
+      const tab = from.slice('/admin/'.length).split(/[/?#]/)[0];
+      return isValidAdminTab(tab) ? adminTabPath(tab) : adminTabPath(DEFAULT_ADMIN_TAB);
+    }
+    return from;
+  };
+  const redirectPath = resolveRedirect();
 
   const handleSubmit = async (e) => {
     e.preventDefault();

@@ -1,5 +1,10 @@
 import { useEffect, useState, useCallback, useMemo, useRef, useLayoutEffect } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, Navigate } from 'react-router-dom';
+import {
+  galleryPath,
+  isValidGalleryCategory,
+  workDetailPath,
+} from '../constants/galleryRoutes';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FaTimes,
@@ -72,6 +77,7 @@ const WorkDetail = () => {
   const [artSize, setArtSize] = useState(null);
   const [naturalSize, setNaturalSize] = useState(null);
   const [isContactFormOpen, setIsContactFormOpen] = useState(false);
+  const [isArtFullscreen, setIsArtFullscreen] = useState(false);
   const stageRef = useRef(null);
   const clusterRef = useRef(null);
   const frameMeasureRef = useRef(null);
@@ -112,10 +118,6 @@ const WorkDetail = () => {
           return { currentWork: categoryItems[foundById], currentIndex: foundById };
         }
       }
-
-      if (categoryItems[0]) {
-        return { currentWork: categoryItems[0], currentIndex: 0 };
-      }
     }
 
     if (location.state?.work && (!categoryItems || categoryItems.length === 0)) {
@@ -135,7 +137,7 @@ const WorkDetail = () => {
       const targetWork = categoryItems[targetIndex];
       if (!targetWork?.id) return;
       setImageLoading(true);
-      navigate(`/galerie/${category}/${String(targetWork.id)}`, { state: { work: targetWork } });
+      navigate(workDetailPath(category, targetWork.id), { state: { work: targetWork } });
     },
     [categoryItems, category, navigate]
   );
@@ -159,8 +161,8 @@ const WorkDetail = () => {
   );
 
   const handleClose = useCallback(() => {
-    navigate('/galerie');
-  }, [navigate]);
+    navigate(isValidGalleryCategory(category) ? galleryPath(category) : '/galerie');
+  }, [category, navigate]);
 
   useEffect(() => {
     document.body.classList.add('exhibition-mode');
@@ -168,9 +170,29 @@ const WorkDetail = () => {
   }, []);
 
   useEffect(() => {
+    setIsArtFullscreen(false);
+  }, [currentWork?.id, category]);
+
+  useEffect(() => {
+    if (!isArtFullscreen) return undefined;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [isArtFullscreen]);
+
+  useEffect(() => {
     const handleKeyPress = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-      if (e.key === 'Escape') handleClose();
+      if (e.key === 'Escape') {
+        if (isArtFullscreen) {
+          setIsArtFullscreen(false);
+          return;
+        }
+        handleClose();
+      }
+      if (isArtFullscreen) return;
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
         handlePrevious();
@@ -182,7 +204,7 @@ const WorkDetail = () => {
     };
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [handleClose, handlePrevious, handleNext]);
+  }, [handleClose, handlePrevious, handleNext, isArtFullscreen]);
 
   const recomputeArtSize = useCallback(() => {
     const naturalW = naturalSize?.width;
@@ -288,6 +310,10 @@ const WorkDetail = () => {
     setTilt({ x: 0, y: 0 });
     setLight({ x: 50, y: 40 });
   };
+
+  if (!isValidGalleryCategory(category)) {
+    return <Navigate to="/galerie" replace />;
+  }
 
   if (loading && !location.state?.work) {
     return (
@@ -412,13 +438,17 @@ const WorkDetail = () => {
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
                     >
-                      <div
-                        className="exhibition-art-canvas"
+                      <button
+                        type="button"
+                        className="exhibition-art-canvas exhibition-art-canvas--zoom"
                         style={
                           artSize
                             ? { width: artSize.width, height: artSize.height }
                             : undefined
                         }
+                        onClick={() => imageUrl && !imageLoading && setIsArtFullscreen(true)}
+                        disabled={!imageUrl || imageLoading}
+                        aria-label="Voir l'œuvre en plein écran"
                       >
                         {imageLoading && <div className="exhibition-art-loader" />}
                         {imageUrl && (
@@ -428,6 +458,7 @@ const WorkDetail = () => {
                             className={imageLoading || !artSize ? 'is-loading' : ''}
                             width={artSize?.width}
                             height={artSize?.height}
+                            draggable={false}
                             onLoad={(e) => {
                               const el = e.currentTarget;
                               if (el.naturalWidth > 0 && el.naturalHeight > 0) {
@@ -444,7 +475,12 @@ const WorkDetail = () => {
                             transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
                           />
                         )}
-                      </div>
+                        {imageUrl && !imageLoading && (
+                          <span className="exhibition-art-zoom-hint" aria-hidden>
+                            Plein écran
+                          </span>
+                        )}
+                      </button>
                     </motion.div>
                     <div className="exhibition-pedestal-shadow" aria-hidden="true" />
                   </motion.div>
@@ -583,6 +619,37 @@ const WorkDetail = () => {
           </div>
         </motion.footer>
       </div>
+
+      <AnimatePresence>
+        {isArtFullscreen && imageUrl && (
+          <motion.div
+            className="exhibition-fullscreen"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${currentWork.titre || 'Œuvre'} — plein écran`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            onClick={() => setIsArtFullscreen(false)}
+          >
+            <button
+              type="button"
+              className="exhibition-fullscreen-close"
+              aria-label="Fermer le plein écran"
+              onClick={() => setIsArtFullscreen(false)}
+            >
+              <FaTimes />
+            </button>
+            <img
+              src={imageUrl}
+              alt={currentWork.titre || 'Œuvre'}
+              className="exhibition-fullscreen-img"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {isContactFormOpen && (

@@ -1,5 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation, useParams, Navigate } from 'react-router-dom';
+import {
+  DEFAULT_ADMIN_TAB,
+  adminTabPath,
+  isValidAdminTab,
+  rememberAdminTab,
+} from '../constants/adminRoutes';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FiLogOut,
@@ -12,6 +18,8 @@ import {
   FiDroplet,
   FiUser,
   FiPhone,
+  FiMenu,
+  FiX,
 } from 'react-icons/fi';
 import { useAuth } from '../contexts/AuthContext';
 import { useWorks } from '../contexts/WorksContext';
@@ -54,13 +62,20 @@ const GALLERY_TABS = new Set(['peintures', 'croquis', 'evenements']);
 const Admin = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { tab: tabParam } = useParams();
   const { logout } = useAuth();
-  const [activeTab, setActiveTab] = useState('peintures');
+  const activeTab =
+    tabParam && isValidAdminTab(tabParam) ? tabParam : DEFAULT_ADMIN_TAB;
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingWork, setEditingWork] = useState(null);
   const { works, loading } = useWorks();
   const [contacts, setContacts] = useState([]);
   const [contactsLoading, setContactsLoading] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    rememberAdminTab(activeTab);
+  }, [activeTab]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -69,6 +84,15 @@ const Admin = () => {
   useEffect(() => {
     loadContacts();
   }, []);
+
+  useEffect(() => {
+    if (!sidebarOpen) return undefined;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [sidebarOpen]);
 
   const loadContacts = async () => {
     try {
@@ -86,7 +110,11 @@ const Admin = () => {
   const unreadCount = contacts.filter((c) => !c.read).length;
 
   const selectTab = (tabId) => {
-    setActiveTab(tabId);
+    if (!isValidAdminTab(tabId)) return;
+    setSidebarOpen(false);
+    if (tabId !== activeTab) {
+      navigate(adminTabPath(tabId));
+    }
     if (tabId === 'notifications') loadContacts();
   };
 
@@ -97,9 +125,30 @@ const Admin = () => {
     navigate('/');
   };
 
+  if (tabParam && !isValidAdminTab(tabParam)) {
+    return <Navigate to={adminTabPath(DEFAULT_ADMIN_TAB)} replace />;
+  }
+
   return (
     <div className="admin-shell">
-      <aside className="admin-sidebar">
+      {sidebarOpen && (
+        <button
+          type="button"
+          className="admin-sidebar-backdrop"
+          aria-label="Fermer le menu"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <aside className={`admin-sidebar ${sidebarOpen ? 'is-open' : ''}`}>
+        <button
+          type="button"
+          className="admin-sidebar-close"
+          aria-label="Fermer le menu"
+          onClick={() => setSidebarOpen(false)}
+        >
+          <FiX />
+        </button>
         <div className="admin-sidebar-brand">
           <span className="admin-sidebar-mark">AB</span>
           <div>
@@ -152,28 +201,39 @@ const Admin = () => {
 
       <div className="admin-main">
         <header className="admin-main-header">
-          <div>
+          <div className="admin-main-header-title-row">
+            <button
+              type="button"
+              className="admin-main-menu"
+              aria-label="Ouvrir le menu"
+              aria-expanded={sidebarOpen}
+              onClick={() => setSidebarOpen(true)}
+            >
+              <FiMenu />
+            </button>
             <h1>{activeMeta?.label ?? 'Administration'}</h1>
-            <p>
+          </div>
+          <div className="admin-main-header-sub-row">
+            <p className="admin-main-header-desc">
               {GALLERY_TABS.has(activeTab)
                 ? 'Ajoutez, modifiez ou réorganisez les œuvres visibles sur le site.'
                 : 'Paramètres et contenus éditoriaux.'}
             </p>
+            {GALLERY_TABS.has(activeTab) && (
+              <motion.button
+                type="button"
+                className="admin-main-cta"
+                onClick={() => {
+                  setEditingWork(null);
+                  setIsFormOpen(true);
+                }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Nouvelle entrée
+              </motion.button>
+            )}
           </div>
-          {GALLERY_TABS.has(activeTab) && (
-            <motion.button
-              type="button"
-              className="admin-main-cta"
-              onClick={() => {
-                setEditingWork(null);
-                setIsFormOpen(true);
-              }}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              Nouvelle entrée
-            </motion.button>
-          )}
         </header>
 
         <motion.div

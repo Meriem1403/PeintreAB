@@ -15,7 +15,9 @@
   }
   
   .contact-form-container,
-  .biographie-content {
+  .biographie-content,
+  .bio-v2__sheet,
+  .contact-page__card {
     background: rgba(255, 255, 255, 0.95) !important;
   }
 }

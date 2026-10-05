@@ -18,6 +18,10 @@
   align-items: center;
 }
 
+.navbar-container--bio {
+  justify-content: flex-end;
+}
+
 .navbar-logo a {
   font-family: 'Cormorant Garamond', 'Playfair Display', serif;
   font-size: 2.5rem;

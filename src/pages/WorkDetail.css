@@ -336,6 +336,86 @@ body.exhibition-mode .navbar {
   filter: drop-shadow(0 24px 48px rgba(0, 0, 0, 0.45));
 }
 
+.exhibition-art-canvas--zoom {
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: zoom-in;
+  text-align: left;
+}
+
+.exhibition-art-canvas--zoom:disabled {
+  cursor: default;
+}
+
+.exhibition-art-canvas--zoom:focus-visible {
+  outline: 2px solid var(--color-primary, #c6ac8f);
+  outline-offset: 4px;
+}
+
+.exhibition-art-zoom-hint {
+  position: absolute;
+  right: 0.65rem;
+  bottom: 0.65rem;
+  padding: 0.35rem 0.55rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #faf6f0;
+  background: rgba(12, 10, 9, 0.55);
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.exhibition-art-canvas--zoom:hover .exhibition-art-zoom-hint,
+.exhibition-art-canvas--zoom:focus-visible .exhibition-art-zoom-hint {
+  opacity: 1;
+}
+
+.exhibition-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1rem, 4vw, 2.5rem);
+  background: rgba(8, 7, 6, 0.94);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  cursor: zoom-out;
+}
+
+.exhibition-fullscreen-close {
+  position: absolute;
+  top: max(1rem, env(safe-area-inset-top, 0px));
+  right: max(1rem, env(safe-area-inset-right, 0px));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font-size: 1.15rem;
+  cursor: pointer;
+}
+
+.exhibition-fullscreen-img {
+  max-width: min(100%, 1600px);
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+  cursor: default;
+}
+
 .exhibition-art-canvas img {
   display: block;
   width: 100%;

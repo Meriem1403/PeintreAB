@@ -1,14 +1,18 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FaCheckCircle } from 'react-icons/fa';
+import { DEFAULT_ATELIER_HERO_COPY, DEFAULT_ATELIER_SECTION_COPY } from '../constants/atelierHeroCopy';
 import { siteSettingsAPI } from '../utils/apiService';
 import { useWorks } from '../contexts/WorksContext';
+import ImageDropzone from './ImageDropzone';
 import './HeroSettingsForm.css';
 
 const HeroSettingsForm = ({ onUpdate }) => {
   const { works, loading: worksLoading } = useWorks();
   const [formData, setFormData] = useState({
     hero_image: '',
+    ...DEFAULT_ATELIER_HERO_COPY,
+    ...DEFAULT_ATELIER_SECTION_COPY,
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -32,6 +36,31 @@ const HeroSettingsForm = ({ onUpdate }) => {
       const data = await siteSettingsAPI.get();
       setFormData({
         hero_image: data.hero_image || '/images/peintures/2025-2-le-cours.jpg',
+        atelier_hero_eyebrow: data.atelier_hero_eyebrow ?? DEFAULT_ATELIER_HERO_COPY.atelier_hero_eyebrow,
+        atelier_hero_title_line1:
+          data.atelier_hero_title_line1 ?? DEFAULT_ATELIER_HERO_COPY.atelier_hero_title_line1,
+        atelier_hero_title_line2_prefix:
+          data.atelier_hero_title_line2_prefix ?? DEFAULT_ATELIER_HERO_COPY.atelier_hero_title_line2_prefix,
+        atelier_hero_title_emphasis:
+          data.atelier_hero_title_emphasis ?? DEFAULT_ATELIER_HERO_COPY.atelier_hero_title_emphasis,
+        atelier_hero_lead_prefix:
+          data.atelier_hero_lead_prefix ?? DEFAULT_ATELIER_HERO_COPY.atelier_hero_lead_prefix,
+        atelier_hero_lead_emphasis:
+          data.atelier_hero_lead_emphasis ?? DEFAULT_ATELIER_HERO_COPY.atelier_hero_lead_emphasis,
+        atelier_hero_lead_suffix:
+          data.atelier_hero_lead_suffix ?? DEFAULT_ATELIER_HERO_COPY.atelier_hero_lead_suffix,
+        atelier_events_index:
+          data.atelier_events_index ?? DEFAULT_ATELIER_SECTION_COPY.atelier_events_index,
+        atelier_events_title:
+          data.atelier_events_title ?? DEFAULT_ATELIER_SECTION_COPY.atelier_events_title,
+        atelier_events_intro:
+          data.atelier_events_intro ?? DEFAULT_ATELIER_SECTION_COPY.atelier_events_intro,
+        atelier_works_index:
+          data.atelier_works_index ?? DEFAULT_ATELIER_SECTION_COPY.atelier_works_index,
+        atelier_works_title:
+          data.atelier_works_title ?? DEFAULT_ATELIER_SECTION_COPY.atelier_works_title,
+        atelier_works_intro:
+          data.atelier_works_intro ?? DEFAULT_ATELIER_SECTION_COPY.atelier_works_intro,
       });
     } catch (err) {
       console.error('Erreur lors du chargement des paramètres du site:', err);
@@ -81,22 +110,16 @@ const HeroSettingsForm = ({ onUpdate }) => {
     setFormData((prev) => ({ ...prev, hero_image: imagePath }));
   };
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData((prev) => ({
-          ...prev,
-          hero_image: reader.result,
-        }));
-      };
-      reader.readAsDataURL(file);
-    }
+  const handleHeroImageChange = (url) => {
+    setFormData((prev) => ({ ...prev, hero_image: url }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.hero_image?.trim()) {
+      setError('Indiquez une URL ou téléversez une image pour le hero.');
+      return;
+    }
     try {
       setSaving(true);
       setError('');
@@ -134,14 +157,194 @@ const HeroSettingsForm = ({ onUpdate }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <h2>Image du Hero</h2>
+      <h2>Accueil Atelier</h2>
       <p className="form-description">
-        Choisissez l'image qui apparaîtra en arrière-plan de la section hero sur la page d'accueil.
+        Textes et image de la page d&apos;accueil (variante Atelier).
       </p>
 
       <form onSubmit={handleSubmit} className="app-form">
+        <h3 className="hero-settings-section-title">Texte du hero</h3>
+        <p className="form-description hero-settings-section-desc">
+          Les mots en doré sur le site (« couleur », « carnet ») correspondent aux champs « mot
+          mis en avant » ci-dessous.
+        </p>
+
         <div className="form-group">
-          <label htmlFor="hero_image">URL de l'image</label>
+          <label htmlFor="atelier_hero_eyebrow">Sur-titre (ligne dorée)</label>
+          <input
+            id="atelier_hero_eyebrow"
+            name="atelier_hero_eyebrow"
+            type="text"
+            value={formData.atelier_hero_eyebrow}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <div className="form-row hero-settings-form-row">
+          <div className="form-group">
+            <label htmlFor="atelier_hero_title_line1">Titre — 1re ligne</label>
+            <input
+              id="atelier_hero_title_line1"
+              name="atelier_hero_title_line1"
+              type="text"
+              value={formData.atelier_hero_title_line1}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="atelier_hero_title_line2_prefix">
+              Titre — 2e ligne (avant le mot en avant, ex. « dans la »)
+            </label>
+            <input
+              id="atelier_hero_title_line2_prefix"
+              name="atelier_hero_title_line2_prefix"
+              type="text"
+              value={formData.atelier_hero_title_line2_prefix}
+              onChange={handleChange}
+              required
+            />
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="atelier_hero_title_emphasis">Titre — mot en avant (2e ligne)</label>
+          <input
+            id="atelier_hero_title_emphasis"
+            name="atelier_hero_title_emphasis"
+            type="text"
+            value={formData.atelier_hero_title_emphasis}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="atelier_hero_lead_prefix">Chapô — début de phrase</label>
+          <textarea
+            id="atelier_hero_lead_prefix"
+            name="atelier_hero_lead_prefix"
+            rows={3}
+            value={formData.atelier_hero_lead_prefix}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <div className="form-row hero-settings-form-row">
+          <div className="form-group">
+            <label htmlFor="atelier_hero_lead_emphasis">Chapô — mot en avant</label>
+            <input
+              id="atelier_hero_lead_emphasis"
+              name="atelier_hero_lead_emphasis"
+              type="text"
+              value={formData.atelier_hero_lead_emphasis}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="atelier_hero_lead_suffix">Chapô — fin (2e ligne)</label>
+            <input
+              id="atelier_hero_lead_suffix"
+              name="atelier_hero_lead_suffix"
+              type="text"
+              value={formData.atelier_hero_lead_suffix}
+              onChange={handleChange}
+              required
+            />
+          </div>
+        </div>
+
+        <h3 className="hero-settings-section-title">Section Agenda (événements)</h3>
+        <p className="form-description hero-settings-section-desc">
+          Filigrane vertical, titre principal et texte d&apos;introduction au-dessus du carrousel
+          d&apos;événements.
+        </p>
+
+        <div className="form-row hero-settings-form-row">
+          <div className="form-group">
+            <label htmlFor="atelier_events_index">Filigrane (décoratif)</label>
+            <input
+              id="atelier_events_index"
+              name="atelier_events_index"
+              type="text"
+              value={formData.atelier_events_index}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="atelier_events_title">Titre de section</label>
+            <input
+              id="atelier_events_title"
+              name="atelier_events_title"
+              type="text"
+              value={formData.atelier_events_title}
+              onChange={handleChange}
+              required
+            />
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="atelier_events_intro">Introduction</label>
+          <textarea
+            id="atelier_events_intro"
+            name="atelier_events_intro"
+            rows={3}
+            value={formData.atelier_events_intro}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <h3 className="hero-settings-section-title">Section Sélection (œuvres)</h3>
+        <p className="form-description hero-settings-section-desc">
+          Même principe pour le carrousel des œuvres mises en avant.
+        </p>
+
+        <div className="form-row hero-settings-form-row">
+          <div className="form-group">
+            <label htmlFor="atelier_works_index">Filigrane (décoratif)</label>
+            <input
+              id="atelier_works_index"
+              name="atelier_works_index"
+              type="text"
+              value={formData.atelier_works_index}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="atelier_works_title">Titre de section</label>
+            <input
+              id="atelier_works_title"
+              name="atelier_works_title"
+              type="text"
+              value={formData.atelier_works_title}
+              onChange={handleChange}
+              required
+            />
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="atelier_works_intro">Introduction</label>
+          <textarea
+            id="atelier_works_intro"
+            name="atelier_works_intro"
+            rows={3}
+            value={formData.atelier_works_intro}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <h3 className="hero-settings-section-title">Image de fond</h3>
+        <div className="form-group">
+          <label htmlFor="hero_image">URL ou chemin de l&apos;image</label>
           <input
             id="hero_image"
             name="hero_image"
@@ -149,14 +352,21 @@ const HeroSettingsForm = ({ onUpdate }) => {
             value={formData.hero_image}
             onChange={handleChange}
             placeholder="/images/peintures/nom-image.jpg"
-            required
           />
           <small className="field-hint">
-            Chemin relatif (ex. /images/peintures/image.jpg)
+            Chemin relatif (ex. /images/peintures/image.jpg) ou URL complète
           </small>
         </div>
 
-        <div className="form-group">
+        <ImageDropzone
+          value={formData.hero_image}
+          onChange={handleHeroImageChange}
+          folder="uploads"
+          label="Téléverser une image"
+          hint="Glissez-déposez ou parcourez — PNG, JPG, WebP — 10 Mo max. L&apos;image est enregistrée sur le serveur."
+        />
+
+        <div className="form-group hero-settings-gallery-picker">
           <label>Ou sélectionner une image existante</label>
           <div className="image-selector">
             {worksLoading ? (

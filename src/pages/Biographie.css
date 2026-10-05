@@ -1,513 +1,296 @@
-.biographie {
-  min-height: 100vh;
-  padding: 6rem 2rem;
-  background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 50%, #fafafa 100%);
-  position: relative;
-  overflow: hidden;
+/* Biographie — plein écran (sous navbar) : portrait + lecture */
+
+.bio-v2 {
+  --bio-viewport-h: calc(100dvh - 4.75rem);
+  --bio-bg: #f3ede4;
+  --bio-ink: #1a1613;
+  --bio-muted: #5c534a;
+  --bio-card: #fffcf8;
+  min-height: var(--bio-viewport-h);
+  background: var(--bio-bg);
+  color: var(--bio-ink);
 }
 
-.biographie-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  position: relative;
-  z-index: 1;
-}
-
-.biographie-header {
-  text-align: center;
-  margin-bottom: 6rem;
-  position: relative;
-}
-
-.biographie-header h1 {
-  font-family: 'Cormorant Garamond', 'Playfair Display', serif;
-  font-size: 4.5rem;
-  font-weight: 300;
-  color: #1a1a1a;
-  margin: 0;
-  letter-spacing: 0.12em;
-  position: relative;
-  display: inline-block;
-  text-transform: uppercase;
-}
-
-.biographie-header h1::before,
-.biographie-header h1::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  width: 100px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
-}
-
-.biographie-header h1::before {
-  left: -120px;
-}
-
-.biographie-header h1::after {
-  right: -120px;
-}
-
-.biographie-content {
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(20px);
-  padding: 6rem 5rem;
-  border-radius: 24px;
-  box-shadow: 
-    0 20px 60px rgba(0, 0, 0, 0.1),
-    0 0 0 1px rgba(var(--color-primary-rgb), 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(var(--color-primary-rgb), 0.15);
-  position: relative;
-}
-
-.biographie-content::before {
-  content: '';
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  background: linear-gradient(135deg, rgba(var(--color-primary-rgb), 0.1), rgba(var(--color-primary-rgb), 0.05));
-  border-radius: 24px;
-  z-index: -1;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.biographie-content:hover::before {
-  opacity: 1;
-}
-
-.biographie-main {
-  display: grid;
-  grid-template-columns: 0.9fr 1.6fr;
-  gap: 6rem;
-  align-items: start;
-}
-
-.biographie-image-wrapper {
-  position: sticky;
-  top: 3rem;
-}
-
-.image-frame {
-  position: relative;
-  padding: 20px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(250, 250, 250, 0.9));
-  border-radius: 20px;
-  box-shadow: 
-    0 15px 50px rgba(0, 0, 0, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  margin-bottom: 2.5rem;
-}
-
-.frame-decoration {
-  position: absolute;
-  width: 30px;
-  height: 30px;
-  border: 2px solid var(--color-primary);
-  opacity: 0.3;
-}
-
-.frame-top-left {
-  top: 10px;
-  left: 10px;
-  border-right: none;
-  border-bottom: none;
-}
-
-.frame-top-right {
-  top: 10px;
-  right: 10px;
-  border-left: none;
-  border-bottom: none;
-}
-
-.frame-bottom-left {
-  bottom: 10px;
-  left: 10px;
-  border-right: none;
-  border-top: none;
-}
-
-.frame-bottom-right {
-  bottom: 10px;
-  right: 10px;
-  border-left: none;
-  border-top: none;
-}
-
-.biographie-image-container {
-  position: relative;
-  width: 100%;
-  overflow: hidden;
-  border-radius: 16px;
-  box-shadow: 0 12px 50px rgba(0, 0, 0, 0.2);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.biographie-image-container:hover {
-  transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
-}
-
-.biographie-image {
-  width: 100%;
-  height: auto;
-  display: block;
-  border-radius: 16px;
-  object-fit: cover;
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.biographie-image-container:hover .biographie-image {
-  transform: scale(1.05);
-}
-
-.image-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    180deg,
-    rgba(0, 0, 0, 0) 0%,
-    rgba(0, 0, 0, 0.05) 50%,
-    rgba(0, 0, 0, 0.15) 100%
-  );
-  border-radius: 16px;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.4s ease;
-}
-
-.biographie-image-container:hover .image-overlay {
-  opacity: 1;
-}
-
-.image-shine {
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(
-    45deg,
-    transparent 30%,
-    rgba(255, 255, 255, 0.1) 50%,
-    transparent 70%
-  );
-  transform: rotate(45deg);
-  transition: transform 0.6s ease;
-  pointer-events: none;
-}
-
-.biographie-image-container:hover .image-shine {
-  transform: rotate(45deg) translate(100%, 100%);
-}
-
-.biographie-signature {
-  text-align: center;
-  padding-top: 2rem;
-  position: relative;
-}
-
-.signature-line {
-  width: 80px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
-  margin: 0 auto 1.5rem;
-}
-
-.biographie-signature p {
-  font-family: 'Cormorant Garamond', 'Playfair Display', serif;
-  font-size: 1.75rem;
-  font-weight: 400;
-  color: #1a1a1a;
-  font-style: italic;
-  letter-spacing: 0.15em;
-  margin: 0 0 0.5rem 0;
-  position: relative;
-}
-
-.signature-title {
-  display: block;
-  font-size: 0.85rem;
-  font-weight: 300;
-  color: #666;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  font-style: normal;
-  margin-top: 0.5rem;
-}
-
-.biographie-text-wrapper {
+.bio-v2__stage {
   display: flex;
   flex-direction: column;
+  min-height: var(--bio-viewport-h);
 }
 
-.biographie-intro {
-  margin-bottom: 4rem;
+/* —— Bandeau portrait —— */
+.bio-v2__banner {
+  position: relative;
+  flex: 0 0 auto;
+  min-height: clamp(14rem, 46vh, 20rem);
+  overflow: hidden;
+  background: #2a2420;
+}
+
+.bio-v2__banner-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 18%;
+}
+
+.bio-v2__banner-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    rgba(12, 10, 9, 0.82) 0%,
+    rgba(12, 10, 9, 0.5) 48%,
+    rgba(12, 10, 9, 0.35) 100%
+  );
+}
+
+.bio-v2__banner-inner {
+  position: relative;
+  z-index: 1;
   display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: inherit;
+  height: 100%;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: clamp(1.5rem, 4vh, 2.5rem) clamp(1.25rem, 4vw, 2.5rem) clamp(2rem, 5vh, 3rem);
+}
+
+.bio-v2__eyebrow {
+  margin: 0 0 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--color-primary, #c6ac8f);
+}
+
+.bio-v2__name {
+  margin: 0;
+  font-family: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+  font-size: clamp(2.35rem, 7vw, 3.75rem);
+  font-weight: 300;
+  font-style: italic;
+  line-height: 1.05;
+  color: #faf6f0;
+}
+
+.bio-v2__role {
+  margin: 0.65rem 0 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(250, 246, 240, 0.82);
+}
+
+/* —— Zone texte —— */
+.bio-v2__main {
+  position: relative;
+  z-index: 2;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  margin-top: clamp(-2rem, -4vw, -2.75rem);
+  padding: 0 clamp(1rem, 3vw, 1.75rem) clamp(1.25rem, 3vh, 2rem);
+}
+
+.bio-v2__sheet {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-width: 44rem;
+  margin: 0 auto;
+  width: 100%;
+  padding: clamp(1.5rem, 3vw, 2.25rem) clamp(1.35rem, 3vw, 2rem);
+  background: var(--bio-card);
+  border-radius: 2px;
+  box-shadow:
+    0 20px 48px rgba(26, 22, 19, 0.1),
+    0 0 0 1px rgba(26, 22, 19, 0.06);
+}
+
+.bio-v2__sheet-head {
+  flex-shrink: 0;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(26, 22, 19, 0.1);
+}
+
+.bio-v2__sheet-title {
+  margin: 0;
+  font-family: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+  font-size: clamp(1.65rem, 3.5vw, 2.1rem);
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  color: var(--bio-ink);
+}
+
+.bio-v2__sheet-lead {
+  margin: 0.35rem 0 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--bio-muted);
+}
+
+.bio-v2__prose {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  font-size: 1.0625rem;
+  line-height: 1.78;
+  color: var(--bio-ink);
+  padding-right: 0.25rem;
+}
+
+.bio-v2__paragraph + .bio-v2__paragraph {
+  margin-top: 1.15rem;
+}
+
+.bio-v2__empty {
+  margin: 0;
+  color: var(--bio-muted);
+  font-style: italic;
+}
+
+.bio-v2__foot {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1.35rem;
+  border-top: 1px solid rgba(26, 22, 19, 0.08);
+}
+
+.bio-v2__btn {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 2rem;
-  position: relative;
-}
-
-.intro-decoration {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex: 1;
-}
-
-.intro-line {
-  height: 1px;
-  flex: 1;
-  background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
-}
-
-.intro-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--color-primary);
-  opacity: 0.6;
-}
-
-.biographie-intro h2 {
-  font-family: 'Cormorant Garamond', 'Playfair Display', serif;
-  font-size: 2.25rem;
-  font-weight: 300;
-  color: #1a1a1a;
-  margin: 0;
-  letter-spacing: 0.08em;
-  white-space: nowrap;
-}
-
-.biographie-text {
-  line-height: 2.4;
-  color: #2a2a2a;
-  font-size: 1.2rem;
-  font-weight: 300;
-}
-
-.text-block {
-  display: flex;
-  gap: 2rem;
-  margin-bottom: 3rem;
-  position: relative;
-  padding-left: 0;
-}
-
-.text-block:last-child {
-  margin-bottom: 0;
-}
-
-.text-indicator {
-  width: 4px;
-  background: linear-gradient(180deg, var(--color-primary), rgba(var(--color-primary-rgb), 0.4));
+  min-width: 8.5rem;
+  padding: 0.8rem 1.35rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
   border-radius: 2px;
-  flex-shrink: 0;
-  margin-top: 0.3em;
-  position: relative;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
-.text-indicator::before {
-  content: '';
-  position: absolute;
-  top: -4px;
-  left: -2px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--color-primary);
-  opacity: 0.6;
+.bio-v2__btn--fill {
+  background: var(--color-primary, #c6ac8f);
+  color: #fff;
 }
 
-.text-block p {
-  margin: 0;
-  text-align: justify;
+.bio-v2__btn--fill:hover {
+  background: #b89a7a;
+  color: #fff;
+}
+
+.bio-v2__btn--line {
+  border: 1px solid rgba(26, 22, 19, 0.22);
+  color: var(--bio-ink);
+}
+
+.bio-v2__btn--line:hover {
+  border-color: var(--color-primary, #c6ac8f);
+}
+
+.bio-v2__loading {
   flex: 1;
-  font-size: 1.15rem;
-  line-height: 2.2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  color: var(--bio-muted);
 }
 
-.biographie-footer {
-  margin-top: 4rem;
-  padding-top: 3rem;
-  text-align: center;
-  position: relative;
-}
-
-.footer-line {
-  width: 120px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
-  margin: 0 auto 2rem;
-}
-
-.footer-quote {
-  font-family: 'Cormorant Garamond', 'Playfair Display', serif;
-  font-size: 1.5rem;
-  font-style: italic;
-  color: #666;
-  letter-spacing: 0.05em;
-  margin: 0;
-  position: relative;
-}
-
-.footer-quote::before,
-.footer-quote::after {
-  content: '"';
-  font-size: 2rem;
-  color: var(--color-primary);
-  opacity: 0.5;
-  position: absolute;
-}
-
-.footer-quote::before {
-  left: -1.5rem;
-  top: -0.5rem;
-}
-
-.footer-quote::after {
-  right: -1.5rem;
-  bottom: -0.5rem;
-}
-
-.biographie-loading {
-  text-align: center;
-  padding: 6rem 2rem;
-  color: #666;
-}
-
-.biographie-loading .loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid #e5e5e5;
-  border-top-color: var(--color-primary);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+.bio-v2__loading .loading-spinner {
+  width: 2.5rem;
+  height: 2.5rem;
   margin: 0 auto 1rem;
+  border: 3px solid rgba(26, 22, 19, 0.08);
+  border-top-color: var(--color-primary, #c6ac8f);
+  border-radius: 50%;
+  animation: bio-v2-spin 0.85s linear infinite;
 }
 
-@keyframes spin {
+@keyframes bio-v2-spin {
   to {
     transform: rotate(360deg);
   }
 }
 
-@media (max-width: 968px) {
-  .biographie-main {
-    grid-template-columns: 1fr;
-    gap: 4rem;
+/* —— Desktop plein écran : portrait | texte —— */
+@media (min-width: 900px) {
+  .bio-v2__stage {
+    flex-direction: row;
+    height: var(--bio-viewport-h);
+    min-height: var(--bio-viewport-h);
+    overflow: hidden;
   }
 
-  .biographie-image-wrapper {
-    position: static;
+  .bio-v2__banner {
+    flex: 0 0 min(44%, 32rem);
+    min-height: 0;
+    height: 100%;
   }
 
-  .image-frame {
-    max-width: 500px;
-    margin: 0 auto 2.5rem;
+  .bio-v2__banner-inner {
+    padding-bottom: clamp(2.5rem, 6vh, 4rem);
   }
 
-  .biographie-header h1::before,
-  .biographie-header h1::after {
-    width: 60px;
+  .bio-v2__name {
+    font-size: clamp(2.75rem, 4.5vw, 4.25rem);
   }
 
-  .biographie-header h1::before {
-    left: -80px;
+  .bio-v2__main {
+    flex: 1 1 auto;
+    margin-top: 0;
+    padding: clamp(1.5rem, 3vh, 2.25rem) clamp(1.5rem, 3vw, 2.5rem) clamp(1.5rem, 3vh, 2.25rem) 0;
   }
 
-  .biographie-header h1::after {
-    right: -80px;
+  .bio-v2__sheet {
+    max-width: none;
+    margin: 0;
+    height: 100%;
+    box-shadow:
+      -12px 0 40px rgba(26, 22, 19, 0.06),
+      0 0 0 1px rgba(26, 22, 19, 0.05);
   }
 }
 
-@media (max-width: 768px) {
-  .biographie {
-    padding: 4rem 1.5rem;
+@media (max-width: 899px) {
+  .bio-v2__stage {
+    min-height: var(--bio-viewport-h);
+    height: auto;
   }
 
-  .biographie-header {
-    margin-bottom: 4rem;
+  .bio-v2__main {
+    flex: 1;
   }
 
-  .biographie-header h1 {
-    font-size: 2.5rem;
+  .bio-v2__sheet {
+    min-height: min(100%, 28rem);
   }
 
-  .biographie-header h1::before,
-  .biographie-header h1::after {
-    display: none;
+  .bio-v2__prose {
+    overflow-y: visible;
   }
+}
 
-  .biographie-content {
-    padding: 3rem 2rem;
-  }
-
-  .biographie-main {
-    gap: 3rem;
-  }
-
-  .image-frame {
-    padding: 15px;
-  }
-
-  .frame-decoration {
-    width: 20px;
-    height: 20px;
-  }
-
-  .biographie-intro {
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .intro-decoration {
-    width: 100%;
-  }
-
-  .biographie-intro h2 {
-    font-size: 1.75rem;
-    white-space: normal;
-  }
-
-  .biographie-text {
-    font-size: 1.05rem;
-    line-height: 2;
-  }
-
-  .text-block {
-    gap: 1.5rem;
-    margin-bottom: 2.5rem;
-  }
-
-  .text-block p {
-    font-size: 1rem;
-  }
-
-  .biographie-signature p {
-    font-size: 1.5rem;
-  }
-
-  .signature-title {
-    font-size: 0.75rem;
-  }
-
-  .footer-quote {
-    font-size: 1.25rem;
-  }
-
-  .biographie-footer {
-    margin-top: 3rem;
-    padding-top: 2rem;
+@media (prefers-reduced-motion: reduce) {
+  .bio-v2__loading .loading-spinner {
+    animation: none;
   }
 }

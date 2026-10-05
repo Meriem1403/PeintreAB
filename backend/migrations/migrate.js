@@ -167,6 +167,29 @@ Formé dans les techniques classiques de la peinture à l''huile, Alexandre dév
     `);
     console.log('✅ Colonnes de thème ajoutées/vérifiées dans site_settings');
 
+    await pool.query(`
+      ALTER TABLE site_settings
+      ADD COLUMN IF NOT EXISTS atelier_hero_eyebrow VARCHAR(120) DEFAULT 'Espace de création',
+      ADD COLUMN IF NOT EXISTS atelier_hero_title_line1 VARCHAR(120) DEFAULT 'Entrer',
+      ADD COLUMN IF NOT EXISTS atelier_hero_title_line2_prefix VARCHAR(120) DEFAULT 'dans la ',
+      ADD COLUMN IF NOT EXISTS atelier_hero_title_emphasis VARCHAR(80) DEFAULT 'couleur',
+      ADD COLUMN IF NOT EXISTS atelier_hero_lead_prefix TEXT DEFAULT 'Peintures et croquis choisis comme on ouvre un ',
+      ADD COLUMN IF NOT EXISTS atelier_hero_lead_emphasis VARCHAR(80) DEFAULT 'carnet',
+      ADD COLUMN IF NOT EXISTS atelier_hero_lead_suffix TEXT DEFAULT ' — lentement, sans vitrine.'
+    `);
+    console.log('✅ Colonnes texte hero Atelier ajoutées/vérifiées dans site_settings');
+
+    await pool.query(`
+      ALTER TABLE site_settings
+      ADD COLUMN IF NOT EXISTS atelier_events_index VARCHAR(80) DEFAULT 'Agenda',
+      ADD COLUMN IF NOT EXISTS atelier_events_title VARCHAR(200) DEFAULT 'Rencontres & expositions',
+      ADD COLUMN IF NOT EXISTS atelier_events_intro TEXT DEFAULT 'Vernissages, salons et parcours commentés — faites défiler les prochaines dates.',
+      ADD COLUMN IF NOT EXISTS atelier_works_index VARCHAR(80) DEFAULT 'Sélection',
+      ADD COLUMN IF NOT EXISTS atelier_works_title VARCHAR(200) DEFAULT 'Œuvres choisies',
+      ADD COLUMN IF NOT EXISTS atelier_works_intro TEXT DEFAULT 'Un carrousel de toiles et croquis — chaque slide révèle une nouvelle présence au mur.'
+    `);
+    console.log('✅ Colonnes texte sections Atelier ajoutées/vérifiées dans site_settings');
+
     // Ajouter work_id à la table contacts si elle n'existe pas
     try {
       await pool.query(`
