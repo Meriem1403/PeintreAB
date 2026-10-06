@@ -89,6 +89,12 @@ const HomeAtelier = () => {
   const setRefs = (node) => {
     homeRef.current = node;
     rootRef.current = node;
+    if (node) {
+      /* Recalcule la hauteur du hero dès que le conteneur existe */
+      window.requestAnimationFrame(() => {
+        window.dispatchEvent(new Event('resize'));
+      });
+    }
   };
 
   useAtelierScrollSnap(rootRef);
