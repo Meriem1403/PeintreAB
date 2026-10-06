@@ -201,6 +201,16 @@ const WorkDetail = () => {
   }, [currentWork?.id, category]);
 
   useEffect(() => {
+    if (!isEventPage || !currentWork?.id) return undefined;
+    const params = new URLSearchParams(location.search);
+    if (params.get('participer') !== '1') return undefined;
+    if (!currentWork.ticket_mode || currentWork.ticket_mode === 'closed') return undefined;
+    if (isEventPast(currentWork.date_fin)) return undefined;
+    setIsRegistrationOpen(true);
+    return undefined;
+  }, [isEventPage, currentWork, location.search]);
+
+  useEffect(() => {
     if (!isArtFullscreen && !isRegistrationOpen) return undefined;
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
