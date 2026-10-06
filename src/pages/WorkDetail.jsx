@@ -398,7 +398,7 @@ const WorkDetail = () => {
 
   return (
     <div
-      className={`exhibition${isEventPage ? ' exhibition--event' : ''}`}
+      className={`exhibition${isEventPage ? ' exhibition--event' : ''}${compactExhibition ? ' exhibition--compact' : ''}`}
       style={{
         '--light-x': `${light.x}%`,
         '--light-y': `${light.y}%`,
