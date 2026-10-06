@@ -36,7 +36,10 @@ body.exhibition-mode.exhibition-mode--scroll .navbar {
   z-index: 900;
   background: #070605;
   color: #f5f0e8;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
   display: flex;
   flex-direction: column;
   --light-x: 50%;
@@ -242,24 +245,25 @@ body.exhibition-mode.exhibition-mode--scroll .navbar {
 .exhibition-layout {
   position: relative;
   z-index: 5;
-  flex: 1;
+  flex: 1 0 auto;
   min-height: 0;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .exhibition-stage {
-  flex: 1;
-  min-height: 0;
-  max-height: calc(100vh - var(--exhibition-toolbar-h));
+  flex: 0 0 auto;
+  min-height: min(42vh, 380px);
+  max-height: min(56vh, 520px);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: var(--exhibition-stage-pad-y) 0 0.35rem;
   perspective: 1400px;
   overflow: hidden;
+  touch-action: pan-y;
 }
 
 /* Groupe serré : ◀ cadre ▶ (pas toute la largeur de l’écran) */
@@ -688,6 +692,7 @@ body.exhibition-mode.exhibition-mode--scroll .navbar {
       100vh - var(--exhibition-toolbar-h) - var(--exhibition-stage-pad-y) * 2 - 0.5rem
     );
     --exhibition-art-max-w: calc(100vw - var(--exhibition-sidebar-w) - 6rem);
+    overflow: hidden;
   }
 
   .exhibition-layout {
@@ -698,6 +703,8 @@ body.exhibition-mode.exhibition-mode--scroll .navbar {
     width: 100%;
     max-width: 100%;
     min-width: 0;
+    min-height: 0;
+    flex: 1 1 auto;
     margin: 0;
     overflow: hidden;
   }
@@ -705,7 +712,10 @@ body.exhibition-mode.exhibition-mode--scroll .navbar {
   .exhibition-stage {
     grid-column: 2;
     grid-row: 1;
+    flex: 1 1 auto;
     min-height: 0;
+    max-height: none;
+    height: 100%;
     padding: 0.5rem 1rem 0.75rem 0.65rem;
     justify-content: center;
   }
@@ -853,81 +863,93 @@ body.exhibition-mode.exhibition-mode--scroll .navbar {
 
 }
 
-/* Tablette / mobile : page scrollable (document), pas overlay fixed */
+/* Tablette / mobile : la fiche (.exhibition) défile en entier */
 @media (max-width: 1099px) {
-  html.exhibition-mode {
-    height: auto;
-    overflow-x: clip;
-    overflow-y: visible;
+  html.exhibition-mode,
+  html.exhibition-mode--scroll {
+    height: 100%;
+    overflow: hidden;
   }
 
-  body.exhibition-mode {
-    overflow-x: clip;
-    overflow-y: auto;
-    height: auto;
-    min-height: 100dvh;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-y: auto;
-  }
-
-  body.exhibition-mode .exhibition:not(.exhibition--loading):not(.exhibition--error) {
+  body.exhibition-mode,
+  body.exhibition-mode.exhibition-mode--scroll {
+    overflow: hidden !important;
+    height: 100%;
+    max-height: 100dvh;
     position: relative;
-    inset: auto;
-    z-index: 1;
-    display: block;
-    height: auto;
-    min-height: 0;
-    max-height: none;
-    overflow: visible;
   }
 
-  body.exhibition-mode .exhibition-layout {
-    display: block;
-    flex: none;
+  .exhibition:not(.exhibition--loading):not(.exhibition--error),
+  .exhibition.exhibition--compact:not(.exhibition--loading):not(.exhibition--error) {
+    position: fixed;
+    inset: 0;
+    z-index: 900;
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .exhibition-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    flex-shrink: 0;
+  }
+
+  .exhibition-layout {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
     min-height: auto;
-    overflow: visible;
+    height: auto;
+    overflow: visible !important;
   }
 
-  body.exhibition-mode .exhibition-stage {
-    flex: none;
-    min-height: min(42vh, 380px);
-    max-height: min(56vh, 480px);
+  .exhibition-stage,
+  .exhibition-stage--compact {
+    flex: 0 0 auto;
+    min-height: min(38vh, 340px);
+    max-height: min(48vh, 420px);
     overflow: hidden;
     touch-action: pan-y;
-  }
-
-  body.exhibition-mode .exhibition-stage--compact {
     perspective: none;
   }
 
-  body.exhibition-mode .exhibition-stage--compact .exhibition-art-tilt,
-  body.exhibition-mode .exhibition-stage--compact .exhibition-art-float {
+  .exhibition-stage--compact .exhibition-art-tilt,
+  .exhibition-stage--compact .exhibition-art-float {
     transform: none !important;
   }
 
-  body.exhibition-mode .exhibition-placard {
-    flex-shrink: 0;
+  .exhibition-placard {
+    flex: 0 0 auto;
     width: 100%;
     max-width: none;
     overflow: visible;
-    margin-bottom: max(1.25rem, env(safe-area-inset-bottom, 0px));
-    padding-bottom: max(0.85rem, env(safe-area-inset-bottom, 0px));
+    margin-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
+    padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
   }
 
-  body.exhibition-mode .exhibition-placard-inner {
-    max-height: none;
-    overflow: visible;
+  .exhibition-placard-inner {
+    max-height: none !important;
+    overflow: visible !important;
   }
 
-  body.exhibition-mode .exhibition-btn {
+  .exhibition-btn {
     white-space: normal;
     min-height: 2.75rem;
   }
 
-  body.exhibition-mode .navbar {
-    opacity: 1;
-    pointer-events: auto;
-    transform: none;
+  body.exhibition-mode .navbar,
+  body.exhibition-mode.exhibition-mode--scroll .navbar {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-100%);
   }
 }
 
