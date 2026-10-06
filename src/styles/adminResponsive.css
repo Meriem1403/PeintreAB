@@ -110,12 +110,25 @@
 }
 
 @media (max-width: 900px) {
-  .admin-shell .admin-main-body {
+  .admin-shell .admin-main-body,
+  .admin-shell .admin-main-body--wide {
     max-width: none;
+    padding-left: 0;
+    padding-right: 0;
   }
 
-  .admin-shell .admin-main-body--wide:not(.admin-main-body--flush) {
-    padding-left: var(--admin-text-inset, 0);
+  .admin-shell .admin-main-body .app-form-panel,
+  .admin-shell .admin-main-body--wide .app-form-panel {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+  }
+
+  .admin-shell .inbox,
+  .admin-shell .inbox-empty,
+  .admin-shell .inbox-panel {
+    width: 100%;
+    max-width: 100%;
   }
 }
 
