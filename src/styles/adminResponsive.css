@@ -30,6 +30,22 @@
   min-width: 0;
 }
 
+/* Panneaux formulaire : alignés à gauche avec le titre (pas de centrage auto) */
+.admin-shell .admin-main-body .app-form-panel {
+  width: 100%;
+  max-width: min(920px, 100%);
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.admin-shell .admin-main-body--wide .app-form-panel {
+  max-width: none;
+}
+
+.admin-shell .admin-main-body--flush .app-form-panel {
+  max-width: none;
+}
+
 /* Formulaires admin */
 @media (max-width: 640px) {
   .admin-shell .app-form-panel {
@@ -89,8 +105,18 @@
 }
 
 .admin-main:has(.admin-main-body--wide) {
-  padding-left: clamp(0.65rem, 2vw, 1.5rem);
-  padding-right: clamp(0.65rem, 2vw, 1.5rem);
+  padding-left: var(--admin-gutter, clamp(0.65rem, 2vw, 1.5rem));
+  padding-right: var(--admin-gutter, clamp(0.65rem, 2vw, 1.5rem));
+}
+
+@media (max-width: 900px) {
+  .admin-shell .admin-main-body {
+    max-width: none;
+  }
+
+  .admin-shell .admin-main-body--wide:not(.admin-main-body--flush) {
+    padding-left: var(--admin-text-inset, 0);
+  }
 }
 
 /* Boîte de réception : défilement page, pas de panneau figé */
