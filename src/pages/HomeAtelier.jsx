@@ -1,12 +1,13 @@
 import { useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
 import { FaChevronRight, FaMapMarkerAlt } from 'react-icons/fa';
 import AtelierCarousel from '../components/AtelierCarousel';
 import GeometricBackground from '../components/GeometricBackground';
 import ParticlesBackground from '../components/ParticlesBackground';
 import AtelierFooter from '../components/AtelierFooter';
-import { galleryPath } from '../constants/galleryRoutes';
+import { galleryPath, workDetailPath } from '../constants/galleryRoutes';
+import { canRegisterToEvent } from '../utils/eventDates';
 import { normalizeImageUrl } from '../utils/imageUrl';
 import { useHomeFeatured, workCategoryLabel } from './home/useHomeFeatured';
 import { atelierScrollBehavior, useAtelierScrollSnap } from './home/useAtelierScrollSnap';
@@ -75,6 +76,15 @@ const HomeAtelier = () => {
     handleWorkClick,
     formatEventDate,
   } = useHomeFeatured({ measureNavForAtelier: true });
+
+  const navigate = useNavigate();
+
+  const goToEventRegistration = (event) => {
+    if (!event?.id) return;
+    navigate(`${workDetailPath('evenements', event.id)}?participer=1`, {
+      state: { work: event },
+    });
+  };
 
   const setRefs = (node) => {
     homeRef.current = node;
@@ -314,39 +324,52 @@ const HomeAtelier = () => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.08 * i, duration: 0.45 }}
                     >
-                      <button
-                        type="button"
-                        className="atelier-event-card__hit"
-                        onClick={() => handleWorkClick(event, event.category)}
-                      >
-                        <div className="atelier-event-card__media">
-                          {event.image ? (
-                            <img src={normalizeImageUrl(event.image)} alt="" loading="lazy" />
-                          ) : (
-                            <span className="atelier-event-card__placeholder" />
-                          )}
-                          {formatEventDate(event) && (
-                            <span className="atelier-event-card__date">{formatEventDate(event)}</span>
-                          )}
-                        </div>
-                        <div className="atelier-event-card__body">
-                          <span className="atelier-event-card__tag">Événement</span>
-                          <h3>{event.titre}</h3>
-                          {event.lieu && (
-                            <p className="atelier-event-card__place">
-                              <FaMapMarkerAlt aria-hidden />
-                              {event.lieu}
-                            </p>
-                          )}
-                          {event.description && (
-                            <p className="atelier-event-card__excerpt">{event.description}</p>
-                          )}
-                          <span className="atelier-event-card__cta">
-                            En savoir plus
-                            <FaChevronRight aria-hidden />
-                          </span>
-                        </div>
-                      </button>
+                      <div className="atelier-event-card__shell">
+                        <button
+                          type="button"
+                          className="atelier-event-card__hit"
+                          onClick={() => handleWorkClick(event, event.category)}
+                        >
+                          <div className="atelier-event-card__media">
+                            {event.image ? (
+                              <img src={normalizeImageUrl(event.image)} alt="" loading="lazy" />
+                            ) : (
+                              <span className="atelier-event-card__placeholder" />
+                            )}
+                            {formatEventDate(event) && (
+                              <span className="atelier-event-card__date">{formatEventDate(event)}</span>
+                            )}
+                          </div>
+                          <div className="atelier-event-card__body">
+                            <span className="atelier-event-card__tag">Événement</span>
+                            <h3>{event.titre}</h3>
+                            {event.lieu && (
+                              <p className="atelier-event-card__place">
+                                <FaMapMarkerAlt aria-hidden />
+                                {event.lieu}
+                              </p>
+                            )}
+                            {event.description && (
+                              <p className="atelier-event-card__excerpt">{event.description}</p>
+                            )}
+                            <span className="atelier-event-card__cta">
+                              En savoir plus
+                              <FaChevronRight aria-hidden />
+                            </span>
+                          </div>
+                        </button>
+                        {canRegisterToEvent(event) && (
+                          <div className="atelier-event-card__footer">
+                            <button
+                              type="button"
+                              className="atelier-event-card__participate"
+                              onClick={() => goToEventRegistration(event)}
+                            >
+                              Je participe
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </motion.article>
                   ))}
                 </div>

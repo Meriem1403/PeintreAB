@@ -40,6 +40,14 @@ export const isEventPast = (dateFin, today = todayDateOnlyString()) => {
   return toDateOnlyString(end) < today;
 };
 
+/** Inscription ouverte (ticket_mode ≠ closed et dates encore valides). */
+export const canRegisterToEvent = (event) => {
+  if (!event) return false;
+  if (isEventPast(event.date_fin)) return false;
+  const mode = event.ticket_mode || 'closed';
+  return mode !== 'closed';
+};
+
 export const formatDurationLabel = (dateDebut, dateFin) => {
   const days = eventDurationDays(dateDebut, dateFin);
   if (days === 0) return null;

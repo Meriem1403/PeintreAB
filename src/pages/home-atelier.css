@@ -757,27 +757,36 @@ section.atelier-snap-panel:last-of-type {
   height: 100%;
 }
 
-.atelier-event-card__hit {
-  width: 100%;
+.atelier-event-card__shell {
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 0;
   border: 1px solid var(--atelier-line);
   background: #fff;
-  cursor: pointer;
-  text-align: left;
-  color: inherit;
-  font: inherit;
   border-radius: 4px;
   overflow: hidden;
   box-shadow: 0 12px 32px rgba(20, 17, 15, 0.08);
   transition: box-shadow 0.35s ease, border-color 0.35s ease;
 }
 
-.atelier-event-card__hit:hover {
+.atelier-event-card__shell:hover {
   border-color: rgba(122, 99, 72, 0.45);
   box-shadow: 0 18px 40px rgba(20, 17, 15, 0.12);
+}
+
+.atelier-event-card__hit {
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+  font: inherit;
 }
 
 .atelier-event-card__media {
@@ -874,6 +883,40 @@ section.atelier-snap-panel:last-of-type {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--atelier-ink-soft);
+}
+
+.atelier-event-card__footer {
+  flex-shrink: 0;
+  padding: 0 1rem 1rem;
+}
+
+.atelier-event-card__participate {
+  width: 100%;
+  min-height: 2.65rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 1rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--atelier-ink, #14110f);
+  color: #faf6f0;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.atelier-event-card__participate:hover {
+  background: var(--atelier-gold-dark, #7a6348);
+  transform: translateY(-1px);
+}
+
+.atelier-event-card__participate:focus-visible {
+  outline: 2px solid var(--atelier-gold-dark);
+  outline-offset: 2px;
 }
 
 /* —— Cartes œuvres —— */

@@ -1,10 +1,12 @@
 import { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaChevronRight, FaMapMarkerAlt } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 import ParticlesBackground from '../components/ParticlesBackground';
 import GeometricBackground from '../components/GeometricBackground';
 import HomeExhibitionPanel from '../components/HomeExhibitionPanel';
-import { galleryPath } from '../constants/galleryRoutes';
+import { galleryPath, workDetailPath } from '../constants/galleryRoutes';
+import { canRegisterToEvent } from '../utils/eventDates';
 import { normalizeImageUrl } from '../utils/imageUrl';
 import { useHomeFeatured, workCategoryLabel } from './home/useHomeFeatured';
 import '../styles/home-panels.css';
@@ -13,6 +15,7 @@ import './Home.css';
 /** Ancienne page d'accueil (snap plein écran, carrousels, fond géométrique). */
 const HomeClassic = () => {
   const animationRef = useRef(null);
+  const navigate = useNavigate();
   const {
     homeRef,
     heroImage,
@@ -38,6 +41,13 @@ const HomeClassic = () => {
     handleEventNext,
     handleWorkClick,
   } = useHomeFeatured({ measureNavForClassic: true });
+
+  const goToEventRegistration = (event) => {
+    if (!event?.id) return;
+    navigate(`${workDetailPath('evenements', event.id)}?participer=1`, {
+      state: { work: event },
+    });
+  };
 
   useEffect(() => {
     return () => {
@@ -150,56 +160,72 @@ const HomeClassic = () => {
                 <motion.div
                   key={`${event.id}-${event.category}`}
                   className="featured-event-item"
-                  onClick={() => handleWorkClick(event, event.category)}
                   transition={{ duration: 0.2 }}
                 >
-                  {event.image && (
-                    <div className="featured-event-image">
-                      <img src={normalizeImageUrl(event.image)} alt={event.titre} />
-                      <div className="image-gradient" />
-                      {(event.date_debut || event.date) && (
-                        <div className="event-date-badge">
-                          {event.date_debut && event.date_fin ? (
-                            <>
-                              {new Date(event.date_debut).toLocaleDateString('fr-FR', {
+                  <button
+                    type="button"
+                    className="featured-event-item__hit"
+                    onClick={() => handleWorkClick(event, event.category)}
+                  >
+                    {event.image && (
+                      <div className="featured-event-image">
+                        <img src={normalizeImageUrl(event.image)} alt={event.titre} />
+                        <div className="image-gradient" />
+                        {(event.date_debut || event.date) && (
+                          <div className="event-date-badge">
+                            {event.date_debut && event.date_fin ? (
+                              <>
+                                {new Date(event.date_debut).toLocaleDateString('fr-FR', {
+                                  day: 'numeric',
+                                  month: 'short',
+                                })}{' '}
+                                -{' '}
+                                {new Date(event.date_fin).toLocaleDateString('fr-FR', {
+                                  day: 'numeric',
+                                  month: 'short',
+                                  year: 'numeric',
+                                })}
+                              </>
+                            ) : (
+                              new Date(event.date_debut || event.date).toLocaleDateString('fr-FR', {
                                 day: 'numeric',
-                                month: 'short',
-                              })}{' '}
-                              -{' '}
-                              {new Date(event.date_fin).toLocaleDateString('fr-FR', {
-                                day: 'numeric',
-                                month: 'short',
+                                month: 'long',
                                 year: 'numeric',
-                              })}
-                            </>
-                          ) : (
-                            new Date(event.date_debut || event.date).toLocaleDateString('fr-FR', {
-                              day: 'numeric',
-                              month: 'long',
-                              year: 'numeric',
-                            })
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  <div className="featured-event-info">
-                    <div className="event-category-tag">Événement</div>
-                    <h3>{event.titre}</h3>
-                    {event.lieu && (
-                      <div className="event-location">
-                        <FaMapMarkerAlt className="location-icon" />
-                        <span className="location-text">{event.lieu}</span>
+                              })
+                            )}
+                          </div>
+                        )}
                       </div>
                     )}
-                    {event.description && (
-                      <p className="featured-event-description">{event.description}</p>
-                    )}
-                    <div className="event-cta">
-                      <span>En savoir plus</span>
-                      <FaChevronRight className="cta-arrow" />
+                    <div className="featured-event-info">
+                      <div className="event-category-tag">Événement</div>
+                      <h3>{event.titre}</h3>
+                      {event.lieu && (
+                        <div className="event-location">
+                          <FaMapMarkerAlt className="location-icon" />
+                          <span className="location-text">{event.lieu}</span>
+                        </div>
+                      )}
+                      {event.description && (
+                        <p className="featured-event-description">{event.description}</p>
+                      )}
+                      <div className="event-cta">
+                        <span>En savoir plus</span>
+                        <FaChevronRight className="cta-arrow" />
+                      </div>
                     </div>
-                  </div>
+                  </button>
+                  {canRegisterToEvent(event) && (
+                    <div className="featured-event-item__footer">
+                      <button
+                        type="button"
+                        className="featured-event-item__participate"
+                        onClick={() => goToEventRegistration(event)}
+                      >
+                        Je participe
+                      </button>
+                    </div>
+                  )}
                 </motion.div>
               ))}
             </motion.div>
