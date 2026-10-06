@@ -102,7 +102,7 @@ section.atelier-snap-panel:last-of-type {
   outline-offset: 3px;
 }
 
-/* —— Hero plein écran (sous la navbar, hauteur = viewport visible) —— */
+/* —— Hero plein écran (fenêtre entière sous la navbar) —— */
 .atelier-hero {
   position: relative;
   display: flex;
@@ -118,20 +118,18 @@ section.atelier-snap-panel:last-of-type {
 
 .atelier-hero--viewport,
 .atelier-hero.atelier-snap-panel {
+  display: flex !important;
+  align-items: flex-end;
   width: 100%;
   box-sizing: border-box;
-  flex: 0 0 auto;
-  flex-shrink: 0;
-  display: flex;
-  align-items: flex-end;
-  /* Plein écran visible — mesuré en JS, fallback CSS */
-  min-height: calc(100svh - var(--atelier-nav-h, 4.75rem));
-  min-height: calc(100dvh - var(--atelier-nav-h, 4.75rem));
-  min-height: var(--atelier-viewport-h, calc(100dvh - 4.75rem));
-  height: calc(100svh - var(--atelier-nav-h, 4.75rem));
-  height: calc(100dvh - var(--atelier-nav-h, 4.75rem));
-  height: var(--atelier-viewport-h, calc(100dvh - 4.75rem));
-  max-height: none;
+  flex: 0 0 auto !important;
+  flex-shrink: 0 !important;
+  /* Forcé : plein viewport moins navbar — le JS impose aussi la hauteur en px */
+  min-height: calc(100vh - var(--atelier-nav-h, 4.75rem)) !important;
+  min-height: calc(100dvh - var(--atelier-nav-h, 4.75rem)) !important;
+  height: calc(100vh - var(--atelier-nav-h, 4.75rem)) !important;
+  height: calc(100dvh - var(--atelier-nav-h, 4.75rem)) !important;
+  max-height: none !important;
   overflow: hidden;
 }
 

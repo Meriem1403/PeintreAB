@@ -53,38 +53,46 @@ export function useHomeFeatured({ measureNavForClassic = false, measureNavForAte
       const navPx = nav ? Math.ceil(nav.getBoundingClientRect().height) : 76;
       const offset = `${navPx}px`;
       const root = homeRef.current;
-      /* Hauteur exacte de la zone scrollable = hero plein écran sous la navbar */
-      const portPx = root?.clientHeight > 120 ? root.clientHeight : null;
-      const viewportH = portPx
-        ? `${portPx}px`
-        : `calc(100dvh - ${navPx}px)`;
 
       if (measureNavForClassic) {
         document.documentElement.style.setProperty('--home-nav-offset', offset);
-        homeRef.current?.style.setProperty('--home-nav-offset', offset);
+        root?.style.setProperty('--home-nav-offset', offset);
       }
+
       if (measureNavForAtelier) {
+        /* Hauteur hero = fenêtre moins navbar (jamais clientHeight du conteneur) */
+        const heroPx = Math.max(280, Math.round(window.innerHeight - navPx));
+        const heroValue = `${heroPx}px`;
+
         document.documentElement.style.setProperty('--atelier-nav-h', offset);
-        document.documentElement.style.setProperty('--atelier-viewport-h', viewportH);
+        document.documentElement.style.setProperty('--atelier-viewport-h', heroValue);
         root?.style.setProperty('--atelier-nav-h', offset);
-        root?.style.setProperty('--atelier-viewport-h', viewportH);
+        root?.style.setProperty('--atelier-viewport-h', heroValue);
+
+        const hero = root?.querySelector('.atelier-hero');
+        if (hero) {
+          hero.style.setProperty('height', heroValue, 'important');
+          hero.style.setProperty('min-height', heroValue, 'important');
+          hero.style.setProperty('max-height', heroValue, 'important');
+        }
       }
     };
 
     measureNav();
-    requestAnimationFrame(measureNav);
+    const raf = requestAnimationFrame(measureNav);
+    const t = window.setTimeout(measureNav, 100);
+
     const nav = document.querySelector('.navbar');
-    const root = homeRef.current;
     const navObserver = nav ? new ResizeObserver(measureNav) : null;
-    const rootObserver = root ? new ResizeObserver(measureNav) : null;
     if (nav && navObserver) navObserver.observe(nav);
-    if (root && rootObserver) rootObserver.observe(root);
+
     window.addEventListener('resize', measureNav);
     window.addEventListener('orientationchange', measureNav);
 
     return () => {
+      cancelAnimationFrame(raf);
+      window.clearTimeout(t);
       navObserver?.disconnect();
-      rootObserver?.disconnect();
       window.removeEventListener('resize', measureNav);
       window.removeEventListener('orientationchange', measureNav);
     };
