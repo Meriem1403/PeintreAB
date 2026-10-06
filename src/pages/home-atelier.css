@@ -35,6 +35,8 @@ body:has(.home-atelier) {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
+  width: 100%;
+  max-width: none;
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
@@ -84,13 +86,13 @@ section.atelier-snap-panel:last-of-type {
 }
 
 .atelier-wrap {
-  width: min(1120px, 100%);
+  width: min(1200px, 100%);
   margin: 0 auto;
   padding: 0 clamp(1.25rem, 4vw, 2.5rem);
 }
 
 .atelier-wrap--wide {
-  width: min(1400px, 100%);
+  width: min(1600px, 100%);
 }
 
 /* Focus visible (accessibilité clavier) */
@@ -104,12 +106,15 @@ section.atelier-snap-panel:last-of-type {
   position: relative;
   display: flex;
   align-items: flex-end;
+  width: 100%;
+  max-width: none;
   overflow: hidden;
   color: #faf6f0;
   background: #1a1816;
 }
 
 .atelier-hero--viewport {
+  width: 100%;
   min-height: var(--atelier-viewport-h);
   height: var(--atelier-viewport-h);
   max-height: var(--atelier-viewport-h);
@@ -218,9 +223,47 @@ section.atelier-snap-panel:last-of-type {
 .atelier-hero__copy {
   position: relative;
   z-index: 1;
-  max-width: 38rem;
+  max-width: min(42rem, 100%);
   padding-left: clamp(0.85rem, 2vw, 1.35rem);
   border-left: 1px solid rgba(198, 172, 143, 0.42);
+}
+
+.atelier-hero__inner {
+  position: relative;
+  z-index: 3;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: min(1600px, 100%);
+  margin: 0 auto;
+  padding: clamp(3rem, 10vh, 6rem) clamp(1.25rem, 4vw, 2.5rem) clamp(2rem, 5vh, 3.5rem);
+  pointer-events: none;
+}
+
+@media (min-width: 969px) {
+  .atelier-hero__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 2rem;
+    padding: clamp(3.5rem, 11vh, 7rem) clamp(2rem, 5vw, 3.5rem) clamp(2.5rem, 6vh, 4rem);
+  }
+
+  .atelier-hero__copy {
+    max-width: min(48rem, 54vw);
+  }
+
+  .atelier-hero__title {
+    font-size: clamp(3.75rem, 6.2vw, 6.25rem);
+  }
+
+  .atelier-hero__lead {
+    max-width: 34rem;
+    font-size: clamp(1.05rem, 1.35vw, 1.2rem);
+  }
+
+  .atelier-hero__actions {
+    gap: 0.85rem 1.15rem;
+  }
 }
 
 .atelier-hero__copy::before {
@@ -242,24 +285,6 @@ section.atelier-snap-panel:last-of-type {
       transparent 72%
     );
   pointer-events: none;
-}
-
-.atelier-hero__inner {
-  position: relative;
-  z-index: 3;
-  box-sizing: border-box;
-  width: 100%;
-  max-width: 100%;
-  margin: 0;
-  padding: clamp(3rem, 10vh, 6rem) clamp(1rem, 2vw, 1.5rem) clamp(2rem, 5vh, 3.5rem);
-  padding-left: clamp(1rem, 1.35vw, 1.35rem);
-  pointer-events: none;
-}
-
-@media (min-width: 900px) {
-  .atelier-hero__inner {
-    padding-left: clamp(1.15rem, 1.75vw, 1.75rem);
-  }
 }
 
 .atelier-hero__copy,
@@ -735,11 +760,11 @@ section.atelier-snap-panel:last-of-type {
 }
 
 .atelier-carousel__grid--events {
-  min-height: clamp(520px, 62vh, 720px);
+  min-height: clamp(480px, 58vh, 680px);
 }
 
 .atelier-carousel__grid:not(.atelier-carousel__grid--events) {
-  min-height: clamp(540px, 64vh, 760px);
+  min-height: clamp(500px, 60vh, 700px);
 }
 
 .atelier-carousel__dots {
@@ -808,8 +833,8 @@ section.atelier-snap-panel:last-of-type {
   position: relative;
   flex: 0 0 auto;
   width: 100%;
-  height: clamp(260px, 34vh, 420px);
-  min-height: 260px;
+  height: clamp(240px, 32vh, 380px);
+  min-height: 240px;
   aspect-ratio: unset;
   background: #d8cfc3;
   overflow: hidden;
@@ -974,8 +999,8 @@ section.atelier-snap-panel:last-of-type {
 
 .atelier-work-card__media img {
   width: 100%;
-  height: clamp(380px, 52vh, 620px);
-  min-height: 380px;
+  height: clamp(320px, 44vh, 520px);
+  min-height: 320px;
   max-height: none;
   aspect-ratio: unset;
   object-fit: cover;
@@ -1371,64 +1396,8 @@ section.atelier-snap-panel:last-of-type {
   color: var(--atelier-gold);
 }
 
-/* Mobile / tablette : 1 grande carte, scroll natif */
-@media (max-width: 900px) {
-  .home-atelier {
-    scroll-snap-type: none;
-    scroll-behavior: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .atelier-band--stage.atelier-snap-panel {
-    padding: clamp(2rem, 5vh, 3.25rem) 0;
-  }
-
-  .atelier-band__head {
-    margin-bottom: 1.35rem;
-  }
-
-  .atelier-band__stage {
-    flex: 0 1 auto;
-    min-height: 0;
-  }
-
-  .atelier-carousel {
-    height: auto;
-    flex: 0 1 auto;
-  }
-
-  .atelier-carousel__grid--events {
-    min-height: 560px;
-  }
-
-  .atelier-carousel__grid:not(.atelier-carousel__grid--events) {
-    min-height: 580px;
-  }
-
-  .atelier-event-card__media {
-    height: clamp(240px, 42vw, 360px);
-    min-height: 240px;
-  }
-
-  .atelier-work-card__media img {
-    height: clamp(360px, 70vw, 520px);
-    min-height: 360px;
-  }
-
-  .atelier-event-card__body {
-    padding: 1.1rem 1.1rem 0.85rem;
-  }
-
-  .atelier-event-card__body h3 {
-    font-size: clamp(1.45rem, 5.5vw, 1.85rem);
-  }
-
-  .atelier-event-card__excerpt {
-    -webkit-line-clamp: 3;
-  }
-}
-
-@media (max-width: 640px) {
+/* Mobile : 1 carte large */
+@media (max-width: 639px) {
   .atelier-carousel__row {
     grid-template-columns: 0 minmax(0, 1fr) 0;
     gap: 0;
@@ -1447,21 +1416,21 @@ section.atelier-snap-panel:last-of-type {
   }
 
   .atelier-carousel__grid--events {
-    min-height: 600px;
+    min-height: 560px;
   }
 
   .atelier-carousel__grid:not(.atelier-carousel__grid--events) {
-    min-height: 620px;
+    min-height: 580px;
   }
 
   .atelier-event-card__media {
-    height: min(48vw, 300px);
-    min-height: 220px;
+    height: min(52vw, 280px);
+    min-height: 200px;
   }
 
   .atelier-work-card__media img {
-    height: min(78vw, 480px);
-    min-height: 340px;
+    height: min(78vw, 460px);
+    min-height: 320px;
   }
 
   .atelier-event-card__participate {
@@ -1469,8 +1438,44 @@ section.atelier-snap-panel:last-of-type {
     font-size: 0.9375rem;
   }
 
+  .atelier-event-card__body h3,
   .atelier-work-card__body h3 {
     font-size: clamp(1.4rem, 5vw, 1.75rem);
+  }
+}
+
+/* Tablette / petit desktop */
+@media (min-width: 640px) and (max-width: 968px) {
+  .atelier-carousel__grid--events,
+  .atelier-carousel__grid:not(.atelier-carousel__grid--events) {
+    min-height: 520px;
+  }
+
+  .atelier-event-card__media {
+    height: clamp(220px, 30vh, 320px);
+  }
+
+  .atelier-work-card__media img {
+    height: clamp(300px, 40vh, 440px);
+  }
+}
+
+/* Grand écran : hero plein cadre + 3 cartes confortables */
+@media (min-width: 1100px) {
+  .atelier-carousel__grid--events {
+    min-height: 560px;
+  }
+
+  .atelier-carousel__grid:not(.atelier-carousel__grid--events) {
+    min-height: 580px;
+  }
+
+  .atelier-event-card__media {
+    height: clamp(260px, 30vh, 360px);
+  }
+
+  .atelier-work-card__media img {
+    height: clamp(340px, 42vh, 480px);
   }
 }
 
