@@ -1445,109 +1445,27 @@ section.atelier-snap-panel:not(.atelier-hero):last-of-type {
   }
 }
 
-/* Desktop : une section = même hauteur que le hero ; cartes remplissent le reste */
+/* Desktop : hauteur modérée (pas plein écran), largeur compacte si peu d’items */
 @media (min-width: 1024px) {
   .atelier-carousel__grid {
     --atelier-card-max-w: min(100%, 24rem);
   }
 
   .atelier-band--stage.atelier-snap-panel {
-    min-height: var(--atelier-viewport-h, calc(100dvh - var(--atelier-nav-h, 4.75rem)));
-    padding: clamp(0.85rem, 1.8vh, 1.5rem) 0;
-    box-sizing: border-box;
+    padding: clamp(2rem, 4vh, 3.25rem) 0;
   }
 
-  .atelier-band--stage .atelier-band__shell {
-    flex: 1 1 auto;
-    min-height: 0;
+  .atelier-event-card__media {
+    height: clamp(200px, 26vh, 320px);
+    min-height: 200px;
+    max-height: 320px;
+    flex: 0 0 auto;
   }
 
-  .atelier-band--stage .atelier-band__head {
-    margin-bottom: clamp(0.65rem, 1.2vh, 1rem);
-  }
-
-  .atelier-band--stage .atelier-band__stage {
-    flex: 1 1 auto;
-    min-height: 0;
-  }
-
-  .atelier-band--stage .atelier-carousel {
-    flex: 1 1 auto;
-    min-height: 0;
-    height: auto;
-  }
-
-  .atelier-band--stage .atelier-carousel__row {
-    flex: 1 1 auto;
-    min-height: 0;
-    align-items: stretch;
-  }
-
-  .atelier-band--stage .atelier-carousel__viewport {
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-    height: 100%;
-    align-self: stretch;
-  }
-
-  .atelier-band--stage .atelier-carousel__track {
-    display: flex;
-    flex-direction: column;
-    flex: 1 1 auto;
-    min-height: 0;
-    height: 100%;
-    width: 100%;
-  }
-
-  .atelier-band--stage .atelier-carousel__grid {
-    flex: 1 1 auto;
-    min-height: 0;
-    height: 100%;
-    align-content: stretch;
-  }
-
-  .atelier-band--stage .atelier-event-card,
-  .atelier-band--stage .atelier-work-card {
-    min-height: 0;
-    height: 100%;
-  }
-
-  .atelier-band--stage .atelier-event-card__shell {
-    min-height: 0;
-  }
-
-  .atelier-band--stage .atelier-event-card__media {
-    height: auto;
-    flex: 1 1 auto;
-    min-height: 10rem;
-    max-height: none;
-  }
-
-  .atelier-band--stage .atelier-work-card__hit {
-    min-height: 0;
-    height: 100%;
-  }
-
-  .atelier-band--stage .atelier-work-card__media {
-    flex: 1 1 auto;
-    min-height: 10rem;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .atelier-band--stage .atelier-work-card__media img {
-    flex: 1 1 auto;
-    height: 100%;
-    min-height: 10rem;
-    max-height: none;
-    width: 100%;
-    object-fit: cover;
-  }
-
-  .atelier-band--stage .atelier-carousel__dots {
-    flex-shrink: 0;
-    padding-top: 0.65rem;
+  .atelier-work-card__media img {
+    height: clamp(240px, 32vh, 380px);
+    min-height: 240px;
+    max-height: 380px;
   }
 }
 
