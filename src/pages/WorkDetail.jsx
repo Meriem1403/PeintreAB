@@ -20,6 +20,7 @@ import {
 } from 'react-icons/fa';
 import { useWorks } from '../contexts/WorksContext';
 import ContactWorkForm from '../components/ContactWorkForm';
+import ModalPortal from '../components/ModalPortal';
 import EventRegistrationForm from '../components/EventRegistrationForm';
 import { isEventPast } from '../utils/eventDates';
 import { normalizeImageUrl } from '../utils/imageUrl';
@@ -677,6 +678,7 @@ const WorkDetail = () => {
 
       <AnimatePresence>
         {isArtFullscreen && imageUrl && (
+          <ModalPortal>
           <motion.div
             className="exhibition-fullscreen"
             role="dialog"
@@ -703,6 +705,7 @@ const WorkDetail = () => {
               onClick={(e) => e.stopPropagation()}
             />
           </motion.div>
+          </ModalPortal>
         )}
       </AnimatePresence>
 
@@ -722,6 +725,7 @@ const WorkDetail = () => {
 
       <AnimatePresence>
         {isRegistrationOpen && showEventRegistration && (
+          <ModalPortal>
           <motion.div
             className="exhibition-registration-overlay"
             role="dialog"
@@ -766,6 +770,7 @@ const WorkDetail = () => {
               </div>
             </motion.div>
           </motion.div>
+          </ModalPortal>
         )}
       </AnimatePresence>
     </div>

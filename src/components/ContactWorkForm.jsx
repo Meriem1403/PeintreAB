@@ -7,6 +7,7 @@ import { contactsAPI } from '../utils/apiService';
 import '../styles/forms.css';
 import './EventRegistrationForm.css';
 import './ContactWorkForm.css';
+import ModalPortal from './ModalPortal';
 
 const INTENTS = [
   {
@@ -117,6 +118,7 @@ const ContactWorkForm = ({
   };
 
   return (
+    <ModalPortal>
     <motion.div
       className="exhibition-registration-overlay contact-work-overlay"
       role="dialog"
@@ -335,6 +337,7 @@ const ContactWorkForm = ({
         </div>
       </motion.div>
     </motion.div>
+    </ModalPortal>
   );
 };
 
