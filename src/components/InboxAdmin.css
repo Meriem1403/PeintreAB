@@ -801,15 +801,27 @@
 @media (max-width: 1024px) {
   .inbox {
     --inbox-panel-h: none;
+    width: 100%;
+    max-width: 100%;
   }
 
   .inbox-metrics {
     grid-template-columns: 1fr;
   }
 
+  .inbox-metrics__actions {
+    justify-content: stretch;
+  }
+
+  .inbox-metrics__actions .inbox-tool-btn {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
   .inbox-panel {
     display: flex;
     flex-direction: column;
+    width: 100%;
     min-height: 0;
     max-height: none;
     overflow: visible;
@@ -818,6 +830,7 @@
   .inbox-panel .inbox-pane--list,
   .inbox-panel .inbox-pane--detail {
     flex: none;
+    width: 100%;
     min-height: auto;
     max-height: none;
     overflow: visible;
@@ -864,12 +877,43 @@
   .inbox-segment__label--short {
     display: inline;
   }
+
+  .inbox-empty {
+    width: 100%;
+    box-sizing: border-box;
+    padding-inline: clamp(1rem, 4vw, 1.5rem);
+  }
+
+  .inbox-pane__tools {
+    width: 100%;
+  }
+
+  .inbox-search {
+    width: 100%;
+    box-sizing: border-box;
+  }
 }
 
 /* ——— Mobile : ajustements compacts ——— */
 @media (max-width: 640px) {
   .inbox-metric {
     align-items: center;
+    padding: 0.85rem 1rem;
+  }
+
+  .inbox-metric__value {
+    font-size: 1.35rem;
+  }
+
+  .inbox-segment {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.35rem;
+  }
+
+  .inbox-segment__btn {
+    min-height: 2.75rem;
+    font-size: 0.75rem;
+    padding: 0.45rem 0.35rem;
   }
 
   .inbox-detail__head {
@@ -896,12 +940,19 @@
   }
 
   .inbox-detail__actions {
+    flex-direction: column;
     flex-wrap: nowrap;
+    align-items: stretch;
     width: 100%;
+    gap: 0.5rem;
   }
 
-  .inbox-detail__actions .brand-btn--primary {
-    flex: 1 1 auto;
+  .inbox-detail__actions .brand-btn,
+  .inbox-detail__actions .brand-btn--primary,
+  .inbox-detail__actions .inbox-detail__icon-btn {
+    flex: none;
+    width: 100%;
+    min-height: 2.75rem;
   }
 
   .inbox-detail__work {
@@ -912,6 +963,14 @@
 
   .inbox-detail__work-body {
     width: 100%;
+  }
+
+  .inbox-empty h2 {
+    font-size: 1.25rem;
+  }
+
+  .inbox-empty p {
+    font-size: 0.875rem;
   }
 }
 

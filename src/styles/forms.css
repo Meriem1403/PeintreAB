@@ -496,6 +496,17 @@
   gap: 0.25rem;
 }
 
+@media (max-width: 520px) {
+  .image-dropzone-preview-actions {
+    flex-direction: column;
+  }
+
+  .image-dropzone-btn {
+    width: 100%;
+    min-height: 2.75rem;
+  }
+}
+
 .image-dropzone-error {
   margin: 0.5rem 0 0;
   font-size: 0.8125rem;
