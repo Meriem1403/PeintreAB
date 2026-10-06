@@ -91,6 +91,124 @@ export function openMapsForTicket(ticket) {
   return true;
 }
 
+export function ticketQrDataUrlFromTicket(ticket) {
+  return ticket?.qr_data_url || ticket?.tickets?.[0]?.qr_data_url || null;
+}
+
+function isAppleMobile() {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent || '';
+  if (/iPad|iPhone|iPod/i.test(ua)) return true;
+  return navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+}
+
+/** data: URL → Blob sans fetch (requis pour iOS : garder le geste utilisateur). */
+export function dataUrlToBlob(dataUrl) {
+  const [header, data] = String(dataUrl).split(',');
+  if (!data) throw new Error('QR invalide');
+  const mimeMatch = header.match(/:(.*?);/);
+  const mime = mimeMatch ? mimeMatch[1] : 'image/png';
+  const binary = atob(data);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return new Blob([bytes], { type: mime });
+}
+
+async function qrDataUrlToBlob(qrDataUrl) {
+  if (qrDataUrl.startsWith('data:')) {
+    return dataUrlToBlob(qrDataUrl);
+  }
+  const res = await fetch(qrDataUrl);
+  return res.blob();
+}
+
+function copyTextFallback(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.setAttribute('readonly', '');
+  ta.style.position = 'fixed';
+  ta.style.left = '-9999px';
+  document.body.appendChild(ta);
+  ta.select();
+  const ok = document.execCommand('copy');
+  document.body.removeChild(ta);
+  return ok;
+}
+
+/**
+ * Enregistrer le QR (PNG). iOS : menu Partager → Enregistrer dans Photos, ou ouverture pour appui long.
+ */
+export async function saveTicketQrImage(qrDataUrl, filename = 'billet-qr.png') {
+  if (!qrDataUrl) return { ok: false, reason: 'missing' };
+
+  const safeName = filename.endsWith('.png') ? filename : `${filename}.png`;
+  let blob;
+  try {
+    blob = await qrDataUrlToBlob(qrDataUrl);
+  } catch {
+    return { ok: false, reason: 'decode' };
+  }
+
+  const file = new File([blob], safeName.replace(/[^\w.-]+/gi, '_'), {
+    type: blob.type || 'image/png',
+  });
+
+  if (typeof navigator !== 'undefined' && navigator.share) {
+    try {
+      const canFiles = !navigator.canShare || navigator.canShare({ files: [file] });
+      if (canFiles) {
+        await navigator.share(
+          isAppleMobile()
+            ? { files: [file], title: 'QR code — billet' }
+            : {
+                title: 'QR code — billet',
+                text: 'Enregistrez le QR code dans vos photos.',
+                files: [file],
+              }
+        );
+        return {
+          ok: true,
+          method: 'share',
+          hint: 'Choisissez « Enregistrer l’image » ou « Photos » dans le menu.',
+        };
+      }
+    } catch (err) {
+      if (err?.name === 'AbortError') return { ok: false, cancelled: true };
+    }
+  }
+
+  const objectUrl = URL.createObjectURL(blob);
+
+  if (isAppleMobile()) {
+    const opened = window.open(objectUrl, '_blank', 'noopener,noreferrer');
+    if (opened) {
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 120_000);
+      return {
+        ok: true,
+        method: 'open',
+        hint: 'Maintenez appuyé sur le QR code → « Enregistrer l’image ».',
+      };
+    }
+  }
+
+  try {
+    const a = document.createElement('a');
+    a.href = objectUrl;
+    a.download = safeName;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.setTimeout(() => URL.revokeObjectURL(objectUrl), 4000);
+    return { ok: true, method: 'download' };
+  } catch {
+    URL.revokeObjectURL(objectUrl);
+    return { ok: false, reason: 'download' };
+  }
+}
+
 async function loadJsPDF() {
   const { default: jsPDF } = await import('jspdf');
   return jsPDF;
@@ -252,31 +370,45 @@ export async function downloadInvitationPdf({ ticket, passes, filename }) {
 }
 
 export async function shareTicket(ticket, ticketUrl) {
-  const title = ticket.event.titre || 'Mon billet';
-  const text = `Billet pour ${title} — ${ticket.guest.first_name} ${ticket.guest.last_name}`;
+  const title = ticket.event?.titre || 'Mon billet';
+  const guest = ticket.guest || {};
+  const text =
+    `Billet pour ${title} — ${guest.first_name || ''} ${guest.last_name || ''}`.trim();
+  const qrDataUrl = ticketQrDataUrlFromTicket(ticket);
 
-  if (navigator.share) {
+  if (typeof navigator !== 'undefined' && navigator.share) {
     try {
-      const payload = { title, text, url: ticketUrl };
-      if (ticket.qr_data_url && navigator.canShare) {
-        const res = await fetch(ticket.qr_data_url);
-        const blob = await res.blob();
+      if (qrDataUrl?.startsWith('data:')) {
+        const blob = dataUrlToBlob(qrDataUrl);
         const file = new File([blob], 'billet-qr.png', { type: 'image/png' });
-        if (navigator.canShare({ files: [file] })) {
-          await navigator.share({ ...payload, files: [file] });
-          return true;
+        const canFiles = !navigator.canShare || navigator.canShare({ files: [file] });
+        if (canFiles) {
+          try {
+            await navigator.share(
+              isAppleMobile() ? { files: [file], title, text } : { title, text, url: ticketUrl, files: [file] }
+            );
+            return 'shared';
+          } catch (fileErr) {
+            if (fileErr?.name === 'AbortError') return 'cancelled';
+          }
         }
       }
-      await navigator.share(payload);
-      return true;
+      await navigator.share({ title, text, url: ticketUrl });
+      return 'shared';
     } catch (err) {
-      if (err.name === 'AbortError') return false;
+      if (err?.name === 'AbortError') return 'cancelled';
     }
   }
 
+  const payload = `${text}\n${ticketUrl}`;
   if (navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(`${text}\n${ticketUrl}`);
-    return 'clipboard';
+    try {
+      await navigator.clipboard.writeText(payload);
+      return 'clipboard';
+    } catch {
+      /* iOS sans permission clipboard */
+    }
   }
+  if (copyTextFallback(payload)) return 'clipboard';
   return false;
 }

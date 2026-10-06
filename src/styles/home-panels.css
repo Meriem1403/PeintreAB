@@ -455,6 +455,31 @@ body:has(.home) {
   background: transparent;
 }
 
+@media (max-width: 900px) {
+  .home {
+    scroll-snap-type: y proximity;
+    scroll-behavior: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .home-panel {
+    scroll-snap-stop: normal;
+    flex: 0 0 auto;
+    height: auto;
+    max-height: none;
+    min-height: calc(100dvh - var(--home-nav-offset, 4.75rem));
+    overflow: visible;
+  }
+
+  .hero-section.home-panel {
+    flex: 0 0 auto;
+    height: calc(100dvh - var(--home-nav-offset, 4.75rem));
+    min-height: calc(100dvh - var(--home-nav-offset, 4.75rem));
+    max-height: calc(100dvh - var(--home-nav-offset, 4.75rem));
+    overflow: hidden;
+  }
+}
+
 @media (max-width: 768px) {
   .home {
     --home-pad-y: clamp(0.75rem, 1.75vh, 1.1rem);

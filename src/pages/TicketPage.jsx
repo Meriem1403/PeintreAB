@@ -7,6 +7,7 @@ import {
   downloadInvitationPdf,
   downloadTicketIcs,
   openMapsForTicket,
+  saveTicketQrImage,
   shareTicket,
 } from '../utils/ticketExport';
 import './TicketPage.css';
@@ -18,7 +19,7 @@ const TicketPage = () => {
   const [ticket, setTicket] = useState(null);
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(null);
-  const [shareHint, setShareHint] = useState(null);
+  const [actionHint, setActionHint] = useState(null);
   useEffect(() => {
     if (!code) return;
     (async () => {
@@ -83,12 +84,25 @@ const TicketPage = () => {
   const hasLocation = Boolean(ticket.event.lieu || ticket.event.adresse);
   const slug = (ticket.event.titre || 'expo').replace(/[^\w\-]+/gi, '-').slice(0, 32);
 
-  const handleSaveQr = (pass, index) => {
+  const handleSaveQr = async (pass, index) => {
     if (!pass?.qr_data_url) return;
-    const a = document.createElement('a');
-    a.href = pass.qr_data_url;
-    a.download = `billet-${index}-${pass.ticket_code?.slice(0, 8) || 'expo'}.png`;
-    a.click();
+    setBusy('qr');
+    setActionHint(null);
+    try {
+      const result = await saveTicketQrImage(
+        pass.qr_data_url,
+        `billet-${index}-${pass.ticket_code?.slice(0, 8) || 'expo'}.png`
+      );
+      if (result?.hint) setActionHint(result.hint);
+      else if (result?.cancelled) return;
+      else if (!result?.ok) {
+        setActionHint(
+          'Enregistrement impossible ici — utilisez « Invitation PDF » ou une capture d’écran du billet.'
+        );
+      }
+    } finally {
+      setBusy(null);
+    }
   };
 
   const handlePdfAll = async () => {
@@ -107,11 +121,17 @@ const TicketPage = () => {
 
   const handleShare = async () => {
     setBusy('share');
-    setShareHint(null);
+    setActionHint(null);
     try {
       const result = await shareTicket({ ...ticket, party_size: ticketsTotal }, ticketUrl);
       if (result === 'clipboard') {
-        setShareHint('Lien copié — collez-le dans un message ou un rappel.');
+        setActionHint('Lien copié — collez-le dans un message ou un rappel.');
+      } else if (result === 'shared') {
+        setActionHint(null);
+      } else if (result !== 'cancelled') {
+        setActionHint(
+          'Partage indisponible — utilisez « Invitation PDF » ou « Enregistrer le QR ».'
+        );
       }
     } finally {
       setBusy(null);
@@ -183,12 +203,13 @@ const TicketPage = () => {
               <button
                 type="button"
                 className="brand-btn brand-btn--secondary"
+                disabled={busy === 'qr'}
                 onClick={() =>
                   handleSaveQr(passes[0], ticket.tickets?.[0]?.ticket_index ?? 1)
                 }
               >
                 <FaQrcode aria-hidden />
-                Enregistrer le QR
+                {busy === 'qr' ? 'QR…' : 'Enregistrer le QR'}
               </button>
             )}
             <button
@@ -202,9 +223,9 @@ const TicketPage = () => {
             </button>
           </div>
 
-          {shareHint && (
+          {actionHint && (
             <p className="ticket-page__share-hint" role="status">
-              {shareHint}
+              {actionHint}
             </p>
           )}
 

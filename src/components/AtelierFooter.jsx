@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaEnvelope, FaFacebook, FaInstagram, FaGlobe, FaPhone } from 'react-icons/fa';
+import { atelierScrollBehavior } from '../pages/home/useAtelierScrollSnap';
 import { contactInfoAPI } from '../utils/apiService';
 
 const defaultContact = {
@@ -87,7 +88,15 @@ const AtelierFooter = ({ onBackToTop, onGoToFooter }) => {
   }, []);
 
   const scrollToSection = (id) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const root = document.querySelector('.home-atelier');
+    const panel = document.getElementById(id);
+    if (!panel) return;
+    const behavior = atelierScrollBehavior();
+    if (root) {
+      root.scrollTo({ top: panel.offsetTop, behavior });
+      return;
+    }
+    panel.scrollIntoView({ behavior, block: 'start' });
   };
 
   return (
