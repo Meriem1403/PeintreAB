@@ -9,15 +9,13 @@ import { normalizeImageUrl } from '../../utils/imageUrl';
 export const workCategoryLabel = (category) => (category === 'croquis' ? 'Croquis' : 'Peinture');
 
 const getWorksPerView = (width) => {
-  if (width < 720) return 1;
-  if (width < 1200) return 2;
-  return 3;
+  if (width < 900) return 1;
+  return 2;
 };
 
 const getEventsPerView = (width) => {
-  if (width < 720) return 1;
-  if (width < 1100) return 2;
-  return 3;
+  if (width < 900) return 1;
+  return 2;
 };
 
 const sortByDisplayOrder = (a, b) => {
