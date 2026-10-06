@@ -50,26 +50,44 @@ export function useHomeFeatured({ measureNavForClassic = false, measureNavForAte
 
     const measureNav = () => {
       const nav = document.querySelector('.navbar');
-      const navPx = nav ? nav.offsetHeight : 76;
+      const navPx = nav ? Math.ceil(nav.getBoundingClientRect().height) : 76;
       const offset = `${navPx}px`;
-      const viewportH = `calc(100dvh - ${navPx}px)`;
+      const root = homeRef.current;
+      /* Hauteur exacte de la zone scrollable = hero plein écran sous la navbar */
+      const portPx = root?.clientHeight > 120 ? root.clientHeight : null;
+      const viewportH = portPx
+        ? `${portPx}px`
+        : `calc(100dvh - ${navPx}px)`;
 
       if (measureNavForClassic) {
         document.documentElement.style.setProperty('--home-nav-offset', offset);
         homeRef.current?.style.setProperty('--home-nav-offset', offset);
       }
       if (measureNavForAtelier) {
+        document.documentElement.style.setProperty('--atelier-nav-h', offset);
         document.documentElement.style.setProperty('--atelier-viewport-h', viewportH);
-        homeRef.current?.style.setProperty('--atelier-viewport-h', viewportH);
+        root?.style.setProperty('--atelier-nav-h', offset);
+        root?.style.setProperty('--atelier-viewport-h', viewportH);
       }
     };
 
     measureNav();
+    requestAnimationFrame(measureNav);
     const nav = document.querySelector('.navbar');
+    const root = homeRef.current;
     const navObserver = nav ? new ResizeObserver(measureNav) : null;
+    const rootObserver = root ? new ResizeObserver(measureNav) : null;
     if (nav && navObserver) navObserver.observe(nav);
+    if (root && rootObserver) rootObserver.observe(root);
+    window.addEventListener('resize', measureNav);
+    window.addEventListener('orientationchange', measureNav);
 
-    return () => navObserver?.disconnect();
+    return () => {
+      navObserver?.disconnect();
+      rootObserver?.disconnect();
+      window.removeEventListener('resize', measureNav);
+      window.removeEventListener('orientationchange', measureNav);
+    };
   }, [measureNavForClassic, measureNavForAtelier]);
 
   useEffect(() => {
