@@ -9,7 +9,11 @@ import AtelierFooter from '../components/AtelierFooter';
 import { galleryPath, workDetailPath } from '../constants/galleryRoutes';
 import { canRegisterToEvent } from '../utils/eventDates';
 import { normalizeImageUrl } from '../utils/imageUrl';
-import { useHomeFeatured, workCategoryLabel } from './home/useHomeFeatured';
+import {
+  getAtelierCarouselGridLayout,
+  useHomeFeatured,
+  workCategoryLabel,
+} from './home/useHomeFeatured';
 import { atelierScrollBehavior, useAtelierScrollSnap } from './home/useAtelierScrollSnap';
 import { useHeroImageLuminance } from './home/useHeroImageLuminance';
 import './home-atelier.css';
@@ -183,6 +187,8 @@ const HomeAtelier = () => {
 
   const visibleEvents = getVisibleEvents();
   const visibleWorks = getVisibleWorks();
+  const eventsGrid = getAtelierCarouselGridLayout(visibleEvents.length, eventsPerView);
+  const worksGrid = getAtelierCarouselGridLayout(visibleWorks.length, worksPerView);
 
   return (
     <div className="home-atelier" ref={setRefs}>
@@ -319,9 +325,14 @@ const HomeAtelier = () => {
                 }
               >
                 <div
-                  className="atelier-carousel__grid atelier-carousel__grid--events"
+                  className={`atelier-carousel__grid atelier-carousel__grid--events${
+                    eventsGrid.compact ? ' atelier-carousel__grid--compact' : ''
+                  }`}
                   style={{
-                    gridTemplateColumns: `repeat(${Math.min(eventsPerView, visibleEvents.length)}, minmax(0, 1fr))`,
+                    '--carousel-cols': eventsGrid.cols,
+                    gridTemplateColumns: eventsGrid.compact
+                      ? `repeat(${eventsGrid.cols}, minmax(0, var(--atelier-card-max-w)))`
+                      : `repeat(${eventsGrid.cols}, minmax(0, 1fr))`,
                   }}
                 >
                   {visibleEvents.map((event, i) => (
@@ -431,9 +442,14 @@ const HomeAtelier = () => {
                 }
               >
                 <div
-                  className="atelier-carousel__grid atelier-carousel__grid--works"
+                  className={`atelier-carousel__grid atelier-carousel__grid--works${
+                    worksGrid.compact ? ' atelier-carousel__grid--compact' : ''
+                  }`}
                   style={{
-                    gridTemplateColumns: `repeat(${Math.min(worksPerView, visibleWorks.length)}, minmax(0, 1fr))`,
+                    '--carousel-cols': worksGrid.cols,
+                    gridTemplateColumns: worksGrid.compact
+                      ? `repeat(${worksGrid.cols}, minmax(0, var(--atelier-card-max-w)))`
+                      : `repeat(${worksGrid.cols}, minmax(0, 1fr))`,
                   }}
                 >
                   {visibleWorks.map((work, i) => (

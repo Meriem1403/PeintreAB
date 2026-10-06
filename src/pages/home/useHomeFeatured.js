@@ -8,6 +8,13 @@ import { normalizeImageUrl } from '../../utils/imageUrl';
 
 export const workCategoryLabel = (category) => (category === 'croquis' ? 'Croquis' : 'Peinture');
 
+/** Grille carrousel : colonnes réelles + mode compact si la ligne n’est pas pleine */
+export function getAtelierCarouselGridLayout(visibleCount, perView) {
+  const cols = Math.max(1, Math.min(perView, visibleCount));
+  const compact = visibleCount < perView;
+  return { cols, compact };
+}
+
 const getWorksPerView = (width) => {
   if (width < 640) return 1;
   if (width < 1024) return 2;
