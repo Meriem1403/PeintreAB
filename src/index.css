@@ -1,4 +1,6 @@
 :root {
+  --z-navbar: 1000;
+  --z-app-modal: 5000;
   --color-primary: var(--color-primary);
   --color-accent: var(--color-accent);
   --color-navbar: var(--color-primary);

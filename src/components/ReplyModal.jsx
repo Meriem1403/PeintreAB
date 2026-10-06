@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaTimes, FaCheckCircle } from 'react-icons/fa';
 import { contactsAPI } from '../utils/apiService';
 import './ReplyModal.css';
+import ModalPortal from './ModalPortal';
 
 const ReplyModal = ({ contact, onClose, onSuccess }) => {
   const [subject, setSubject] = useState(`Re: ${contact.subject || 'Votre message'}`);
@@ -42,6 +43,7 @@ const ReplyModal = ({ contact, onClose, onSuccess }) => {
 
   return (
     <AnimatePresence>
+      <ModalPortal>
       <motion.div
         className="form-modal-overlay reply-modal-overlay"
         initial={{ opacity: 0 }}
@@ -121,6 +123,7 @@ const ReplyModal = ({ contact, onClose, onSuccess }) => {
           </form>
         </motion.div>
       </motion.div>
+      </ModalPortal>
     </AnimatePresence>
   );
 };

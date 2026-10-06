@@ -12,6 +12,7 @@ import {
   isEventPast,
 } from '../utils/eventDates';
 import './WorkForm.css';
+import ModalPortal from './ModalPortal';
 
 const formatDateField = (dateValue) => {
   if (!dateValue) return '';
@@ -182,6 +183,7 @@ const WorkForm = ({ type, work, onClose }) => {
       : 'Visible dans « En lumière » sur l’accueil';
 
   return (
+    <ModalPortal>
     <motion.div
       className="form-modal-overlay"
       initial={{ opacity: 0 }}
@@ -409,6 +411,7 @@ const WorkForm = ({ type, work, onClose }) => {
         </form>
       </motion.div>
     </motion.div>
+    </ModalPortal>
   );
 };
 
