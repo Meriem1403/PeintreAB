@@ -691,6 +691,7 @@ section.atelier-snap-panel:last-of-type {
   flex-direction: column;
   flex: 0 1 auto;
   min-height: 0;
+  width: 100%;
   height: auto;
 }
 
@@ -699,8 +700,8 @@ section.atelier-snap-panel:last-of-type {
   grid-template-columns: 3rem minmax(0, 1fr) 3rem;
   align-items: stretch;
   gap: clamp(0.75rem, 2vw, 1.5rem);
-  flex: 0 1 auto;
-  min-height: 0;
+  width: 100%;
+  min-width: 0;
 }
 
 .atelier-carousel__nav-slot {
@@ -735,36 +736,24 @@ section.atelier-snap-panel:last-of-type {
 
 .atelier-carousel__viewport {
   min-width: 0;
-  min-height: 0;
-  display: flex;
-  align-items: stretch;
+  width: 100%;
+  display: block;
   overflow: hidden;
 }
 
 .atelier-carousel__track {
   width: 100%;
-  min-height: 0;
-  height: 100%;
-  display: flex;
-  align-items: stretch;
+  min-width: 0;
+  display: block;
 }
 
 .atelier-carousel__grid {
   display: grid;
   width: 100%;
-  gap: clamp(1.15rem, 2.5vw, 2rem);
+  gap: clamp(1rem, 2.2vw, 1.75rem);
   align-items: stretch;
   min-height: 0;
   height: auto;
-  max-height: none;
-}
-
-.atelier-carousel__grid--events {
-  min-height: clamp(480px, 58vh, 680px);
-}
-
-.atelier-carousel__grid:not(.atelier-carousel__grid--events) {
-  min-height: clamp(500px, 60vh, 700px);
 }
 
 .atelier-carousel__dots {
@@ -833,9 +822,8 @@ section.atelier-snap-panel:last-of-type {
   position: relative;
   flex: 0 0 auto;
   width: 100%;
-  height: clamp(240px, 32vh, 380px);
-  min-height: 240px;
-  aspect-ratio: unset;
+  height: clamp(220px, 28vh, 340px);
+  min-height: 220px;
   background: #d8cfc3;
   overflow: hidden;
 }
@@ -999,10 +987,9 @@ section.atelier-snap-panel:last-of-type {
 
 .atelier-work-card__media img {
   width: 100%;
-  height: clamp(320px, 44vh, 520px);
-  min-height: 320px;
+  height: clamp(280px, 38vh, 460px);
+  min-height: 280px;
   max-height: none;
-  aspect-ratio: unset;
   object-fit: cover;
   transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -1396,16 +1383,14 @@ section.atelier-snap-panel:last-of-type {
   color: var(--atelier-gold);
 }
 
-/* Mobile : 1 carte large */
+/* Mobile : 1 colonne — NE PAS cacher les slots si la grille a encore 3 colonnes */
 @media (max-width: 639px) {
   .atelier-carousel__row {
-    grid-template-columns: 0 minmax(0, 1fr) 0;
+    grid-template-columns: minmax(0, 1fr);
     gap: 0;
   }
 
-  .atelier-carousel__nav-slot,
-  .atelier-carousel__nav,
-  .atelier-carousel__nav-spacer {
+  .atelier-carousel__nav-slot {
     display: none;
   }
 
@@ -1415,22 +1400,14 @@ section.atelier-snap-panel:last-of-type {
     padding-right: 1rem;
   }
 
-  .atelier-carousel__grid--events {
-    min-height: 560px;
-  }
-
-  .atelier-carousel__grid:not(.atelier-carousel__grid--events) {
-    min-height: 580px;
-  }
-
   .atelier-event-card__media {
-    height: min(52vw, 280px);
+    height: min(56vw, 280px);
     min-height: 200px;
   }
 
   .atelier-work-card__media img {
-    height: min(78vw, 460px);
-    min-height: 320px;
+    height: min(72vw, 420px);
+    min-height: 280px;
   }
 
   .atelier-event-card__participate {
@@ -1440,42 +1417,31 @@ section.atelier-snap-panel:last-of-type {
 
   .atelier-event-card__body h3,
   .atelier-work-card__body h3 {
-    font-size: clamp(1.4rem, 5vw, 1.75rem);
+    font-size: clamp(1.35rem, 5vw, 1.65rem);
+  }
+
+  .atelier-carousel__dots {
+    padding-top: 0.85rem;
   }
 }
 
-/* Tablette / petit desktop */
-@media (min-width: 640px) and (max-width: 968px) {
-  .atelier-carousel__grid--events,
-  .atelier-carousel__grid:not(.atelier-carousel__grid--events) {
-    min-height: 520px;
-  }
-
+@media (min-width: 640px) and (max-width: 1023px) {
   .atelier-event-card__media {
-    height: clamp(220px, 30vh, 320px);
+    height: clamp(200px, 26vh, 300px);
   }
 
   .atelier-work-card__media img {
-    height: clamp(300px, 40vh, 440px);
+    height: clamp(260px, 36vh, 400px);
   }
 }
 
-/* Grand écran : hero plein cadre + 3 cartes confortables */
-@media (min-width: 1100px) {
-  .atelier-carousel__grid--events {
-    min-height: 560px;
-  }
-
-  .atelier-carousel__grid:not(.atelier-carousel__grid--events) {
-    min-height: 580px;
-  }
-
+@media (min-width: 1024px) {
   .atelier-event-card__media {
-    height: clamp(260px, 30vh, 360px);
+    height: clamp(220px, 26vh, 320px);
   }
 
   .atelier-work-card__media img {
-    height: clamp(340px, 42vh, 480px);
+    height: clamp(280px, 36vh, 420px);
   }
 }
 
