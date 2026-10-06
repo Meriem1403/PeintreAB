@@ -38,9 +38,10 @@ body:has(.home-atelier) {
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
-  scroll-snap-type: y proximity;
-  scroll-behavior: smooth;
-  overscroll-behavior-y: contain;
+  scroll-snap-type: none;
+  scroll-behavior: auto;
+  overscroll-behavior-y: auto;
+  -webkit-overflow-scrolling: touch;
   scroll-padding-bottom: 0;
   color: var(--atelier-ink);
   background: var(--atelier-paper);
@@ -49,24 +50,22 @@ body:has(.home-atelier) {
 
 .atelier-snap-panel {
   flex-shrink: 0;
-  scroll-snap-align: start;
+  scroll-snap-align: none;
   scroll-snap-stop: normal;
   box-sizing: border-box;
-  height: var(--atelier-viewport-h);
-  min-height: var(--atelier-viewport-h);
-  max-height: var(--atelier-viewport-h);
-  overflow: hidden;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  overflow: visible;
 }
 
-section.atelier-snap-panel:not(:last-of-type) {
-  scroll-snap-stop: always;
-}
-
+section.atelier-snap-panel:not(:last-of-type),
 section.atelier-snap-panel:last-of-type {
   height: auto;
   max-height: none;
-  min-height: var(--atelier-viewport-h);
+  min-height: 0;
   overflow: visible;
+  scroll-snap-stop: normal;
 }
 
 .atelier-grain {
@@ -112,11 +111,18 @@ section.atelier-snap-panel:last-of-type {
 
 .atelier-hero--viewport {
   min-height: var(--atelier-viewport-h);
+  height: var(--atelier-viewport-h);
+  max-height: var(--atelier-viewport-h);
+  overflow: hidden;
 }
 
 .atelier-hero.atelier-snap-panel {
   display: flex;
   align-items: flex-end;
+  height: var(--atelier-viewport-h);
+  min-height: var(--atelier-viewport-h);
+  max-height: var(--atelier-viewport-h);
+  overflow: hidden;
 }
 
 .atelier-hero__image {
@@ -463,21 +469,22 @@ section.atelier-snap-panel:last-of-type {
   }
 }
 
-/* —— Sections pleine hauteur (sous navbar) —— */
+/* —— Sections (hauteur naturelle, plus de snap plein écran) —— */
 .atelier-band {
-  padding: clamp(2.5rem, 6vh, 4rem) 0;
+  padding: clamp(2.75rem, 7vh, 5rem) 0;
 }
 
 .atelier-band--stage {
   position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   box-sizing: border-box;
 }
 
 .atelier-band--stage.atelier-snap-panel {
-  padding: clamp(1.25rem, 3vh, 2rem) 0;
+  padding: clamp(2.5rem, 6vh, 4.5rem) 0;
+  min-height: 0;
 }
 
 .atelier-band--events {
@@ -647,7 +654,7 @@ section.atelier-snap-panel:last-of-type {
 }
 
 .atelier-band__stage {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
@@ -657,17 +664,17 @@ section.atelier-snap-panel:last-of-type {
 .atelier-carousel {
   display: flex;
   flex-direction: column;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-height: 0;
-  height: 100%;
+  height: auto;
 }
 
 .atelier-carousel__row {
   display: grid;
   grid-template-columns: 3rem minmax(0, 1fr) 3rem;
   align-items: stretch;
-  gap: clamp(0.5rem, 1.5vw, 1.25rem);
-  flex: 1 1 auto;
+  gap: clamp(0.75rem, 2vw, 1.5rem);
+  flex: 0 1 auto;
   min-height: 0;
 }
 
@@ -720,11 +727,19 @@ section.atelier-snap-panel:last-of-type {
 .atelier-carousel__grid {
   display: grid;
   width: 100%;
-  gap: clamp(0.85rem, 2vw, 1.35rem);
+  gap: clamp(1rem, 2.2vw, 1.75rem);
   align-items: stretch;
-  min-height: min(52vh, 520px);
-  height: 100%;
-  max-height: min(calc(var(--atelier-viewport-h) - 11rem), 640px);
+  min-height: 0;
+  height: auto;
+  max-height: none;
+}
+
+.atelier-carousel__grid--events {
+  min-height: clamp(420px, 52vh, 620px);
+}
+
+.atelier-carousel__grid:not(.atelier-carousel__grid--events) {
+  min-height: clamp(440px, 54vh, 640px);
 }
 
 .atelier-carousel__dots {
@@ -791,8 +806,8 @@ section.atelier-snap-panel:last-of-type {
 
 .atelier-event-card__media {
   position: relative;
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: 0 0 auto;
+  min-height: clamp(200px, 28vh, 320px);
   aspect-ratio: 16 / 10;
   background: #d8cfc3;
   overflow: hidden;
@@ -958,8 +973,9 @@ section.atelier-snap-panel:last-of-type {
 .atelier-work-card__media img {
   width: 100%;
   height: 100%;
-  min-height: min(38vh, 380px);
-  max-height: min(calc(var(--atelier-viewport-h) - 16rem), 520px);
+  min-height: clamp(280px, 42vh, 520px);
+  max-height: none;
+  aspect-ratio: 4 / 5;
   object-fit: cover;
   transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -1353,32 +1369,20 @@ section.atelier-snap-panel:last-of-type {
   color: var(--atelier-gold);
 }
 
-/* Mobile : scroll naturel + snap léger (sans JS qui « repousse » le scroll) */
+/* Mobile / tablette : scroll natif, cartes lisibles */
 @media (max-width: 900px) {
   .home-atelier {
-    scroll-snap-type: y proximity;
+    scroll-snap-type: none;
     scroll-behavior: auto;
     -webkit-overflow-scrolling: touch;
   }
 
-  section.atelier-snap-panel:not(:last-of-type) {
-    scroll-snap-stop: normal;
+  .atelier-band--stage.atelier-snap-panel {
+    padding: clamp(2rem, 5vh, 3rem) 0;
   }
 
-  .atelier-hero.atelier-snap-panel {
-    height: var(--atelier-viewport-h);
-    min-height: var(--atelier-viewport-h);
-    max-height: var(--atelier-viewport-h);
-    overflow: hidden;
-  }
-
-  .atelier-band.atelier-snap-panel,
-  section.atelier-band--stage.atelier-snap-panel {
-    height: auto;
-    max-height: none;
-    min-height: var(--atelier-viewport-h);
-    overflow: visible;
-    justify-content: flex-start;
+  .atelier-band__head {
+    margin-bottom: 1.25rem;
   }
 
   .atelier-band__stage {
@@ -1391,30 +1395,62 @@ section.atelier-snap-panel:last-of-type {
     flex: 0 1 auto;
   }
 
-  .atelier-carousel__grid {
+  .atelier-carousel__grid,
+  .atelier-carousel__grid--events,
+  .atelier-carousel__grid:not(.atelier-carousel__grid--events) {
     height: auto;
+    min-height: 0;
     max-height: none;
+  }
+
+  .atelier-event-card__media {
+    min-height: 220px;
+    aspect-ratio: 4 / 3;
+  }
+
+  .atelier-work-card__media img {
+    min-height: 300px;
+    aspect-ratio: 3 / 4;
+  }
+
+  .atelier-event-card__body {
+    padding: 1rem 1rem 0.75rem;
+  }
+
+  .atelier-event-card__body h3 {
+    font-size: clamp(1.35rem, 5vw, 1.65rem);
   }
 }
 
 @media (max-width: 640px) {
   .atelier-carousel__row {
-    grid-template-columns: 2.5rem minmax(0, 1fr) 2.5rem;
+    grid-template-columns: 0 minmax(0, 1fr) 0;
+    gap: 0;
+  }
+
+  .atelier-carousel__nav-slot {
+    display: none;
   }
 
   .atelier-carousel__nav,
   .atelier-carousel__nav-spacer {
-    width: 2.5rem;
-  }
-
-  .atelier-carousel__nav {
-    height: 2.5rem;
-    font-size: 1.25rem;
+    display: none;
   }
 
   .atelier-carousel__grid {
     min-height: min(48vh, 440px);
-    max-height: min(calc(var(--atelier-viewport-h) - 10rem), 520px);
+    max-height: none;
+  }
+
+  .atelier-wrap,
+  .atelier-wrap--wide {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .atelier-event-card__participate {
+    min-height: 2.85rem;
+    font-size: 0.875rem;
   }
 }
 
