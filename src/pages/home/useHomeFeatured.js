@@ -10,13 +10,13 @@ export const workCategoryLabel = (category) => (category === 'croquis' ? 'Croqui
 
 const getWorksPerView = (width) => {
   if (width < 640) return 1;
-  if (width < 1100) return 2;
+  if (width < 1024) return 2;
   return 3;
 };
 
 const getEventsPerView = (width) => {
   if (width < 640) return 1;
-  if (width < 1100) return 2;
+  if (width < 1024) return 2;
   return 3;
 };
 
@@ -155,13 +155,19 @@ export function useHomeFeatured({ measureNavForClassic = false, measureNavForAte
   }, [featuredEvents.length, isEventPaused, eventsPerView, eventsMaxIndex]);
 
   const getVisibleWorks = () => {
+    if (!featuredWorks.length) return [];
     if (featuredWorks.length <= worksPerView) return featuredWorks;
-    return featuredWorks.slice(currentIndex, currentIndex + worksPerView);
+    const start = Math.min(currentIndex, worksMaxIndex);
+    const slice = featuredWorks.slice(start, start + worksPerView);
+    return slice.length > 0 ? slice : featuredWorks.slice(0, worksPerView);
   };
 
   const getVisibleEvents = () => {
+    if (!featuredEvents.length) return [];
     if (featuredEvents.length <= eventsPerView) return featuredEvents;
-    return featuredEvents.slice(currentEventIndex, currentEventIndex + eventsPerView);
+    const start = Math.min(currentEventIndex, eventsMaxIndex);
+    const slice = featuredEvents.slice(start, start + eventsPerView);
+    return slice.length > 0 ? slice : featuredEvents.slice(0, eventsPerView);
   };
 
   const handlePrevious = () => {
