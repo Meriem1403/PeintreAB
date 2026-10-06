@@ -28,7 +28,7 @@
 }
 
 /* ——— En-tête page ——— */
-.admin-shell .admin-main-header-title-row h1 {
+.admin-shell .admin-page-header__title {
   font-family: var(--admin-ui-font);
   font-weight: 650;
   font-style: normal;
@@ -37,14 +37,14 @@
   color: var(--admin-text);
 }
 
-.admin-shell .admin-main-header-desc {
+.admin-shell .admin-page-header__desc {
   color: var(--admin-text-muted);
   font-size: 0.9375rem;
   line-height: 1.55;
 }
 
 @media (max-width: 900px) {
-  .admin-shell .admin-main-header-desc {
+  .admin-shell .admin-page-header__desc {
     font-size: 0.875rem;
     line-height: 1.5;
   }
