@@ -274,8 +274,12 @@ const Admin = () => {
       </aside>
 
       <div className="admin-main">
-        <header className="admin-main-header">
-          <div className="admin-main-header-title-row">
+        <header
+          className={`admin-page-header${
+            GALLERY_TABS.has(activeTab) ? '' : ' admin-page-header--no-cta'
+          }`}
+        >
+          <div className="admin-page-header__bar">
             <button
               type="button"
               className="admin-main-menu"
@@ -285,35 +289,33 @@ const Admin = () => {
             >
               <FiMenu />
             </button>
-            <h1>{activeMeta?.label ?? 'Administration'}</h1>
+            <h1 className="admin-page-header__title">{activeMeta?.label ?? 'Administration'}</h1>
           </div>
-          <div className="admin-main-header-sub-row">
-            <p className="admin-main-header-desc">
-              {GALLERY_TABS.has(activeTab)
-                ? 'Ajoutez, modifiez ou réorganisez les œuvres visibles sur le site.'
-                : activeTab === 'notifications'
-                  ? 'Messages du site — demandes d’achat, page Contact et œuvres. Actualisation automatique toutes les 20 s.'
-                  : activeTab === 'visiteurs'
-                    ? 'Aperçu, inscrits, contacts et emails — par événement.'
-                    : activeTab === 'scan'
-                      ? 'Contrôle des billets en plein écran — caméra ou saisie manuelle.'
-                      : 'Paramètres et contenus éditoriaux.'}
-            </p>
-            {GALLERY_TABS.has(activeTab) && (
-              <motion.button
-                type="button"
-                className="admin-main-cta"
-                onClick={() => {
-                  setEditingWork(null);
-                  setIsFormOpen(true);
-                }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                Nouvelle entrée
-              </motion.button>
-            )}
-          </div>
+          <p className="admin-page-header__desc">
+            {GALLERY_TABS.has(activeTab)
+              ? 'Ajoutez, modifiez ou réorganisez les œuvres visibles sur le site.'
+              : activeTab === 'notifications'
+                ? 'Messages du site — demandes d’achat, page Contact et œuvres. Actualisation automatique toutes les 20 s.'
+                : activeTab === 'visiteurs'
+                  ? 'Aperçu, inscrits, contacts et emails — par événement.'
+                  : activeTab === 'scan'
+                    ? 'Contrôle des billets en plein écran — caméra ou saisie manuelle.'
+                    : 'Paramètres et contenus éditoriaux.'}
+          </p>
+          {GALLERY_TABS.has(activeTab) && (
+            <motion.button
+              type="button"
+              className="admin-main-cta"
+              onClick={() => {
+                setEditingWork(null);
+                setIsFormOpen(true);
+              }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              Nouvelle entrée
+            </motion.button>
+          )}
         </header>
 
         <motion.div

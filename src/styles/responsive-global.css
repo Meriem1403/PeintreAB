@@ -143,6 +143,31 @@ select {
   }
 }
 
+/* En-têtes publics : titre + sous-titre empilés, pas de chevauchement */
+@media (max-width: 768px) {
+  .galerie-header {
+    margin-bottom: 2rem;
+    padding-inline: 0.25rem;
+  }
+
+  .galerie-header h1 {
+    font-size: clamp(1.75rem, 7vw, 2.25rem);
+    line-height: 1.15;
+  }
+
+  .galerie-header p {
+    margin-top: 0.75rem;
+    font-size: 0.9375rem;
+    line-height: 1.55;
+    max-width: none;
+  }
+
+  .section-heading,
+  .artist-section-title {
+    padding-inline: 0.25rem;
+  }
+}
+
 @media (max-width: 768px) {
   .login-page {
     min-height: 100dvh;
