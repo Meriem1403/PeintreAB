@@ -408,6 +408,56 @@ body:has(.home) {
   padding-top: 0.35rem;
 }
 
+.home .featured-event-item {
+  display: flex;
+  flex-direction: column;
+  cursor: default;
+}
+
+.home .featured-event-item__hit {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.home .featured-event-item__footer {
+  flex-shrink: 0;
+  padding: 0 1rem 1rem;
+}
+
+.home .featured-event-item__participate {
+  width: 100%;
+  min-height: 2.65rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 1rem;
+  border: none;
+  border-radius: 999px;
+  background: #1c1917;
+  color: #faf6f0;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.home .featured-event-item__participate:hover {
+  background: var(--color-primary, #c6ac8f);
+  transform: translateY(-1px);
+}
+
 .home .featured-event-item:hover .featured-event-image img,
 .home .featured-work-item:hover .featured-work-image img {
   transform: scale(1.03);
