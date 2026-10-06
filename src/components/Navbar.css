@@ -100,7 +100,8 @@
 
 @media (max-width: 968px) {
   .navbar {
-    padding: 1rem;
+    padding: 1rem max(1rem, env(safe-area-inset-right, 0px)) 1rem
+      max(1rem, env(safe-area-inset-left, 0px));
   }
 
   .navbar-container {
