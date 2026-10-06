@@ -3,6 +3,12 @@
   flex-direction: column;
   gap: 0;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.vscan.adb-shell {
+  margin-inline: 0;
 }
 
 .vscan-cover .adb-cover__main {

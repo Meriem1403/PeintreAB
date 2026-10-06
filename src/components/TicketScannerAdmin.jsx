@@ -2,6 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Html5Qrcode } from 'html5-qrcode';
 import {
+  buildCameraStartAttempts,
+  cameraScanErrorMessage,
+  qrBoxForViewfinder,
+} from '../utils/cameraScan';
+import {
   FiAlertCircle,
   FiCalendar,
   FiCamera,
@@ -144,27 +149,54 @@ const TicketScannerAdmin = () => {
   const startCamera = useCallback(async () => {
     if (scannerRef.current) return;
     setLastResult(null);
-    try {
-      const scanner = new Html5Qrcode(SCANNER_ID);
-      scannerRef.current = scanner;
-      const qrSize = Math.min(480, Math.max(240, Math.floor(window.innerWidth * 0.32)));
-      await scanner.start(
-        { facingMode: 'environment' },
-        { fps: 12, qrbox: { width: qrSize, height: qrSize } },
-        (decoded) => processCode(decoded),
-        () => {}
-      );
-      setCameraOn(true);
-    } catch (err) {
-      scannerRef.current = null;
-      setLastResult({
-        type: 'error',
-        message:
-          err.message?.includes('NotAllowed') || err.name === 'NotAllowedError'
-            ? 'Accès caméra refusé — autorisez la caméra ou saisissez le code manuellement.'
-            : 'Impossible d’ouvrir la caméra sur cet appareil.',
-      });
+
+    if (typeof window !== 'undefined' && !window.isSecureContext) {
+      setLastResult({ type: 'error', message: cameraScanErrorMessage(new Error('insecure')) });
+      return;
     }
+
+    const viewfinder = document.getElementById(SCANNER_ID);
+    if (!viewfinder) {
+      setLastResult({ type: 'error', message: 'Zone de scan indisponible. Rechargez la page.' });
+      return;
+    }
+
+    const scanner = new Html5Qrcode(SCANNER_ID);
+    const scanConfig = {
+      fps: 10,
+      qrbox: qrBoxForViewfinder,
+      aspectRatio: 1,
+    };
+
+    let lastErr = null;
+    const attempts = await buildCameraStartAttempts();
+
+    for (const cameraConfig of attempts) {
+      try {
+        await scanner.start(cameraConfig, scanConfig, (decoded) => processCode(decoded), () => {});
+        scannerRef.current = scanner;
+        setCameraOn(true);
+        return;
+      } catch (err) {
+        lastErr = err;
+        try {
+          await scanner.stop();
+        } catch {
+          /* ignore */
+        }
+      }
+    }
+
+    try {
+      scanner.clear();
+    } catch {
+      /* ignore */
+    }
+    scannerRef.current = null;
+    setLastResult({
+      type: 'error',
+      message: cameraScanErrorMessage(lastErr || new Error('NO_CAMERA')),
+    });
   }, [processCode]);
 
   useEffect(
