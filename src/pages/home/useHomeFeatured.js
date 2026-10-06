@@ -44,6 +44,9 @@ export function useHomeFeatured({ measureNavForClassic = false, measureNavForAte
   const [isEventPaused, setIsEventPaused] = useState(false);
   const [worksPerView, setWorksPerView] = useState(() => getWorksPerView(window.innerWidth));
   const [eventsPerView, setEventsPerView] = useState(() => getEventsPerView(window.innerWidth));
+  const [heroViewportPx, setHeroViewportPx] = useState(() =>
+    Math.max(280, Math.round(window.innerHeight - 76))
+  );
 
   useEffect(() => {
     if (!measureNavForClassic && !measureNavForAtelier) return undefined;
@@ -60,27 +63,22 @@ export function useHomeFeatured({ measureNavForClassic = false, measureNavForAte
       }
 
       if (measureNavForAtelier) {
-        /* Hauteur hero = fenêtre moins navbar (jamais clientHeight du conteneur) */
+        /* Hauteur hero = fenêtre moins navbar (jamais height:auto du snap-panel) */
         const heroPx = Math.max(280, Math.round(window.innerHeight - navPx));
         const heroValue = `${heroPx}px`;
 
+        setHeroViewportPx(heroPx);
         document.documentElement.style.setProperty('--atelier-nav-h', offset);
         document.documentElement.style.setProperty('--atelier-viewport-h', heroValue);
         root?.style.setProperty('--atelier-nav-h', offset);
         root?.style.setProperty('--atelier-viewport-h', heroValue);
-
-        const hero = root?.querySelector('.atelier-hero');
-        if (hero) {
-          hero.style.setProperty('height', heroValue, 'important');
-          hero.style.setProperty('min-height', heroValue, 'important');
-          hero.style.setProperty('max-height', heroValue, 'important');
-        }
       }
     };
 
     measureNav();
     const raf = requestAnimationFrame(measureNav);
-    const t = window.setTimeout(measureNav, 100);
+    const t1 = window.setTimeout(measureNav, 50);
+    const t2 = window.setTimeout(measureNav, 250);
 
     const nav = document.querySelector('.navbar');
     const navObserver = nav ? new ResizeObserver(measureNav) : null;
@@ -91,7 +89,8 @@ export function useHomeFeatured({ measureNavForClassic = false, measureNavForAte
 
     return () => {
       cancelAnimationFrame(raf);
-      window.clearTimeout(t);
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
       navObserver?.disconnect();
       window.removeEventListener('resize', measureNav);
       window.removeEventListener('orientationchange', measureNav);
@@ -248,9 +247,18 @@ export function useHomeFeatured({ measureNavForClassic = false, measureNavForAte
     return null;
   };
 
+  const heroViewportStyle = measureNavForAtelier
+    ? {
+        height: `${heroViewportPx}px`,
+        minHeight: `${heroViewportPx}px`,
+        maxHeight: 'none',
+      }
+    : undefined;
+
   return {
     homeRef,
     heroImage,
+    heroViewportStyle,
     atelierHeroCopy,
     atelierSectionCopy,
     featuredWorks,

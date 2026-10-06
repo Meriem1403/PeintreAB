@@ -51,7 +51,8 @@ body:has(.home-atelier) {
   font-weight: 400;
 }
 
-.atelier-snap-panel {
+/* Ne jamais appliquer height:auto au hero — c’était la cause du hero trop court */
+.atelier-snap-panel:not(.atelier-hero) {
   flex-shrink: 0;
   scroll-snap-align: none;
   scroll-snap-stop: normal;
@@ -62,8 +63,8 @@ body:has(.home-atelier) {
   overflow: visible;
 }
 
-section.atelier-snap-panel:not(:last-of-type),
-section.atelier-snap-panel:last-of-type {
+section.atelier-snap-panel:not(.atelier-hero):not(:last-of-type),
+section.atelier-snap-panel:not(.atelier-hero):last-of-type {
   height: auto;
   max-height: none;
   min-height: 0;
@@ -102,35 +103,26 @@ section.atelier-snap-panel:last-of-type {
   outline-offset: 3px;
 }
 
-/* —— Hero plein écran (fenêtre entière sous la navbar) —— */
-.atelier-hero {
+/* —— Hero = tout l’écran sous la navbar (rien d’Agenda visible sans scroll) —— */
+.home-atelier > .atelier-hero,
+.home-atelier > .atelier-hero--viewport {
   position: relative;
   display: flex;
   align-items: flex-end;
   width: 100%;
   max-width: none;
+  box-sizing: border-box;
   overflow: hidden;
   color: #faf6f0;
   background: #1a1816;
   flex: 0 0 auto;
   flex-shrink: 0;
-}
-
-.atelier-hero--viewport,
-.atelier-hero.atelier-snap-panel {
-  display: flex !important;
-  align-items: flex-end;
-  width: 100%;
-  box-sizing: border-box;
-  flex: 0 0 auto !important;
-  flex-shrink: 0 !important;
-  /* Forcé : plein viewport moins navbar — le JS impose aussi la hauteur en px */
-  min-height: calc(100vh - var(--atelier-nav-h, 4.75rem)) !important;
-  min-height: calc(100dvh - var(--atelier-nav-h, 4.75rem)) !important;
-  height: calc(100vh - var(--atelier-nav-h, 4.75rem)) !important;
-  height: calc(100dvh - var(--atelier-nav-h, 4.75rem)) !important;
-  max-height: none !important;
-  overflow: hidden;
+  /* Hauteur fenêtre − navbar ; le style inline React renforce en px */
+  min-height: calc(100vh - var(--atelier-nav-h, 4.75rem));
+  min-height: calc(100dvh - var(--atelier-nav-h, 4.75rem));
+  height: calc(100vh - var(--atelier-nav-h, 4.75rem));
+  height: calc(100dvh - var(--atelier-nav-h, 4.75rem));
+  max-height: none;
 }
 
 .atelier-hero__image {
