@@ -183,13 +183,16 @@ const WorkDetail = () => {
   }, []);
 
   useEffect(() => {
+    const root = document.documentElement;
     document.body.classList.add('exhibition-mode');
+    root.classList.add('exhibition-mode');
     if (isEventPage || compactExhibition) {
       document.body.classList.add('exhibition-mode--scroll');
+      root.classList.add('exhibition-mode--scroll');
     }
     return () => {
-      document.body.classList.remove('exhibition-mode');
-      document.body.classList.remove('exhibition-mode--scroll');
+      document.body.classList.remove('exhibition-mode', 'exhibition-mode--scroll');
+      root.classList.remove('exhibition-mode', 'exhibition-mode--scroll');
     };
   }, [isEventPage, compactExhibition]);
 
@@ -425,14 +428,10 @@ const WorkDetail = () => {
 
       <div className="exhibition-layout">
         <section
-          className="exhibition-stage"
+          className={`exhibition-stage${compactExhibition ? ' exhibition-stage--compact' : ''}`}
           ref={stageRef}
-          onMouseMove={onStageMove}
-          onMouseLeave={onStageLeave}
-          onTouchMove={(e) => {
-            const t = e.touches[0];
-            if (t) onStageMove({ clientX: t.clientX, clientY: t.clientY });
-          }}
+          onMouseMove={compactExhibition ? undefined : onStageMove}
+          onMouseLeave={compactExhibition ? undefined : onStageLeave}
         >
           <div className="exhibition-art-cluster" ref={clusterRef}>
             <button
@@ -456,13 +455,25 @@ const WorkDetail = () => {
               >
                 <motion.div
                   className="exhibition-art-float"
-                  animate={{ y: [0, -10, 0] }}
-                  transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+                  animate={compactExhibition ? { y: 0 } : { y: [0, -10, 0] }}
+                  transition={
+                    compactExhibition
+                      ? { duration: 0 }
+                      : { duration: 7, repeat: Infinity, ease: 'easeInOut' }
+                  }
                 >
                   <motion.div
                     className="exhibition-art-tilt"
-                    style={{ rotateX: tilt.x, rotateY: tilt.y }}
-                    transition={{ type: 'spring', stiffness: 140, damping: 20 }}
+                    style={
+                      compactExhibition
+                        ? undefined
+                        : { rotateX: tilt.x, rotateY: tilt.y }
+                    }
+                    transition={
+                      compactExhibition
+                        ? { duration: 0 }
+                        : { type: 'spring', stiffness: 140, damping: 20 }
+                    }
                   >
                     <motion.div
                       className="exhibition-art-piece"

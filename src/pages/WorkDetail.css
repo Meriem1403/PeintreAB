@@ -3,7 +3,17 @@ body.exhibition-mode {
 }
 
 body.exhibition-mode.exhibition-mode--scroll {
-  overflow: auto;
+  overflow-x: clip;
+  overflow-y: auto;
+  height: auto;
+  min-height: 100dvh;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: auto;
+}
+
+html.exhibition-mode--scroll {
+  height: auto;
+  scroll-behavior: auto;
 }
 
 body.exhibition-mode .navbar {
@@ -843,45 +853,81 @@ body.exhibition-mode.exhibition-mode--scroll .navbar {
 
 }
 
-/* Tablette / mobile : défilement page (navbar visible) */
+/* Tablette / mobile : page scrollable (document), pas overlay fixed */
 @media (max-width: 1099px) {
-  body.exhibition-mode--scroll .exhibition:not(.exhibition--loading):not(.exhibition--error) {
-    position: relative;
-    inset: auto;
-    z-index: 1;
-    min-height: calc(100dvh - 4.25rem);
-    overflow-x: hidden;
+  html.exhibition-mode {
+    height: auto;
+    overflow-x: clip;
     overflow-y: visible;
   }
 
-  body.exhibition-mode--scroll .exhibition-layout {
+  body.exhibition-mode {
+    overflow-x: clip;
+    overflow-y: auto;
+    height: auto;
+    min-height: 100dvh;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: auto;
+  }
+
+  body.exhibition-mode .exhibition:not(.exhibition--loading):not(.exhibition--error) {
+    position: relative;
+    inset: auto;
+    z-index: 1;
+    display: block;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    overflow: visible;
+  }
+
+  body.exhibition-mode .exhibition-layout {
+    display: block;
     flex: none;
     min-height: auto;
     overflow: visible;
   }
 
-  body.exhibition-mode--scroll .exhibition-stage {
+  body.exhibition-mode .exhibition-stage {
     flex: none;
     min-height: min(42vh, 380px);
     max-height: min(56vh, 480px);
     overflow: hidden;
+    touch-action: pan-y;
   }
 
-  body.exhibition-mode--scroll .exhibition-placard {
+  body.exhibition-mode .exhibition-stage--compact {
+    perspective: none;
+  }
+
+  body.exhibition-mode .exhibition-stage--compact .exhibition-art-tilt,
+  body.exhibition-mode .exhibition-stage--compact .exhibition-art-float {
+    transform: none !important;
+  }
+
+  body.exhibition-mode .exhibition-placard {
     flex-shrink: 0;
     width: 100%;
     max-width: none;
     overflow: visible;
+    margin-bottom: max(1.25rem, env(safe-area-inset-bottom, 0px));
+    padding-bottom: max(0.85rem, env(safe-area-inset-bottom, 0px));
   }
 
-  body.exhibition-mode--scroll .exhibition-placard-inner {
+  body.exhibition-mode .exhibition-placard-inner {
     max-height: none;
     overflow: visible;
   }
 
-  body.exhibition-mode--scroll .exhibition-btn {
+  body.exhibition-mode .exhibition-btn {
     white-space: normal;
     min-height: 2.75rem;
+  }
+
+  body.exhibition-mode .navbar {
+    opacity: 1;
+    pointer-events: auto;
+    transform: none;
   }
 }
 

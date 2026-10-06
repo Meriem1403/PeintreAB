@@ -6,9 +6,10 @@ import AtelierCarousel from '../components/AtelierCarousel';
 import GeometricBackground from '../components/GeometricBackground';
 import ParticlesBackground from '../components/ParticlesBackground';
 import AtelierFooter from '../components/AtelierFooter';
+import { galleryPath } from '../constants/galleryRoutes';
 import { normalizeImageUrl } from '../utils/imageUrl';
 import { useHomeFeatured, workCategoryLabel } from './home/useHomeFeatured';
-import { useAtelierScrollSnap } from './home/useAtelierScrollSnap';
+import { atelierScrollBehavior, useAtelierScrollSnap } from './home/useAtelierScrollSnap';
 import { useHeroImageLuminance } from './home/useHeroImageLuminance';
 import './home-atelier.css';
 
@@ -140,12 +141,15 @@ const HomeAtelier = () => {
   };
 
   const scrollToId = (id) => {
+    const root = rootRef.current;
     const panel = document.getElementById(id);
-    panel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (!root || !panel) return;
+    const behavior = atelierScrollBehavior();
+    root.scrollTo({ top: panel.offsetTop, behavior });
   };
 
   const scrollToTop = () => {
-    rootRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    rootRef.current?.scrollTo({ top: 0, behavior: atelierScrollBehavior() });
   };
 
   const scrollToFooter = () => {
@@ -156,7 +160,7 @@ const HomeAtelier = () => {
     const footerTop = footer.getBoundingClientRect().top;
     root.scrollTo({
       top: root.scrollTop + (footerTop - rootTop),
-      behavior: 'smooth',
+      behavior: atelierScrollBehavior(),
     });
   };
 
@@ -267,7 +271,7 @@ const HomeAtelier = () => {
                 <h2 className="atelier-band__title">{atelierSectionCopy.events.title}</h2>
                 <p className="atelier-band__intro">{atelierSectionCopy.events.intro}</p>
               </div>
-              <Link to="/galerie" className="atelier-link">
+              <Link to={galleryPath('evenements')} className="atelier-link">
                 Calendrier complet
               </Link>
             </motion.header>

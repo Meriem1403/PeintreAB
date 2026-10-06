@@ -4,6 +4,7 @@ import { FaChevronRight, FaMapMarkerAlt } from 'react-icons/fa';
 import ParticlesBackground from '../components/ParticlesBackground';
 import GeometricBackground from '../components/GeometricBackground';
 import HomeExhibitionPanel from '../components/HomeExhibitionPanel';
+import { galleryPath } from '../constants/galleryRoutes';
 import { normalizeImageUrl } from '../utils/imageUrl';
 import { useHomeFeatured, workCategoryLabel } from './home/useHomeFeatured';
 import '../styles/home-panels.css';
@@ -105,7 +106,7 @@ const HomeClassic = () => {
           title="Événements"
           lead="Expositions, vernissages et moments de rencontre autour de la peinture."
           actionLabel="Tous les événements"
-          actionTo="/galerie"
+          actionTo={galleryPath('evenements')}
           canNavigate={featuredEvents.length > eventsPerView}
           onPrevious={handleEventPrevious}
           onNext={handleEventNext}

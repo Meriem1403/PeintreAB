@@ -1310,6 +1310,50 @@ section.atelier-snap-panel:last-of-type {
   color: var(--atelier-gold);
 }
 
+/* Mobile : scroll naturel + snap léger (sans JS qui « repousse » le scroll) */
+@media (max-width: 900px) {
+  .home-atelier {
+    scroll-snap-type: y proximity;
+    scroll-behavior: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  section.atelier-snap-panel:not(:last-of-type) {
+    scroll-snap-stop: normal;
+  }
+
+  .atelier-hero.atelier-snap-panel {
+    height: var(--atelier-viewport-h);
+    min-height: var(--atelier-viewport-h);
+    max-height: var(--atelier-viewport-h);
+    overflow: hidden;
+  }
+
+  .atelier-band.atelier-snap-panel,
+  section.atelier-band--stage.atelier-snap-panel {
+    height: auto;
+    max-height: none;
+    min-height: var(--atelier-viewport-h);
+    overflow: visible;
+    justify-content: flex-start;
+  }
+
+  .atelier-band__stage {
+    flex: 0 1 auto;
+    min-height: 0;
+  }
+
+  .atelier-carousel {
+    height: auto;
+    flex: 0 1 auto;
+  }
+
+  .atelier-carousel__grid {
+    height: auto;
+    max-height: none;
+  }
+}
+
 @media (max-width: 640px) {
   .atelier-carousel__row {
     grid-template-columns: 2.5rem minmax(0, 1fr) 2.5rem;
