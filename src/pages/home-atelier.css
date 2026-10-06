@@ -31,6 +31,7 @@ body:has(.home-atelier) {
   --atelier-gold: var(--color-primary, #c6ac8f);
   --atelier-gold-dark: #7a6348;
   --atelier-viewport-h: calc(100dvh - 4.75rem);
+  --atelier-nav-h: 4.75rem;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -101,7 +102,7 @@ section.atelier-snap-panel:last-of-type {
   outline-offset: 3px;
 }
 
-/* —— Hero plein écran —— */
+/* —— Hero plein écran (sous la navbar, hauteur = viewport visible) —— */
 .atelier-hero {
   position: relative;
   display: flex;
@@ -111,22 +112,26 @@ section.atelier-snap-panel:last-of-type {
   overflow: hidden;
   color: #faf6f0;
   background: #1a1816;
+  flex: 0 0 auto;
+  flex-shrink: 0;
 }
 
-.atelier-hero--viewport {
-  width: 100%;
-  min-height: var(--atelier-viewport-h);
-  height: var(--atelier-viewport-h);
-  max-height: var(--atelier-viewport-h);
-  overflow: hidden;
-}
-
+.atelier-hero--viewport,
 .atelier-hero.atelier-snap-panel {
+  width: 100%;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  flex-shrink: 0;
   display: flex;
   align-items: flex-end;
-  height: var(--atelier-viewport-h);
-  min-height: var(--atelier-viewport-h);
-  max-height: var(--atelier-viewport-h);
+  /* Plein écran visible — mesuré en JS, fallback CSS */
+  min-height: calc(100svh - var(--atelier-nav-h, 4.75rem));
+  min-height: calc(100dvh - var(--atelier-nav-h, 4.75rem));
+  min-height: var(--atelier-viewport-h, calc(100dvh - 4.75rem));
+  height: calc(100svh - var(--atelier-nav-h, 4.75rem));
+  height: calc(100dvh - var(--atelier-nav-h, 4.75rem));
+  height: var(--atelier-viewport-h, calc(100dvh - 4.75rem));
+  max-height: none;
   overflow: hidden;
 }
 
