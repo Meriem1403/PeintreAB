@@ -51,6 +51,7 @@ const HomeAtelier = () => {
   const {
     homeRef,
     heroImage,
+    heroViewportStyle,
     atelierHeroCopy,
     atelierSectionCopy,
     featuredWorks,
@@ -186,7 +187,8 @@ const HomeAtelier = () => {
   return (
     <div className="home-atelier" ref={setRefs}>
       <section
-        className={`atelier-hero atelier-hero--viewport atelier-snap-panel${heroIsLight ? ' atelier-hero--bright-image' : ''}`}
+        className={`atelier-hero atelier-hero--viewport${heroIsLight ? ' atelier-hero--bright-image' : ''}`}
+        style={heroViewportStyle}
       >
         <div className="atelier-grain atelier-grain--hero" aria-hidden="true" />
         <motion.div
