@@ -1,5 +1,5 @@
 .inbox {
-  --inbox-gutter: clamp(0.75rem, 2.8vw, 1.35rem);
+  --inbox-gutter: clamp(0.85rem, 2.8vw, 1.35rem);
   --inbox-radius: clamp(12px, 2vw, 16px);
   --inbox-panel-h: min(680px, calc(100dvh - var(--admin-nav-offset, 72px) - 15.5rem));
   display: flex;

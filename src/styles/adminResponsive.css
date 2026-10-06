@@ -54,8 +54,12 @@
 }
 
 @media (max-width: 480px) {
+  .admin-shell {
+    --admin-gutter: 0.85rem;
+  }
+
   .admin-shell .admin-main {
-    padding: 0.75rem 0.75rem 1.5rem;
+    padding: 0.85rem var(--admin-gutter) 1.5rem;
     padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
   }
 
