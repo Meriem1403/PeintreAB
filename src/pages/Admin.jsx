@@ -323,6 +323,8 @@ const Admin = () => {
             activeTab === 'visiteurs' || activeTab === 'scan' || activeTab === 'notifications'
               ? ' admin-main-body--wide'
               : ''
+          }${
+            activeTab === 'visiteurs' || activeTab === 'scan' ? ' admin-main-body--flush' : ''
           }`}
           key={activeTab}
           initial={{ opacity: 0, y: 8 }}
