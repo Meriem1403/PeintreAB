@@ -674,7 +674,7 @@ section.atelier-snap-panel:not(.atelier-hero):last-of-type {
 }
 
 .atelier-band__stage {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
