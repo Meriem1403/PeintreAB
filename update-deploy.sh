@@ -29,6 +29,11 @@ git pull origin main
 COMMIT="$(git rev-parse --short HEAD)"
 echo "✅ Commit déployé : $COMMIT — $(git log -1 --format=%s)"
 
+if [ -f backend/.env.nas ]; then
+  cp backend/.env.nas backend/.env
+  echo "📝 backend/.env mis à jour depuis backend/.env.nas"
+fi
+
 mkdir -p public
 printf '{"commit":"%s","deployedAt":"%s"}\n' "$(git rev-parse HEAD)" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > public/build-info.json
 
