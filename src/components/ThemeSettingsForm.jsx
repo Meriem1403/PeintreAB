@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FiBookmark, FiClock, FiTrash2 } from 'react-icons/fi';
 import { siteSettingsAPI, themePalettesAPI } from '../utils/apiService';
 import { useTheme } from '../contexts/ThemeContext';
@@ -8,6 +8,23 @@ const DEFAULT_COLORS = {
   primary_color: '#C6AC8F',
   accent_color: '#B89A7A',
   navbar_color: '#C6AC8F',
+};
+
+const normalizeColors = (raw = {}) => ({
+  primary_color: String(raw.primary_color || DEFAULT_COLORS.primary_color).toUpperCase(),
+  accent_color: String(raw.accent_color || DEFAULT_COLORS.accent_color).toUpperCase(),
+  navbar_color: String(raw.navbar_color || DEFAULT_COLORS.navbar_color).toUpperCase(),
+});
+
+const colorsEqual = (a, b) => {
+  if (!a || !b) return false;
+  const x = normalizeColors(a);
+  const y = normalizeColors(b);
+  return (
+    x.primary_color === y.primary_color &&
+    x.accent_color === y.accent_color &&
+    x.navbar_color === y.navbar_color
+  );
 };
 
 const formatWhen = (value) => {
@@ -24,13 +41,28 @@ const formatWhen = (value) => {
 const ThemeSettingsForm = () => {
   const { refreshTheme } = useTheme();
   const [formData, setFormData] = useState(DEFAULT_COLORS);
+  /** Couleurs actuellement appliquées sur le site */
+  const [appliedColors, setAppliedColors] = useState(DEFAULT_COLORS);
+  /** Dernière version avant le dernier enregistrement (pour Annuler) */
+  const [previousApplied, setPreviousApplied] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [undoing, setUndoing] = useState(false);
   const [message, setMessage] = useState('');
   const [presets, setPresets] = useState([]);
   const [history, setHistory] = useState([]);
   const [presetName, setPresetName] = useState('');
   const [savingPreset, setSavingPreset] = useState(false);
+
+  const hasUnsavedChanges = useMemo(
+    () => !colorsEqual(formData, appliedColors),
+    [formData, appliedColors]
+  );
+  const canUndoLastApply = useMemo(
+    () => Boolean(previousApplied) && !colorsEqual(previousApplied, appliedColors),
+    [previousApplied, appliedColors]
+  );
+  const canCancel = hasUnsavedChanges || canUndoLastApply;
 
   const loadPalettes = useCallback(async () => {
     try {
@@ -39,7 +71,8 @@ const ThemeSettingsForm = () => {
         themePalettesAPI.listHistory(),
       ]);
       setPresets(Array.isArray(presetRows) ? presetRows : []);
-      setHistory(Array.isArray(historyRows) ? historyRows : []);
+      const rows = Array.isArray(historyRows) ? historyRows : [];
+      setHistory(rows);
     } catch (error) {
       console.error('Erreur chargement palettes:', error);
     }
@@ -49,12 +82,26 @@ const ThemeSettingsForm = () => {
     const loadSettings = async () => {
       try {
         const data = await siteSettingsAPI.get();
-        setFormData({
+        const colors = normalizeColors({
           primary_color: data.primary_color || DEFAULT_COLORS.primary_color,
           accent_color: data.accent_color || DEFAULT_COLORS.accent_color,
           navbar_color: data.navbar_color || DEFAULT_COLORS.navbar_color,
         });
-        await loadPalettes();
+        setFormData(colors);
+        setAppliedColors(colors);
+
+        const historyRows = await themePalettesAPI.listHistory().catch(() => []);
+        const rows = Array.isArray(historyRows) ? historyRows : [];
+        setHistory(rows);
+        /* 2e entrée = couleurs avant le dernier enregistrement */
+        if (rows.length >= 2) {
+          setPreviousApplied(normalizeColors(rows[1]));
+        } else {
+          setPreviousApplied(null);
+        }
+
+        const presetRows = await themePalettesAPI.listPresets().catch(() => []);
+        setPresets(Array.isArray(presetRows) ? presetRows : []);
       } catch (error) {
         console.error('Erreur chargement couleurs:', error);
       } finally {
@@ -62,7 +109,7 @@ const ThemeSettingsForm = () => {
       }
     };
     loadSettings();
-  }, [loadPalettes]);
+  }, []);
 
   const handleColorChange = (name, value) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -79,18 +126,57 @@ const ThemeSettingsForm = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    if (!hasUnsavedChanges) {
+      setMessage('Aucune modification à enregistrer.');
+      return;
+    }
     setSaving(true);
     setMessage('');
     try {
-      await siteSettingsAPI.update(formData);
+      const before = normalizeColors(appliedColors);
+      const next = normalizeColors(formData);
+      await siteSettingsAPI.update(next);
       await refreshTheme();
+      setPreviousApplied(before);
+      setAppliedColors(next);
+      setFormData(next);
       await loadPalettes();
-      setMessage('Couleurs mises à jour avec succès. Entrée ajoutée à l’historique.');
+      setMessage('Couleurs mises à jour. Utilisez « Annuler » pour revenir à la version précédente.');
     } catch (error) {
       console.error('Erreur sauvegarde couleurs:', error);
       setMessage(error.message || 'Erreur lors de la sauvegarde des couleurs.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleCancel = async () => {
+    setMessage('');
+    /* 1) Modifications non enregistrées → revenir aux couleurs actuellement en ligne */
+    if (hasUnsavedChanges) {
+      setFormData(normalizeColors(appliedColors));
+      setMessage('Modifications annulées — formulaire rétabli sur les couleurs du site.');
+      return;
+    }
+    /* 2) Après un enregistrement → réappliquer la palette précédente sur le site */
+    if (!previousApplied || !canUndoLastApply) {
+      setMessage('Aucune version précédente à restaurer.');
+      return;
+    }
+    setUndoing(true);
+    try {
+      const restore = normalizeColors(previousApplied);
+      await siteSettingsAPI.update(restore);
+      await refreshTheme();
+      setFormData(restore);
+      setAppliedColors(restore);
+      setPreviousApplied(null);
+      await loadPalettes();
+      setMessage('Couleurs précédentes restaurées sur le site.');
+    } catch (error) {
+      setMessage(error.message || 'Impossible de restaurer les couleurs précédentes.');
+    } finally {
+      setUndoing(false);
     }
   };
 
@@ -244,8 +330,25 @@ const ThemeSettingsForm = () => {
         </p>
       )}
 
-      <div className="form-actions">
-        <button type="submit" className="theme-settings-save btn-save" disabled={saving}>
+      <div className="form-actions theme-settings-actions">
+        <button
+          type="button"
+          className="btn-cancel"
+          onClick={handleCancel}
+          disabled={saving || undoing || !canCancel}
+          title={
+            hasUnsavedChanges
+              ? 'Annuler les modifications du formulaire'
+              : 'Revenir aux couleurs précédentes du site'
+          }
+        >
+          {undoing ? 'Restauration…' : 'Annuler'}
+        </button>
+        <button
+          type="submit"
+          className="theme-settings-save btn-save"
+          disabled={saving || undoing || !hasUnsavedChanges}
+        >
           {saving ? 'Enregistrement...' : 'Enregistrer les couleurs'}
         </button>
       </div>
