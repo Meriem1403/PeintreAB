@@ -10,6 +10,7 @@ import siteSettingsRoutes from './routes/siteSettingsRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 import eventRoutes from './routes/eventRoutes.js';
 import galleryCategoryRoutes from './routes/galleryCategoryRoutes.js';
+import themePaletteRoutes from './routes/themePaletteRoutes.js';
 import pool from './config/database.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -41,6 +42,7 @@ app.use('/api/site-settings', siteSettingsRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/gallery-categories', galleryCategoryRoutes);
+app.use('/api/theme-palettes', themePaletteRoutes);
 
 // Route de santé
 app.get('/api/health', (req, res) => {

@@ -199,3 +199,12 @@ export const siteSettingsAPI = {
     return request(`/site-settings/website-qr${q}`);
   },
 };
+
+export const themePalettesAPI = {
+  listPresets: () => request('/theme-palettes/presets'),
+  createPreset: (body) => request('/theme-palettes/presets', { method: 'POST', body }),
+  deletePreset: (id) => request(`/theme-palettes/presets/${id}`, { method: 'DELETE' }),
+  listHistory: () => request('/theme-palettes/history'),
+  deleteHistory: (id) => request(`/theme-palettes/history/${id}`, { method: 'DELETE' }),
+  clearHistory: () => request('/theme-palettes/history', { method: 'DELETE' }),
+};
