@@ -52,6 +52,8 @@ services:
       - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-12h}
       - ADMIN_EMAIL=${ADMIN_EMAIL:-}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-}
+      - ADMIN_EMAIL_2=${ADMIN_EMAIL_2:-}
+      - ADMIN_PASSWORD_2=${ADMIN_PASSWORD_2:-}
     volumes:
       - /volume1/docker/peintreab/backend/src:/app/src
       - /volume1/docker/peintreab/backend/migrations:/app/migrations

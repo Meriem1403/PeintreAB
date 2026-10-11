@@ -461,28 +461,40 @@ Formé dans les techniques classiques de la peinture à l''huile, Alexandre dév
     `);
     console.log('✅ Auth e-mail + password_reset_tokens vérifiés');
 
-    // Admin : uniquement via ADMIN_EMAIL + ADMIN_PASSWORD (plus de admin/admin123)
-    const userCount = await pool.query('SELECT COUNT(*)::int AS c FROM users');
-    if (userCount.rows[0].c === 0) {
-      const adminEmail = String(process.env.ADMIN_EMAIL || '')
+    // Admins depuis .env (crée s’il manque ; ne réécrit pas le mot de passe s’il existe déjà)
+    const ensureAdminFromEnv = async (emailEnv, passwordEnv, label) => {
+      const adminEmail = String(process.env[emailEnv] || '')
         .trim()
         .toLowerCase();
-      const adminPassword = String(process.env.ADMIN_PASSWORD || '');
+      const adminPassword = String(process.env[passwordEnv] || '');
       const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(adminEmail);
-      if (emailOk && adminPassword.length >= 8) {
-        const bcrypt = await import('bcryptjs');
-        const hashedPassword = await bcrypt.default.hash(adminPassword, 12);
-        await pool.query(
-          'INSERT INTO users (username, password_hash, email) VALUES ($1, $2, $3)',
-          [adminEmail, hashedPassword, adminEmail]
-        );
-        console.log(`✅ Utilisateur admin créé pour ${adminEmail}`);
-      } else {
-        console.warn(
-          '⚠️ Aucun utilisateur admin — définissez ADMIN_EMAIL et ADMIN_PASSWORD (≥ 8 caractères) puis relancez la migration'
-        );
+      if (!emailOk || adminPassword.length < 8) {
+        if (label === 'principal') {
+          console.warn(
+            `⚠️ ${emailEnv} / ${passwordEnv} invalides (≥ 8 caractères) — admin non créé`
+          );
+        }
+        return;
       }
-    }
+      const existing = await pool.query(
+        'SELECT id FROM users WHERE LOWER(email) = $1 LIMIT 1',
+        [adminEmail]
+      );
+      if (existing.rows.length > 0) {
+        console.log(`ℹ️ Admin déjà présent : ${adminEmail}`);
+        return;
+      }
+      const bcrypt = await import('bcryptjs');
+      const hashedPassword = await bcrypt.default.hash(adminPassword, 12);
+      await pool.query(
+        'INSERT INTO users (username, password_hash, email) VALUES ($1, $2, $3)',
+        [adminEmail, hashedPassword, adminEmail]
+      );
+      console.log(`✅ Utilisateur admin créé (${label}) : ${adminEmail}`);
+    };
+
+    await ensureAdminFromEnv('ADMIN_EMAIL', 'ADMIN_PASSWORD', 'principal');
+    await ensureAdminFromEnv('ADMIN_EMAIL_2', 'ADMIN_PASSWORD_2', 'secondaire');
 
   } catch (error) {
     console.error('❌ Erreur lors de la création des tables:', error);
