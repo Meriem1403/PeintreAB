@@ -5,6 +5,7 @@ import {
   DEFAULT_ATELIER_HERO_COPY,
   DEFAULT_ATELIER_SECTION_COPY,
 } from '../constants/atelierHeroCopy.js';
+import { recordThemeHistory } from './themePaletteController.js';
 
 const DEFAULT_PUBLIC_SITE_URL =
   process.env.FRONTEND_URL?.replace(/\/$/, '') || 'https://www.alexandrebindl.fr';
@@ -83,6 +84,13 @@ export const updateSiteSettings = async (req, res) => {
     }
 
     const existing = await pool.query('SELECT * FROM site_settings ORDER BY id DESC LIMIT 1');
+    const previousColors = existing.rows[0]
+      ? {
+          primary_color: existing.rows[0].primary_color,
+          accent_color: existing.rows[0].accent_color,
+          navbar_color: existing.rows[0].navbar_color,
+        }
+      : null;
 
     let result;
     if (existing.rows.length === 0) {
@@ -168,9 +176,35 @@ export const updateSiteSettings = async (req, res) => {
       );
     }
 
+    const saved = result.rows[0];
+    const colorsChanged =
+      primary_color != null || accent_color != null || navbar_color != null;
+    if (colorsChanged) {
+      const nextColors = {
+        primary_color: saved.primary_color,
+        accent_color: saved.accent_color,
+        navbar_color: saved.navbar_color,
+      };
+      const changedFromPrevious =
+        !previousColors ||
+        String(previousColors.primary_color || '').toUpperCase() !==
+          String(nextColors.primary_color || '').toUpperCase() ||
+        String(previousColors.accent_color || '').toUpperCase() !==
+          String(nextColors.accent_color || '').toUpperCase() ||
+        String(previousColors.navbar_color || '').toUpperCase() !==
+          String(nextColors.navbar_color || '').toUpperCase();
+      if (changedFromPrevious) {
+        try {
+          await recordThemeHistory(nextColors);
+        } catch (histErr) {
+          console.error('Historique couleurs:', histErr);
+        }
+      }
+    }
+
     res.json({
       message: 'Paramètres du site mis à jour avec succès',
-      settings: result.rows[0],
+      settings: saved,
     });
   } catch (error) {
     console.error('Erreur lors de la mise à jour des paramètres du site:', error);

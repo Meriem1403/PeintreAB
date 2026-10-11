@@ -368,6 +368,12 @@ Formé dans les techniques classiques de la peinture à l''huile, Alexandre dév
     await ensureGalleryCategoriesSeeded();
     console.log('✅ Table gallery_categories créée/vérifiée et seedée');
 
+    const { ensureThemePaletteTables } = await import(
+      '../src/controllers/themePaletteController.js'
+    );
+    await ensureThemePaletteTables();
+    console.log('✅ Tables theme_color_presets / theme_color_history créées/vérifiées');
+
     const { migrateLegacyTicketToSlots } = await import('../src/services/ticketSlots.js');
     const legacyEvents = await pool.query(
       `SELECT * FROM works WHERE type = 'evenements' AND ticket_mode NOT IN ('closed', 'open')`
