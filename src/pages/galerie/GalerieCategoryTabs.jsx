@@ -1,14 +1,13 @@
 import { motion } from 'framer-motion';
-import { GALLERY_CATEGORIES } from './useGaleriePage';
 
-const GalerieCategoryTabs = ({ activeCategory, onCategoryChange }) => (
+const GalerieCategoryTabs = ({ categories = [], activeCategory, onCategoryChange }) => (
   <motion.div
     className="category-tabs"
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     transition={{ delay: 0.2 }}
   >
-    {GALLERY_CATEGORIES.map((cat) => (
+    {categories.map((cat) => (
       <motion.button
         key={cat.id}
         type="button"

@@ -6,7 +6,13 @@ import { workDetailPath } from '../../constants/galleryRoutes';
 import { siteSettingsAPI } from '../../utils/apiService';
 import { normalizeImageUrl } from '../../utils/imageUrl';
 
-export const workCategoryLabel = (category) => (category === 'croquis' ? 'Croquis' : 'Peinture');
+export const workCategoryLabel = (category, labelLookup) => {
+  if (typeof labelLookup === 'function') return labelLookup(category);
+  if (category === 'croquis') return 'Croquis';
+  if (category === 'evenements') return 'Événement';
+  if (category === 'peintures') return 'Peinture';
+  return category || 'Œuvre';
+};
 
 /** Grille carrousel : colonnes réelles + mode compact si la ligne n’est pas pleine */
 export function getAtelierCarouselGridLayout(visibleCount, perView) {

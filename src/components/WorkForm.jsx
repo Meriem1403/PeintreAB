@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useWorks } from '../contexts/WorksContext';
+import { useGalleryCategories } from '../contexts/GalleryCategoriesContext';
 import FormSwitch from './FormSwitch';
 import ImageDropzone from './ImageDropzone';
 import EventTicketSlotsEditor from './EventTicketSlotsEditor';
@@ -29,6 +30,8 @@ const formatDateField = (dateValue) => {
 
 const WorkForm = ({ type, work, onClose }) => {
   const { addWork, updateWork } = useWorks();
+  const { getLabel, isEventsSlug } = useGalleryCategories();
+  const isEventType = isEventsSlug(type);
   const [formData, setFormData] = useState({
     titre: '',
     description: '',
@@ -48,13 +51,13 @@ const WorkForm = ({ type, work, onClose }) => {
   const [saving, setSaving] = useState(false);
 
   const eventDuration = useMemo(() => {
-    if (type !== 'evenements') return null;
+    if (!isEventType) return null;
     return formatDurationLabel(formData.date_debut, formData.date_fin);
-  }, [type, formData.date_debut, formData.date_fin]);
+  }, [isEventType, formData.date_debut, formData.date_fin]);
 
   const eventEnded = useMemo(
-    () => type === 'evenements' && isEventPast(formData.date_fin),
-    [type, formData.date_fin]
+    () => isEventType && isEventPast(formData.date_fin),
+    [isEventType, formData.date_fin]
   );
 
   useEffect(() => {
@@ -77,8 +80,8 @@ const WorkForm = ({ type, work, onClose }) => {
   }, [work]);
 
   useEffect(() => {
-    if (type !== 'evenements' || !work?.id) {
-      if (type === 'evenements' && !work) {
+    if (!isEventType || !work?.id) {
+      if (isEventType && !work) {
         setTicketSlots([emptySlot()]);
         setRegistrationsOpen(false);
       }
@@ -115,7 +118,7 @@ const WorkForm = ({ type, work, onClose }) => {
     return () => {
       cancelled = true;
     };
-  }, [work?.id, type, work]);
+  }, [work?.id, isEventType, work]);
 
   useEffect(() => {
     if (eventEnded) setRegistrationsOpen(false);
@@ -130,7 +133,7 @@ const WorkForm = ({ type, work, onClose }) => {
     const { name, value, type: inputType, checked } = e.target;
     const nextValue = inputType === 'checkbox' ? checked : value;
 
-    if (type === 'evenements' && (name === 'date_debut' || name === 'date_fin')) {
+    if (isEventType && (name === 'date_debut' || name === 'date_fin')) {
       setFormData((prev) => {
         const next = { ...prev, [name]: nextValue };
         setTicketSlots((prevSlots) => {
@@ -158,8 +161,8 @@ const WorkForm = ({ type, work, onClose }) => {
       const openRegs = registrationsOpen && !eventEnded;
       const payload = {
         ...formData,
-        ticket_mode: type === 'evenements' ? (openRegs ? 'open' : 'closed') : 'closed',
-        ticket_slots: type === 'evenements' && openRegs ? ticketSlots : [],
+        ticket_mode: isEventType ? (openRegs ? 'open' : 'closed') : 'closed',
+        ticket_slots: isEventType && openRegs ? ticketSlots : [],
       };
       if (work) {
         await updateWork(type, work.id, payload);
@@ -175,10 +178,10 @@ const WorkForm = ({ type, work, onClose }) => {
     }
   };
 
-  const uploadFolder = type === 'evenements' ? 'evenements' : type;
+  const uploadFolder = isEventType ? 'evenements' : type;
 
   const featuredHint =
-    type === 'evenements'
+    isEventType
       ? 'Visible dans « Prochains rendez-vous » sur l’accueil'
       : 'Visible dans « En lumière » sur l’accueil';
 
@@ -201,7 +204,7 @@ const WorkForm = ({ type, work, onClose }) => {
         <div className="form-modal-header">
           <h2>
             {work ? 'Modifier' : 'Ajouter'}{' '}
-            {type === 'peintures' ? 'une peinture' : type === 'croquis' ? 'un croquis' : 'un événement'}
+            {isEventType ? 'un événement' : `une entrée « ${getLabel(type)} »`}
           </h2>
           <button type="button" className="form-modal-close" onClick={onClose} aria-label="Fermer">
             ×
@@ -237,7 +240,7 @@ const WorkForm = ({ type, work, onClose }) => {
               />
             </div>
 
-            {type !== 'evenements' && (
+            {!isEventType && (
               <div className="form-row">
                 <div className="form-group">
                   <label htmlFor="work-prix">Prix (€)</label>
@@ -265,7 +268,7 @@ const WorkForm = ({ type, work, onClose }) => {
               </div>
             )}
 
-            {type === 'evenements' && (
+            {isEventType && (
               <>
                 <div className="form-row">
                   <div className="form-group form-group--date">
@@ -358,7 +361,7 @@ const WorkForm = ({ type, work, onClose }) => {
           <div className="form-block">
             <h3 className="form-block-title">Visibilité</h3>
             <div className="form-switch-stack">
-              {type !== 'evenements' && (
+              {!isEventType && (
                 <FormSwitch
                   id="work-is-sold"
                   name="is_sold"

@@ -1,6 +1,7 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { worksAPI } from '../utils/apiService';
 import { normalizeImageUrl } from '../utils/imageUrl';
+import { useGalleryCategories } from './GalleryCategoriesContext';
 
 const WorksContext = createContext();
 
@@ -12,77 +13,56 @@ export const useWorks = () => {
   return context;
 };
 
+const emptyBuckets = (slugs) =>
+  Object.fromEntries((slugs.length ? slugs : ['peintures', 'croquis', 'evenements']).map((s) => [s, []]));
+
 export const WorksProvider = ({ children }) => {
-  const [works, setWorks] = useState({
-    peintures: [],
-    croquis: [],
-    evenements: []
-  });
+  const { categories, loading: categoriesLoading } = useGalleryCategories();
+  const [works, setWorks] = useState(() => emptyBuckets([]));
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadWorks();
-
-    const handleFocus = () => {
-      if (!works.peintures.length && !works.croquis.length && !works.evenements.length) {
-        loadWorks();
-      }
-    };
-
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
-  }, []);
 
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-  const loadWorks = async () => {
+  const loadWorks = useCallback(async () => {
     setLoading(true);
+    const slugs = categories.map((c) => c.slug);
     const maxAttempts = 5;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
       try {
-        console.log(`🔄 Chargement des œuvres depuis l'API (tentative ${attempt}/${maxAttempts})...`);
-
-        const [peintures, croquis, evenements] = await Promise.all([
-          worksAPI.getAll('peintures'),
-          worksAPI.getAll('croquis'),
-          worksAPI.getAll('evenements'),
-        ]);
-
+        const all = await worksAPI.getAll();
         const normalizeWorks = (items = []) =>
           items.map((work) => ({
             ...work,
             image: normalizeImageUrl(work.image),
           }));
 
-        setWorks({
-          peintures: normalizeWorks(peintures),
-          croquis: normalizeWorks(croquis),
-          evenements: normalizeWorks(evenements),
+        const buckets = emptyBuckets(slugs);
+        normalizeWorks(all).forEach((work) => {
+          const key = work.type;
+          if (!buckets[key]) buckets[key] = [];
+          buckets[key].push(work);
         });
 
-        console.log('✅ Données chargées:', {
-          peintures: peintures?.length || 0,
-          croquis: croquis?.length || 0,
-          evenements: evenements?.length || 0,
-        });
+        setWorks(buckets);
         setLoading(false);
         return;
       } catch (error) {
-        console.error(`❌ Erreur chargement œuvres (tentative ${attempt}/${maxAttempts}):`, error.message);
+        console.error(`Erreur chargement œuvres (tentative ${attempt}/${maxAttempts}):`, error.message);
         if (attempt < maxAttempts) {
           await sleep(attempt * 1000);
         }
       }
     }
 
-    setWorks({
-      peintures: [],
-      croquis: [],
-      evenements: [],
-    });
+    setWorks(emptyBuckets(slugs));
     setLoading(false);
-  };
+  }, [categories]);
+
+  useEffect(() => {
+    if (categoriesLoading) return;
+    loadWorks();
+  }, [categoriesLoading, loadWorks]);
 
   const addWork = async (type, work) => {
     try {
@@ -90,7 +70,7 @@ export const WorksProvider = ({ children }) => {
       await loadWorks();
       return newWork;
     } catch (error) {
-      console.error('Erreur lors de l\'ajout de l\'œuvre:', error);
+      console.error("Erreur lors de l'ajout de l'œuvre:", error);
       throw error;
     }
   };
@@ -100,7 +80,7 @@ export const WorksProvider = ({ children }) => {
       await worksAPI.update(id, updates);
       await loadWorks();
     } catch (error) {
-      console.error('Erreur lors de la mise à jour de l\'œuvre:', error);
+      console.error("Erreur lors de la mise à jour de l'œuvre:", error);
       throw error;
     }
   };
@@ -110,20 +90,22 @@ export const WorksProvider = ({ children }) => {
       await worksAPI.delete(id);
       await loadWorks();
     } catch (error) {
-      console.error('Erreur lors de la suppression de l\'œuvre:', error);
+      console.error("Erreur lors de la suppression de l'œuvre:", error);
       throw error;
     }
   };
 
   return (
-    <WorksContext.Provider value={{
-      works,
-      loading,
-      addWork,
-      updateWork,
-      removeWork,
-      refreshWorks: loadWorks
-    }}>
+    <WorksContext.Provider
+      value={{
+        works,
+        loading: loading || categoriesLoading,
+        addWork,
+        updateWork,
+        removeWork,
+        refreshWorks: loadWorks,
+      }}
+    >
       {children}
     </WorksContext.Provider>
   );

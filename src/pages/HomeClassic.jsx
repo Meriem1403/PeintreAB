@@ -9,6 +9,7 @@ import { galleryPath, workDetailPath } from '../constants/galleryRoutes';
 import { canRegisterToEvent } from '../utils/eventDates';
 import { normalizeImageUrl } from '../utils/imageUrl';
 import { useHomeFeatured, workCategoryLabel } from './home/useHomeFeatured';
+import { useGalleryCategories } from '../contexts/GalleryCategoriesContext';
 import '../styles/home-panels.css';
 import './Home.css';
 
@@ -16,6 +17,7 @@ import './Home.css';
 const HomeClassic = () => {
   const animationRef = useRef(null);
   const navigate = useNavigate();
+  const { getLabel } = useGalleryCategories();
   const {
     homeRef,
     heroImage,
@@ -295,7 +297,7 @@ const HomeClassic = () => {
                     </div>
                   )}
                   <div className="featured-work-info">
-                    <span className="featured-work-category">{workCategoryLabel(work.category)}</span>
+                    <span className="featured-work-category">{workCategoryLabel(work.category, getLabel)}</span>
                     <h3>{work.titre}</h3>
                     {work.description && (
                       <p className="featured-work-excerpt">{work.description}</p>

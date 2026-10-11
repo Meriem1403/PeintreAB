@@ -1,14 +1,17 @@
 import { motion } from 'framer-motion';
 import { Navigate } from 'react-router-dom';
-import { DEFAULT_GALLERY_CATEGORY, galleryPath } from '../constants/galleryRoutes';
+import { galleryPath } from '../constants/galleryRoutes';
+import { useGalleryCategories } from '../contexts/GalleryCategoriesContext';
 import GalerieCategoryTabs from './galerie/GalerieCategoryTabs';
 import GalerieClassicBody from './galerie/GalerieClassicBody';
 import { useGaleriePage } from './galerie/useGaleriePage';
 import './Galerie.css';
 
 const GalerieClassic = () => {
+  const { defaultSlug } = useGalleryCategories();
   const {
     activeCategory,
+    galleryCategories,
     currentPage,
     loading,
     items,
@@ -23,7 +26,7 @@ const GalerieClassic = () => {
   } = useGaleriePage();
 
   if (invalidCategory) {
-    return <Navigate to={galleryPath(DEFAULT_GALLERY_CATEGORY)} replace />;
+    return <Navigate to={galleryPath(defaultSlug)} replace />;
   }
 
   return (
@@ -39,6 +42,7 @@ const GalerieClassic = () => {
       </motion.div>
 
       <GalerieCategoryTabs
+        categories={galleryCategories}
         activeCategory={activeCategory}
         onCategoryChange={handleCategoryChange}
       />

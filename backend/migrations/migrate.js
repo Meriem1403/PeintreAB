@@ -13,11 +13,11 @@ const createTables = async () => {
       )
     `);
 
-    // Table works (œuvres : peintures, croquis, événements)
+    // Table works (œuvres : type = slug d’onglet galerie)
     await pool.query(`
       CREATE TABLE IF NOT EXISTS works (
         id SERIAL PRIMARY KEY,
-        type VARCHAR(50) NOT NULL CHECK (type IN ('peintures', 'croquis', 'evenements')),
+        type VARCHAR(50) NOT NULL,
         titre VARCHAR(255) NOT NULL,
         description TEXT,
         prix VARCHAR(50),
@@ -29,6 +29,25 @@ const createTables = async () => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
+    `);
+
+    // Lever l’ancien CHECK figé (peintures/croquis/evenements) pour les onglets custom
+    await pool.query(`
+      DO $$
+      DECLARE
+        cname text;
+      BEGIN
+        SELECT con.conname INTO cname
+        FROM pg_constraint con
+        JOIN pg_class rel ON rel.oid = con.conrelid
+        JOIN pg_namespace nsp ON nsp.oid = rel.relnamespace
+        WHERE rel.relname = 'works'
+          AND con.contype = 'c'
+          AND pg_get_constraintdef(con.oid) ILIKE '%peintures%';
+        IF cname IS NOT NULL THEN
+          EXECUTE format('ALTER TABLE works DROP CONSTRAINT %I', cname);
+        END IF;
+      END $$;
     `);
 
     // Ajouter les colonnes si elles n'existent pas (pour les tables déjà créées)
@@ -327,6 +346,27 @@ Formé dans les techniques classiques de la peinture à l''huile, Alexandre dév
     }
 
     console.log('✅ Tables créneaux billetterie créées/vérifiées');
+
+    // Onglets galerie dynamiques (libellés / ordre / ajout)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS gallery_categories (
+        id SERIAL PRIMARY KEY,
+        slug VARCHAR(64) UNIQUE NOT NULL,
+        label VARCHAR(120) NOT NULL,
+        lead TEXT,
+        display_order INTEGER DEFAULT 0,
+        kind VARCHAR(16) NOT NULL DEFAULT 'works',
+        is_locked BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    const { ensureGalleryCategoriesSeeded } = await import(
+      '../src/controllers/galleryCategoryController.js'
+    );
+    await ensureGalleryCategoriesSeeded();
+    console.log('✅ Table gallery_categories créée/vérifiée et seedée');
 
     const { migrateLegacyTicketToSlots } = await import('../src/services/ticketSlots.js');
     const legacyEvents = await pool.query(

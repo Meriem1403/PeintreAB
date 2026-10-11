@@ -2,6 +2,7 @@ import pool from '../config/database.js';
 import { normalizeImageUrl, normalizeWork } from '../utils/imageUrl.js';
 import { fetchSlotsForWork, replaceTicketSlots } from '../services/ticketSlots.js';
 import { isEventPast } from '../utils/eventDates.js';
+import { categoryExists } from './galleryCategoryController.js';
 
 export const getAllWorks = async (req, res) => {
   try {
@@ -69,12 +70,18 @@ export const createWork = async (req, res) => {
       return res.status(400).json({ error: 'Type et titre sont requis' });
     }
 
-    let eventTicketMode =
-      type === 'evenements' ? ticket_mode || 'closed' : 'closed';
-    if (type === 'evenements' && isEventPast({ date_fin: date_fin || date_debut })) {
+    const category = await categoryExists(type);
+    if (!category) {
+      return res.status(400).json({ error: 'Onglet galerie inconnu' });
+    }
+
+    const isEvent = category.kind === 'events' || type === 'evenements';
+
+    let eventTicketMode = isEvent ? ticket_mode || 'closed' : 'closed';
+    if (isEvent && isEventPast({ date_fin: date_fin || date_debut })) {
       eventTicketMode = 'closed';
     }
-    if (type === 'evenements' && eventTicketMode === 'open') {
+    if (isEvent && eventTicketMode === 'open') {
       const slots = Array.isArray(ticket_slots) ? ticket_slots : [];
       const valid = slots.filter((s) => String(s.label || '').trim());
       if (valid.length === 0) {
@@ -121,7 +128,7 @@ export const createWork = async (req, res) => {
 
     const created = result.rows[0];
     try {
-      if (type === 'evenements') {
+      if (isEvent) {
         if (eventTicketMode === 'open') {
           await replaceTicketSlots(created.id, ticket_slots);
         } else {
@@ -134,7 +141,7 @@ export const createWork = async (req, res) => {
     }
 
     const work = normalizeWork(created);
-    if (type === 'evenements') {
+    if (isEvent) {
       work.ticket_slots = await fetchSlotsForWork(work.id);
     }
     res.status(201).json(work);

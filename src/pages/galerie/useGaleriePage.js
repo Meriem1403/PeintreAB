@@ -1,36 +1,17 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
-import {
-  DEFAULT_GALLERY_CATEGORY,
-  galleryPath,
-  isValidGalleryCategory,
-  workDetailPath,
-} from '../../constants/galleryRoutes';
+import { galleryPath, workDetailPath } from '../../constants/galleryRoutes';
 import { useWorks } from '../../contexts/WorksContext';
+import { useGalleryCategories } from '../../contexts/GalleryCategoriesContext';
 
 export const ITEMS_PER_PAGE = 12;
 
-export const GALLERY_CATEGORIES = [
-  { id: 'peintures', label: 'Peintures' },
-  { id: 'croquis', label: 'Croquis' },
-  { id: 'evenements', label: 'Événements' },
-];
-
-const CATEGORY_LEADS = {
-  peintures: 'Toiles et acryliques — parcourez les œuvres présentées en galerie.',
-  croquis: 'Carnets et études — le geste et la recherche avant la toile.',
-  evenements: 'Expositions et rencontres — l’atelier en mouvement.',
-};
-
-export function categoryLead(categoryId) {
-  return CATEGORY_LEADS[categoryId] || 'Explorez la collection.';
-}
-
 export function useGaleriePage() {
   const { category: categoryParam } = useParams();
-  const activeCategory = isValidGalleryCategory(categoryParam)
-    ? categoryParam
-    : DEFAULT_GALLERY_CATEGORY;
+  const { categories, defaultSlug, isValidSlug, getLabel, getLead } = useGalleryCategories();
+  const slugs = useMemo(() => categories.map((c) => c.slug), [categories]);
+
+  const activeCategory = isValidSlug(categoryParam) ? categoryParam : defaultSlug;
   const [currentPage, setCurrentPage] = useState(1);
   const { works, loading } = useWorks();
   const navigate = useNavigate();
@@ -61,7 +42,7 @@ export function useGaleriePage() {
     try {
       const workId = work.id || work.titre?.replace(/\s+/g, '-').toLowerCase();
       if (workId) {
-        navigate(workDetailPath(activeCategory, workId), { state: { work } });
+        navigate(workDetailPath(activeCategory, workId, slugs), { state: { work } });
       }
     } catch (error) {
       console.error('Erreur navigation galerie:', error);
@@ -69,8 +50,8 @@ export function useGaleriePage() {
   };
 
   const handleCategoryChange = (categoryId) => {
-    if (categoryId && GALLERY_CATEGORIES.find((cat) => cat.id === categoryId)) {
-      navigate(galleryPath(categoryId));
+    if (categoryId && isValidSlug(categoryId)) {
+      navigate(galleryPath(categoryId, slugs));
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
@@ -117,15 +98,13 @@ export function useGaleriePage() {
     return pages;
   };
 
-  const invalidCategory =
-    Boolean(categoryParam) && !isValidGalleryCategory(categoryParam);
-
-  const activeCategoryLabel =
-    GALLERY_CATEGORIES.find((c) => c.id === activeCategory)?.label ?? 'Galerie';
+  const invalidCategory = Boolean(categoryParam) && !isValidSlug(categoryParam);
 
   return {
     activeCategory,
-    activeCategoryLabel,
+    activeCategoryLabel: getLabel(activeCategory),
+    activeCategoryLead: getLead(activeCategory),
+    galleryCategories: categories.map((c) => ({ id: c.slug, label: c.label })),
     currentPage,
     loading,
     items,
