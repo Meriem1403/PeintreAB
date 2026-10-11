@@ -1,10 +1,9 @@
 #!/bin/bash
-# À lancer sur le NAS (Gestionnaire de tâches Synology).
-# Corrige le crash « Cannot find package helmet ».
+# Gestionnaire de tâches Synology — reconstruit le backend (fix helmet / deps).
 
 set -euo pipefail
 
-ROOT="${PEINTREAB_ROOT:-/volume1/docker/peintreab}"
+ROOT="${PEINTREAB_ROOT:-/docker/apps/PeintreAB}"
 cd "$ROOT"
 
 COMPOSE_FILE="docker-compose.yml"
@@ -19,7 +18,13 @@ echo "[nas-fix-backend] dossier=$ROOT compose=$COMPOSE_FILE"
 git fetch origin
 git pull origin main
 
+# Applique le modèle NAS versionné → .env local (non versionné)
+if [ -f backend/.env.nas ]; then
+  cp backend/.env.nas backend/.env
+  echo "[nas-fix-backend] backend/.env mis à jour depuis .env.nas"
+fi
+
 docker compose -f "$COMPOSE_FILE" build --no-cache backend
 docker compose -f "$COMPOSE_FILE" up -d --force-recreate --renew-anon-volumes backend
 
-echo "[nas-fix-backend] OK — journal peintreab-backend doit être vert, sans erreur helmet."
+echo "[nas-fix-backend] OK — peintreab-backend doit être vert."
