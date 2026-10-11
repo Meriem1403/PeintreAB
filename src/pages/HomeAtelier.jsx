@@ -16,6 +16,7 @@ import {
 } from './home/useHomeFeatured';
 import { atelierScrollBehavior, useAtelierScrollSnap } from './home/useAtelierScrollSnap';
 import { useHeroImageLuminance } from './home/useHeroImageLuminance';
+import { useGalleryCategories } from '../contexts/GalleryCategoriesContext';
 import './home-atelier.css';
 
 const fadeUp = {
@@ -82,6 +83,7 @@ const HomeAtelier = () => {
     formatEventDate,
   } = useHomeFeatured({ measureNavForAtelier: true });
 
+  const { getLabel } = useGalleryCategories();
   const navigate = useNavigate();
 
   const goToEventRegistration = (event) => {
@@ -478,7 +480,7 @@ const HomeAtelier = () => {
                         </div>
                         <div className="atelier-work-card__body">
                           <span className="atelier-work-card__category">
-                            {workCategoryLabel(work.category)}
+                            {workCategoryLabel(work.category, getLabel)}
                           </span>
                           <h3>{work.titre}</h3>
                           {work.description && (

@@ -173,6 +173,15 @@ export const eventsAPI = {
     }),
 };
 
+export const galleryCategoriesAPI = {
+  getAll: () => request('/gallery-categories'),
+  create: (body) => request('/gallery-categories', { method: 'POST', body }),
+  update: (id, body) => request(`/gallery-categories/${id}`, { method: 'PUT', body }),
+  reorder: (order) =>
+    request('/gallery-categories/reorder', { method: 'PUT', body: { order } }),
+  delete: (id) => request(`/gallery-categories/${id}`, { method: 'DELETE' }),
+};
+
 export const siteSettingsAPI = {
   get: async () => {
     return request('/site-settings');

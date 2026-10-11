@@ -1,17 +1,19 @@
-export const GALLERY_CATEGORIES = ['peintures', 'croquis', 'evenements'];
+/** Fallbacks si les catégories API ne sont pas encore chargées */
+export const FALLBACK_GALLERY_SLUGS = ['peintures', 'croquis', 'evenements'];
 
 export const DEFAULT_GALLERY_CATEGORY = 'peintures';
 
-export function isValidGalleryCategory(category) {
-  return typeof category === 'string' && GALLERY_CATEGORIES.includes(category);
+/** @deprecated Préférer useGalleryCategories().isValidSlug */
+export function isValidGalleryCategory(category, allowedSlugs = FALLBACK_GALLERY_SLUGS) {
+  return typeof category === 'string' && allowedSlugs.includes(category);
 }
 
-export function galleryPath(category = DEFAULT_GALLERY_CATEGORY) {
-  const cat = isValidGalleryCategory(category) ? category : DEFAULT_GALLERY_CATEGORY;
+export function galleryPath(category = DEFAULT_GALLERY_CATEGORY, allowedSlugs = FALLBACK_GALLERY_SLUGS) {
+  const cat = isValidGalleryCategory(category, allowedSlugs) ? category : allowedSlugs[0] || DEFAULT_GALLERY_CATEGORY;
   return `/galerie/${cat}`;
 }
 
-export function workDetailPath(category, workId) {
-  const cat = isValidGalleryCategory(category) ? category : DEFAULT_GALLERY_CATEGORY;
+export function workDetailPath(category, workId, allowedSlugs = FALLBACK_GALLERY_SLUGS) {
+  const cat = isValidGalleryCategory(category, allowedSlugs) ? category : allowedSlugs[0] || DEFAULT_GALLERY_CATEGORY;
   return `/galerie/${cat}/${encodeURIComponent(String(workId))}`;
 }

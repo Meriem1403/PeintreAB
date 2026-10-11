@@ -12,11 +12,23 @@ const IMAGES_ROOT =
   imageDirCandidates.find((dir) => fs.existsSync(path.dirname(dir))) ||
   imageDirCandidates[0];
 
-const ALLOWED_FOLDERS = new Set(['peintures', 'croquis', 'evenements', 'uploads', 'artist']);
+const FIXED_FOLDERS = new Set(['peintures', 'croquis', 'evenements', 'uploads', 'artist']);
+
+const sanitizeFolder = (raw) => {
+  const folder = String(raw || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9-_]/g, '')
+    .slice(0, 48);
+  if (!folder) return 'uploads';
+  if (FIXED_FOLDERS.has(folder) || /^[a-z0-9][a-z0-9-]{0,47}$/.test(folder)) {
+    return folder;
+  }
+  return 'uploads';
+};
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const folder = ALLOWED_FOLDERS.has(req.query.folder) ? req.query.folder : 'uploads';
+    const folder = sanitizeFolder(req.query.folder);
     const dest = path.join(IMAGES_ROOT, folder);
     fs.mkdirSync(dest, { recursive: true });
     cb(null, dest);

@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { GalleryCategoriesProvider } from './contexts/GalleryCategoriesContext';
 import { WorksProvider } from './contexts/WorksContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -23,43 +24,45 @@ function App() {
     <ErrorBoundary>
       <AuthProvider>
         <ThemeProvider>
-          <WorksProvider>
-          <Router>
-            <div className="app">
-              <Navbar />
-              <ErrorBoundary>
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/galerie/:category/:id" element={<WorkDetail />} />
-                  <Route path="/galerie/:category" element={<Galerie />} />
-                  <Route path="/galerie" element={<Galerie />} />
-                  <Route path="/biographie" element={<Biographie />} />
-                  <Route path="/contact" element={<Contact />} />
-                  <Route path="/confidentialite" element={<Privacy />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/billet/:code" element={<TicketPage />} />
-                  <Route
-                    path="/admin"
-                    element={
-                      <ProtectedRoute>
-                        <Navigate to={adminTabPath(DEFAULT_ADMIN_TAB)} replace />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/admin/:tab"
-                    element={
-                      <ProtectedRoute>
-                        <Admin />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </ErrorBoundary>
-            </div>
-          </Router>
-          </WorksProvider>
+          <GalleryCategoriesProvider>
+            <WorksProvider>
+              <Router>
+                <div className="app">
+                  <Navbar />
+                  <ErrorBoundary>
+                    <Routes>
+                      <Route path="/" element={<Home />} />
+                      <Route path="/galerie/:category/:id" element={<WorkDetail />} />
+                      <Route path="/galerie/:category" element={<Galerie />} />
+                      <Route path="/galerie" element={<Galerie />} />
+                      <Route path="/biographie" element={<Biographie />} />
+                      <Route path="/contact" element={<Contact />} />
+                      <Route path="/confidentialite" element={<Privacy />} />
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/billet/:code" element={<TicketPage />} />
+                      <Route
+                        path="/admin"
+                        element={
+                          <ProtectedRoute>
+                            <Navigate to={adminTabPath(DEFAULT_ADMIN_TAB)} replace />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/:tab"
+                        element={
+                          <ProtectedRoute>
+                            <Admin />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </ErrorBoundary>
+                </div>
+              </Router>
+            </WorksProvider>
+          </GalleryCategoriesProvider>
         </ThemeProvider>
       </AuthProvider>
     </ErrorBoundary>

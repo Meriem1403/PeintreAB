@@ -1,20 +1,20 @@
 import { useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useReducedMotion } from 'framer-motion';
-import { DEFAULT_GALLERY_CATEGORY, galleryPath } from '../constants/galleryRoutes';
+import { galleryPath } from '../constants/galleryRoutes';
+import { useGalleryCategories } from '../contexts/GalleryCategoriesContext';
 import GalerieClassicBody from './galerie/GalerieClassicBody';
-import {
-  categoryLead,
-  GALLERY_CATEGORIES,
-  useGaleriePage,
-} from './galerie/useGaleriePage';
+import { useGaleriePage } from './galerie/useGaleriePage';
 import './Galerie.css';
 import './galerie-editorial.css';
 
 const GalerieEditorial = () => {
   const reduceMotion = useReducedMotion();
+  const { defaultSlug } = useGalleryCategories();
   const {
     activeCategory,
+    activeCategoryLead,
+    galleryCategories,
     currentPage,
     loading,
     items,
@@ -33,7 +33,7 @@ const GalerieEditorial = () => {
   }, [activeCategory, reduceMotion]);
 
   if (invalidCategory) {
-    return <Navigate to={galleryPath(DEFAULT_GALLERY_CATEGORY)} replace />;
+    return <Navigate to={galleryPath(defaultSlug)} replace />;
   }
 
   return (
@@ -43,14 +43,14 @@ const GalerieEditorial = () => {
           <div className="gallery-v2__hero-inner">
             <p className="gallery-v2__kicker">Collection</p>
             <h1 className="gallery-v2__title">Galerie</h1>
-            <p className="gallery-v2__lead">{categoryLead(activeCategory)}</p>
+            <p className="gallery-v2__lead">{activeCategoryLead}</p>
           </div>
           <div className="gallery-v2__hero-grain" aria-hidden />
         </header>
 
         <div className="gallery-v2__nav-wrap">
           <nav className="gallery-v2__nav" aria-label="Catégories de la galerie">
-            {GALLERY_CATEGORIES.map((cat) => (
+            {galleryCategories.map((cat) => (
               <button
                 key={cat.id}
                 type="button"

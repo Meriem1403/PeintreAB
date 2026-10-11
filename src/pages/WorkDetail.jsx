@@ -1,10 +1,6 @@
 import { useEffect, useState, useCallback, useMemo, useRef, useLayoutEffect } from 'react';
 import { useParams, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import {
-  galleryPath,
-  isValidGalleryCategory,
-  workDetailPath,
-} from '../constants/galleryRoutes';
+import { galleryPath, workDetailPath } from '../constants/galleryRoutes';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FaTimes,
@@ -19,6 +15,7 @@ import {
   FaCheckCircle,
 } from 'react-icons/fa';
 import { useWorks } from '../contexts/WorksContext';
+import { useGalleryCategories } from '../contexts/GalleryCategoriesContext';
 import ContactWorkForm from '../components/ContactWorkForm';
 import ModalPortal from '../components/ModalPortal';
 import EventRegistrationForm from '../components/EventRegistrationForm';
@@ -27,18 +24,6 @@ import { normalizeImageUrl } from '../utils/imageUrl';
 import './WorkDetail.css';
 
 const COMPACT_EXHIBITION_MQ = '(max-width: 1099px)';
-
-const categoryLabel = (category) => {
-  if (category === 'peintures') return 'Peinture';
-  if (category === 'croquis') return 'Croquis';
-  return 'Événement';
-};
-
-const categoryCollectionLabel = (category) => {
-  if (category === 'peintures') return 'Collection peintures';
-  if (category === 'croquis') return 'Collection croquis';
-  return 'Agenda';
-};
 
 const isPlausibleDate = (value) => {
   if (!value) return false;
@@ -78,13 +63,14 @@ const WorkDetail = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { works, loading } = useWorks();
+  const { isValidSlug, getLabel, isEventsSlug, defaultSlug } = useGalleryCategories();
   const [imageLoading, setImageLoading] = useState(true);
   const [artSize, setArtSize] = useState(null);
   const [naturalSize, setNaturalSize] = useState(null);
   const [isContactFormOpen, setIsContactFormOpen] = useState(false);
   const [isRegistrationOpen, setIsRegistrationOpen] = useState(false);
   const [isArtFullscreen, setIsArtFullscreen] = useState(false);
-  const isEventPage = category === 'evenements';
+  const isEventPage = isEventsSlug(category);
   const stageRef = useRef(null);
   const clusterRef = useRef(null);
   const frameMeasureRef = useRef(null);
@@ -168,8 +154,8 @@ const WorkDetail = () => {
   );
 
   const handleClose = useCallback(() => {
-    navigate(isValidGalleryCategory(category) ? galleryPath(category) : '/galerie');
-  }, [category, navigate]);
+    navigate(isValidSlug(category) ? galleryPath(category) : galleryPath(defaultSlug));
+  }, [category, navigate, isValidSlug, defaultSlug]);
 
   const [compactExhibition, setCompactExhibition] = useState(() =>
     typeof window !== 'undefined' ? window.matchMedia(COMPACT_EXHIBITION_MQ).matches : false
@@ -352,8 +338,8 @@ const WorkDetail = () => {
     setLight({ x: 50, y: 40 });
   };
 
-  if (!isValidGalleryCategory(category)) {
-    return <Navigate to="/galerie" replace />;
+  if (!isValidSlug(category)) {
+    return <Navigate to={galleryPath(defaultSlug)} replace />;
   }
 
   if (loading && !location.state?.work) {
@@ -392,9 +378,11 @@ const WorkDetail = () => {
   let availabilityLabel = 'Présenté en galerie';
   if (currentWork.is_sold) availabilityLabel = 'Acquise — hors vente';
   else if (isArtwork) availabilityLabel = 'Disponible à l’acquisition';
-  else if (category === 'evenements') availabilityLabel = 'Événement à venir ou passé';
+  else if (isEventPage) availabilityLabel = 'Événement à venir ou passé';
 
-  const catalogLine = `${String(currentIndex + 1).padStart(2, '0')} / ${String(categoryItems.length).padStart(2, '0')} · ${categoryCollectionLabel(category)}`;
+  const typeLabel = getLabel(category);
+  const collectionLabel = isEventPage ? 'Agenda' : `Collection ${typeLabel.toLowerCase()}`;
+  const catalogLine = `${String(currentIndex + 1).padStart(2, '0')} / ${String(categoryItems.length).padStart(2, '0')} · ${collectionLabel}`;
   const referenceLabel = currentWork.id
     ? `AB-${String(category).slice(0, 3).toUpperCase()}-${String(currentWork.id).padStart(4, '0')}`
     : null;
@@ -426,7 +414,7 @@ const WorkDetail = () => {
           <FaTimes />
         </button>
         <div className="exhibition-toolbar-center">
-          <span className="exhibition-room-label">{categoryLabel(category)}</span>
+          <span className="exhibition-room-label">{typeLabel}</span>
           <span className="exhibition-index">
             {String(currentIndex + 1).padStart(2, '0')}
             <span className="exhibition-index-sep">/</span>
@@ -563,7 +551,7 @@ const WorkDetail = () => {
         >
           <div className="exhibition-placard-inner">
             <div className="exhibition-placard-intro">
-              <span className="exhibition-placard-type">{categoryLabel(category)}</span>
+              <span className="exhibition-placard-type">{typeLabel}</span>
               <p className="exhibition-placard-catalog">{catalogLine}</p>
               <h1>{currentWork.titre || 'Sans titre'}</h1>
             </div>
@@ -619,7 +607,7 @@ const WorkDetail = () => {
                 <FaTag className="exhibition-fact-icon" aria-hidden />
                 <div>
                   <span className="exhibition-fact-label">Univers</span>
-                  <span className="exhibition-fact-value">{categoryCollectionLabel(category)}</span>
+                  <span className="exhibition-fact-value">{collectionLabel}</span>
                 </div>
               </div>
 
@@ -734,7 +722,7 @@ const WorkDetail = () => {
         {isContactFormOpen && (
           <ContactWorkForm
             work={currentWork}
-            categoryLabel={categoryLabel(category)}
+            categoryLabel={typeLabel}
             referenceLabel={referenceLabel}
             priceLabel={!currentWork.is_sold && currentWork.prix ? `${currentWork.prix} €` : priceLabel}
             imageUrl={imageUrl}
