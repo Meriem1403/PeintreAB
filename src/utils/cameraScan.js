@@ -1,9 +1,15 @@
 import { Html5Qrcode } from 'html5-qrcode';
 
+/** getUserMedia (caméra) est bloqué hors contexte sécurisé (HTTPS ou localhost). */
+export function isCameraSecureContext() {
+  if (typeof window === 'undefined') return false;
+  return Boolean(window.isSecureContext);
+}
+
 /** @returns {string} */
 export function cameraScanErrorMessage(err) {
-  if (typeof window !== 'undefined' && !window.isSecureContext) {
-    return 'La caméra nécessite une connexion sécurisée (HTTPS). Sur cet hébergement, utilisez https:// ou la saisie manuelle du code.';
+  if (!isCameraSecureContext()) {
+    return 'La caméra est bloquée par le navigateur : le site est en HTTP. Activez HTTPS sur le NAS (reverse proxy + certificat Let’s Encrypt), puis ouvrez le site en https://. En attendant, utilisez la saisie manuelle du code.';
   }
 
   const name = err?.name || '';
