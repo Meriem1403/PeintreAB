@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useWorks } from '../contexts/WorksContext';
+import { useGalleryCategories } from '../contexts/GalleryCategoriesContext';
 import WorkCard from './WorkCard';
 import './WorkList.css';
 
@@ -7,6 +8,7 @@ const ITEMS_PER_PAGE = 12;
 
 const WorkList = ({ type, onEdit }) => {
   const { works, removeWork, updateWork } = useWorks();
+  const { getLabel } = useGalleryCategories();
   const items = works[type] || [];
   const [draggedItem, setDraggedItem] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
@@ -119,9 +121,9 @@ const WorkList = ({ type, onEdit }) => {
   };
 
   const handleDelete = async (work) => {
-    const typeLabel = type === 'peintures' ? 'peinture' : type === 'croquis' ? 'croquis' : 'événement';
+    const typeLabel = getLabel(type) || 'entrée';
     const confirmed = window.confirm(
-      `Êtes-vous sûr de vouloir supprimer cette ${typeLabel} ?\n\n"${work.titre}"\n\nCette action est irréversible.`
+      `Êtes-vous sûr de vouloir supprimer cette entrée « ${typeLabel} » ?\n\n"${work.titre}"\n\nCette action est irréversible.`
     );
 
     if (confirmed) {
