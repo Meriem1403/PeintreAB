@@ -10,4 +10,5 @@ COPY . .
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "sleep 3 && npm run migrate && npm run dev"]
+# npm install au démarrage : sécurise le NAS si l’image / le volume était obsolète
+CMD ["sh", "-c", "npm install && sleep 2 && npm run migrate && npm run dev"]
