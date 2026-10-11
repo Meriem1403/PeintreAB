@@ -86,9 +86,10 @@ const HomeAtelier = () => {
   const { getLabel } = useGalleryCategories();
   const navigate = useNavigate();
 
-  const goToEventRegistration = (event) => {
+  const goToEventDetails = (event) => {
     if (!event?.id) return;
-    navigate(`${workDetailPath('evenements', event.id)}?participer=1`, {
+    /* Fiche événement d’abord — pas le formulaire direct (?participer=1) */
+    navigate(workDetailPath('evenements', event.id), {
       state: { work: event },
     });
   };
@@ -384,9 +385,9 @@ const HomeAtelier = () => {
                             <button
                               type="button"
                               className="atelier-event-card__participate"
-                              onClick={() => goToEventRegistration(event)}
+                              onClick={() => goToEventDetails(event)}
                             >
-                              Je participe
+                              Voir &amp; s&apos;inscrire
                             </button>
                           </div>
                         )}
