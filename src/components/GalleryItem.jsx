@@ -1,6 +1,16 @@
 import { useRef, useEffect, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { normalizeImageUrl } from '../utils/imageUrl';
+import {
+  canRegisterToEvent,
+  resolveEventCtaLabel,
+  resolveEventStatusBadge,
+} from '../utils/eventDates';
+import {
+  eventHighlightCssVars,
+  resolveEventBadgeColor,
+  resolveEventHighlightStyle,
+} from '../utils/eventStyles';
 
 const formatExhibitDate = (item) => {
   if (!item) return null;
@@ -19,7 +29,7 @@ const formatExhibitDate = (item) => {
   return null;
 };
 
-const GalleryItem = ({ item, index, onClick, refined = false }) => {
+const GalleryItem = ({ item, index, onClick, refined = false, isEvent = false }) => {
   const itemRef = useRef(null);
   const artRef = useRef(null);
   const animationRef = useRef(null);
@@ -72,9 +82,16 @@ const GalleryItem = ({ item, index, onClick, refined = false }) => {
   }
 
   const exhibitDate = formatExhibitDate(item);
-  const showPrice = item.prix && !item.is_sold;
+  const showPrice = !isEvent && item.prix && !item.is_sold;
   const showLieu = Boolean(item.lieu || item.adresse);
-  const hasSecondaryFacts = showPrice || showLieu || item.is_sold;
+  const hasSecondaryFacts = showPrice || showLieu || (!isEvent && item.is_sold);
+  const status = isEvent ? resolveEventStatusBadge(item) : null;
+  const canRegister = isEvent && canRegisterToEvent(item);
+  const ctaLabel = isEvent
+    ? resolveEventCtaLabel(item, canRegister ? "Voir & s'inscrire" : "Voir l'événement")
+    : null;
+  const highlight = isEvent ? resolveEventHighlightStyle(item) : null;
+  const badgeColor = isEvent && status ? resolveEventBadgeColor(item, status.tone) : null;
 
   if (refined) {
     const enterDelay = reduceMotion ? 0 : Math.min(index * 0.045, 0.4);
@@ -82,7 +99,8 @@ const GalleryItem = ({ item, index, onClick, refined = false }) => {
     return (
       <motion.figure
         ref={itemRef}
-        className={`galerie-exhibit featured-work-item ${item.is_sold ? 'galerie-exhibit--sold' : ''}`}
+        className={`galerie-exhibit featured-work-item ${item.is_sold && !isEvent ? 'galerie-exhibit--sold' : ''} ${highlight ? 'galerie-exhibit--highlight' : ''}`.trim()}
+        style={eventHighlightCssVars(highlight)}
         initial={reduceMotion ? false : { opacity: 0, y: 18, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.55, delay: enterDelay, ease: [0.22, 1, 0.36, 1] }}
@@ -104,7 +122,7 @@ const GalleryItem = ({ item, index, onClick, refined = false }) => {
         }}
         tabIndex={0}
         role="button"
-        aria-label={`Voir ${item.titre || 'œuvre'}`}
+        aria-label={`Voir ${item.titre || (isEvent ? 'événement' : 'œuvre')}`}
       >
         <div
           className={`item-image featured-work-image galerie-exhibit__media ${imageReady ? 'is-ready' : 'is-loading'} ${imageError ? 'is-error' : ''}`}
@@ -124,7 +142,7 @@ const GalleryItem = ({ item, index, onClick, refined = false }) => {
               <motion.img
                 ref={artRef}
                 src={imageSrc}
-                alt={item.titre || 'Œuvre'}
+                alt={item.titre || (isEvent ? 'Événement' : 'Œuvre')}
                 loading="lazy"
                 decoding="async"
                 draggable={false}
@@ -154,9 +172,18 @@ const GalleryItem = ({ item, index, onClick, refined = false }) => {
             </p>
           )}
           <div className="image-overlay" />
-          <div className={`availability-badge ${item.is_sold ? 'sold' : 'available'}`}>
-            {item.is_sold ? 'Collection privée' : 'Disponible'}
-          </div>
+          {isEvent && status ? (
+            <div
+              className="availability-badge event-status"
+              style={{ background: badgeColor, color: '#fffaf3', border: 'none' }}
+            >
+              {status.label}
+            </div>
+          ) : (
+            <div className={`availability-badge ${item.is_sold ? 'sold' : 'available'}`}>
+              {item.is_sold ? 'Collection privée' : 'Disponible'}
+            </div>
+          )}
         </div>
         <figcaption className="galerie-exhibit__caption featured-work-info">
           <div className="galerie-exhibit__caption-main">
@@ -168,7 +195,7 @@ const GalleryItem = ({ item, index, onClick, refined = false }) => {
           </div>
           {hasSecondaryFacts && (
             <ul className="galerie-exhibit__facts galerie-exhibit__facts--chips">
-              {item.is_sold && (
+              {!isEvent && item.is_sold && (
                 <li className="galerie-exhibit__chip galerie-exhibit__chip--muted">
                   Collection privée
                 </li>
@@ -181,11 +208,29 @@ const GalleryItem = ({ item, index, onClick, refined = false }) => {
               )}
             </ul>
           )}
-          <div className="galerie-exhibit__caption-foot">
-            <span className="galerie-exhibit__cta" aria-hidden>
-              Voir l&apos;œuvre →
-            </span>
-          </div>
+          {isEvent && (
+            <div className="galerie-exhibit__event-actions">
+              {canRegister ? (
+                <>
+                  <span className="galerie-exhibit__ticket-hint">Billetterie ouverte</span>
+                  <span className="galerie-exhibit__participate" aria-hidden>
+                    {ctaLabel}
+                  </span>
+                </>
+              ) : (
+                <span className="galerie-exhibit__cta" aria-hidden>
+                  {ctaLabel} →
+                </span>
+              )}
+            </div>
+          )}
+          {!isEvent && (
+            <div className="galerie-exhibit__caption-foot">
+              <span className="galerie-exhibit__cta" aria-hidden>
+                Voir l&apos;œuvre →
+              </span>
+            </div>
+          )}
         </figcaption>
       </motion.figure>
     );
@@ -194,7 +239,7 @@ const GalleryItem = ({ item, index, onClick, refined = false }) => {
   return (
     <motion.div
       ref={itemRef}
-      className="galerie-item"
+      className={`galerie-item${highlight ? ' galerie-item--highlight' : ''}`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.05 }}
@@ -202,7 +247,7 @@ const GalleryItem = ({ item, index, onClick, refined = false }) => {
         scale: 1.05,
         transition: { duration: 0.3 },
       }}
-      style={{ position: 'relative', zIndex: 1 }}
+      style={{ position: 'relative', zIndex: 1, ...eventHighlightCssVars(highlight) }}
       onHoverStart={(e) => {
         if (e.currentTarget) {
           e.currentTarget.style.zIndex = '10';
@@ -217,22 +262,38 @@ const GalleryItem = ({ item, index, onClick, refined = false }) => {
     >
       {imageSrc && (
         <div className="item-image">
-          <img src={imageSrc} alt={item.titre || 'Œuvre'} loading="lazy" />
+          <img src={imageSrc} alt={item.titre || (isEvent ? 'Événement' : 'Œuvre')} loading="lazy" />
           <div className="image-overlay" />
-          <div className={`availability-badge ${item.is_sold ? 'sold' : 'available'}`}>
-            {item.is_sold ? 'Collection privée' : 'Disponible'}
-          </div>
+          {isEvent && status ? (
+            <div
+              className="availability-badge event-status"
+              style={{ background: badgeColor, color: '#fffaf3', border: 'none' }}
+            >
+              {status.label}
+            </div>
+          ) : (
+            <div className={`availability-badge ${item.is_sold ? 'sold' : 'available'}`}>
+              {item.is_sold ? 'Collection privée' : 'Disponible'}
+            </div>
+          )}
         </div>
       )}
       <div className="item-overlay">
         <h3>{item.titre || 'Sans titre'}</h3>
         {item.description && <p>{item.description}</p>}
-        {(item.prix || item.date) && (
+        {(item.prix || item.date || exhibitDate || canRegister) && (
           <div className="item-info">
-            {item.prix && !item.is_sold && <span className="item-price">{item.prix}€</span>}
-            {item.is_sold && <span className="item-sold">Collection privée</span>}
-            {item.date && (
-              <span className="item-date">{new Date(item.date).toLocaleDateString('fr-FR')}</span>
+            {!isEvent && item.prix && !item.is_sold && (
+              <span className="item-price">{item.prix}€</span>
+            )}
+            {!isEvent && item.is_sold && <span className="item-sold">Collection privée</span>}
+            {(exhibitDate || item.date) && (
+              <span className="item-date">
+                {exhibitDate || new Date(item.date).toLocaleDateString('fr-FR')}
+              </span>
+            )}
+            {isEvent && canRegister && (
+              <span className="item-ticket">{ctaLabel}</span>
             )}
           </div>
         )}

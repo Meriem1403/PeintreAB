@@ -93,11 +93,6 @@ const ContactInfoForm = ({ onUpdate }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <h2>Informations de contact</h2>
-      <p className="form-description">
-        Gérez les informations de contact qui apparaissent sur la page Contact.
-      </p>
-
       <form onSubmit={handleSubmit} className="app-form">
         <div className="form-section">
           <h3>Contact direct</h3>

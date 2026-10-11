@@ -6,7 +6,7 @@
   width: 100%;
   max-width: 100vw;
   overflow-x: clip;
-  min-height: calc(100dvh - var(--admin-nav-offset, 72px));
+  min-height: 100dvh;
 }
 
 .admin-main {
@@ -30,19 +30,16 @@
   min-width: 0;
 }
 
-/* Panneaux formulaire : alignés à gauche avec le titre (pas de centrage auto) */
+/* Panneaux formulaire Site : pleine largeur de la zone admin (desktop inclus) */
 .admin-shell .admin-main-body .app-form-panel {
   width: 100%;
-  max-width: min(920px, 100%);
+  max-width: none;
   margin: 0;
   box-sizing: border-box;
 }
 
-.admin-shell .admin-main-body--wide .app-form-panel {
-  max-width: none;
-}
-
-.admin-shell .admin-main-body--flush .app-form-panel {
+.admin-shell .admin-main-body .gcat-admin {
+  width: 100%;
   max-width: none;
 }
 
@@ -80,7 +77,6 @@
   }
 
   .admin-shell .admin-page-header {
-    gap: 0.65rem;
     margin-bottom: 1.35rem;
   }
 

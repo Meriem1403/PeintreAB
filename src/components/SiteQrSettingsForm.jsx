@@ -184,15 +184,10 @@ const SiteQrSettingsForm = () => {
   return (
     <div className="site-qr-form app-form app-form-panel">
       <form onSubmit={handleSubmit}>
-        <h2>QR code du site</h2>
-        <p className="site-qr-intro app-form-intro">
-          Indiquez l&apos;adresse <strong>publique</strong> de votre site (ex.{' '}
-          <code>https://www.alexandre-bindl.fr</code>) — pas localhost. Cette URL sert de base
-          à tous les QR codes (site + formulaire contacts).
-        </p>
+        <h3 className="site-qr-section-title">Site</h3>
 
         <div className="form-group">
-          <label htmlFor="public_site_url">Adresse du site (URL publique)</label>
+          <label htmlFor="public_site_url">Adresse publique (pas localhost)</label>
           <input
             id="public_site_url"
             name="public_site_url"
@@ -253,11 +248,9 @@ const SiteQrSettingsForm = () => {
       </form>
 
       <section className="site-qr-lead" aria-labelledby="site-qr-lead-title">
-        <h2 id="site-qr-lead-title">QR code contacts (salon / vernissage)</h2>
-        <p className="site-qr-intro app-form-intro">
-          À afficher sur place : les visiteurs scannent, remplissent un formulaire simple et
-          rejoignent <strong>Visiteurs &amp; billets → Contacts</strong>.
-        </p>
+        <h3 id="site-qr-lead-title" className="site-qr-section-title">
+          Contacts (salon / vernissage)
+        </h3>
 
         {!publicBaseUsable && (
           <p className="site-qr-lead-warn" role="status">

@@ -7,7 +7,16 @@ import GeometricBackground from '../components/GeometricBackground';
 import ParticlesBackground from '../components/ParticlesBackground';
 import AtelierFooter from '../components/AtelierFooter';
 import { galleryPath, workDetailPath } from '../constants/galleryRoutes';
-import { canRegisterToEvent } from '../utils/eventDates';
+import {
+  canRegisterToEvent,
+  resolveEventCtaLabel,
+  resolveEventStatusBadge,
+} from '../utils/eventDates';
+import {
+  eventHighlightCssVars,
+  resolveEventBadgeColor,
+  resolveEventHighlightStyle,
+} from '../utils/eventStyles';
 import { normalizeImageUrl } from '../utils/imageUrl';
 import {
   getAtelierCarouselGridLayout,
@@ -17,6 +26,7 @@ import {
 import { atelierScrollBehavior, useAtelierScrollSnap } from './home/useAtelierScrollSnap';
 import { useHeroImageLuminance } from './home/useHeroImageLuminance';
 import { useGalleryCategories } from '../contexts/GalleryCategoriesContext';
+import Seo from '../components/Seo';
 import './home-atelier.css';
 
 const fadeUp = {
@@ -97,12 +107,6 @@ const HomeAtelier = () => {
   const setRefs = (node) => {
     homeRef.current = node;
     rootRef.current = node;
-    if (node) {
-      /* Recalcule la hauteur du hero dès que le conteneur existe */
-      window.requestAnimationFrame(() => {
-        window.dispatchEvent(new Event('resize'));
-      });
-    }
   };
 
   useAtelierScrollSnap(rootRef);
@@ -195,6 +199,11 @@ const HomeAtelier = () => {
 
   return (
     <div className="home-atelier" ref={setRefs}>
+      <Seo
+        title="Alexandre Bindl — Artiste peintre | Galerie d’art"
+        description="Espace de création d’Alexandre Bindl : peintures, croquis et agenda d’expositions. Entrez dans la couleur."
+        path="/"
+      />
       <section
         className={`atelier-hero atelier-hero--viewport${heroIsLight ? ' atelier-hero--bright-image' : ''}`}
         style={heroViewportStyle}
@@ -338,10 +347,16 @@ const HomeAtelier = () => {
                       : `repeat(${eventsGrid.cols}, minmax(0, 1fr))`,
                   }}
                 >
-                  {visibleEvents.map((event, i) => (
+                  {visibleEvents.map((event, i) => {
+                    const status = resolveEventStatusBadge(event);
+                    const cta = resolveEventCtaLabel(event);
+                    const highlight = resolveEventHighlightStyle(event);
+                    const badgeColor = resolveEventBadgeColor(event, status.tone);
+                    return (
                     <motion.article
                       key={`${event.id}-${event.category}`}
-                      className="atelier-event-card"
+                      className={`atelier-event-card${highlight ? ' atelier-event-card--highlight' : ''}`}
+                      style={eventHighlightCssVars(highlight)}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.08 * i, duration: 0.45 }}
@@ -361,6 +376,12 @@ const HomeAtelier = () => {
                             {formatEventDate(event) && (
                               <span className="atelier-event-card__date">{formatEventDate(event)}</span>
                             )}
+                            <span
+                              className="atelier-event-card__status"
+                              style={{ background: badgeColor, color: '#fffaf3' }}
+                            >
+                              {status.label}
+                            </span>
                           </div>
                           <div className="atelier-event-card__body">
                             <span className="atelier-event-card__tag">Événement</span>
@@ -387,13 +408,14 @@ const HomeAtelier = () => {
                               className="atelier-event-card__participate"
                               onClick={() => goToEventDetails(event)}
                             >
-                              Voir &amp; s&apos;inscrire
+                              {cta}
                             </button>
                           </div>
                         )}
                       </div>
                     </motion.article>
-                  ))}
+                    );
+                  })}
                 </div>
               </AtelierCarousel>
             </div>

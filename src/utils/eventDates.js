@@ -48,6 +48,47 @@ export const canRegisterToEvent = (event) => {
   return mode !== 'closed';
 };
 
+/** Événement en cours (aujourd’hui entre début et fin inclus). */
+export const isEventOngoing = (event, today = todayDateOnlyString()) => {
+  if (!event) return false;
+  const start = parseDateOnly(event.date_debut || event.date);
+  const end = parseDateOnly(event.date_fin || event.date_debut || event.date);
+  if (!start || !end) return false;
+  const t = today;
+  return toDateOnlyString(start) <= t && t <= toDateOnlyString(end);
+};
+
+/** Événement à venir (début après aujourd’hui). */
+export const isEventUpcoming = (event, today = todayDateOnlyString()) => {
+  if (!event) return false;
+  const start = parseDateOnly(event.date_debut || event.date);
+  if (!start) return false;
+  return toDateOnlyString(start) > today;
+};
+
+/**
+ * Badge statut : texte admin prioritaire, sinon auto (En ce moment / À venir / Terminé).
+ * tones: live | soon | past (styles unifiés côté UI).
+ */
+export const resolveEventStatusBadge = (event) => {
+  const custom = String(event?.status_badge || '').trim();
+  const past = isEventPast(event?.date_fin || event?.date_debut);
+  const live = isEventOngoing(event);
+  if (custom) {
+    return { label: custom, tone: past ? 'past' : live ? 'live' : 'soon' };
+  }
+  if (past) return { label: 'Terminé', tone: 'past' };
+  if (live) return { label: 'En ce moment', tone: 'live' };
+  if (isEventUpcoming(event)) return { label: 'À venir', tone: 'soon' };
+  return { label: 'Événement', tone: 'soon' };
+};
+
+/** Libellé bouton CTA (accueil / galerie). */
+export const resolveEventCtaLabel = (event, fallback = "Voir & s'inscrire") => {
+  const custom = String(event?.cta_label || '').trim();
+  return custom || fallback;
+};
+
 export const formatDurationLabel = (dateDebut, dateFin) => {
   const days = eventDurationDays(dateDebut, dateFin);
   if (days === 0) return null;

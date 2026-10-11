@@ -4,6 +4,47 @@
   gap: 1.75rem;
 }
 
+.work-list-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  padding: 0.85rem 1.1rem;
+  background: #fff;
+  border: 1px solid #e7e5e4;
+  border-radius: 12px;
+}
+
+.work-list-toolbar__hint {
+  margin: 0;
+  flex: 1 1 14rem;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: #78716c;
+}
+
+.work-list-toolbar__preview {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.95rem;
+  border: 1px solid rgba(var(--color-primary-rgb, 198, 172, 143), 0.45);
+  border-radius: 999px;
+  background: rgba(var(--color-primary-rgb, 198, 172, 143), 0.12);
+  color: #1c1917;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.work-list-toolbar__preview:hover {
+  background: rgba(var(--color-primary-rgb, 198, 172, 143), 0.22);
+  border-color: var(--color-primary, #c6ac8f);
+}
+
 .work-list-page-zone {
   padding: 1rem 1.25rem;
   text-align: center;

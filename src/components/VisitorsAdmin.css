@@ -108,6 +108,10 @@
   gap: 0.65rem;
 }
 
+.vdash-metric-row--traffic {
+  margin-bottom: 1.1rem;
+}
+
 @media (max-width: 960px) {
   .vdash-metric-row {
     grid-template-columns: repeat(2, 1fr);

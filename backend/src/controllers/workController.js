@@ -4,6 +4,34 @@ import { fetchSlotsForWork, replaceTicketSlots } from '../services/ticketSlots.j
 import { isEventPast } from '../utils/eventDates.js';
 import { categoryExists } from './galleryCategoryController.js';
 
+let eventDisplayColumnsReady = false;
+
+const HEX_COLOR_RE = /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/;
+
+function normalizeHexColor(value) {
+  if (value == null || value === '') return null;
+  let hex = String(value).trim();
+  if (!hex.startsWith('#')) hex = `#${hex}`;
+  if (!HEX_COLOR_RE.test(hex)) return null;
+  if (hex.length === 4) {
+    hex = `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`;
+  }
+  return hex.toUpperCase();
+}
+
+async function ensureEventDisplayColumns() {
+  if (eventDisplayColumnsReady) return;
+  await pool.query(`
+    ALTER TABLE works
+    ADD COLUMN IF NOT EXISTS cta_label VARCHAR(80),
+    ADD COLUMN IF NOT EXISTS status_badge VARCHAR(80),
+    ADD COLUMN IF NOT EXISTS highlight_enabled BOOLEAN DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS highlight_color VARCHAR(20),
+    ADD COLUMN IF NOT EXISTS badge_color VARCHAR(20)
+  `);
+  eventDisplayColumnsReady = true;
+}
+
 export const getAllWorks = async (req, res) => {
   try {
     const { type } = req.query;
@@ -47,6 +75,7 @@ export const getWorkById = async (req, res) => {
 
 export const createWork = async (req, res) => {
   try {
+    await ensureEventDisplayColumns();
     const {
       type,
       titre,
@@ -64,6 +93,11 @@ export const createWork = async (req, res) => {
       ticket_mode,
       ticket_capacity,
       ticket_slots,
+      cta_label,
+      status_badge,
+      highlight_enabled,
+      highlight_color,
+      badge_color,
     } = req.body;
 
     if (!type || !titre) {
@@ -103,9 +137,17 @@ export const createWork = async (req, res) => {
       finalDisplayOrder = parseInt(finalDisplayOrder, 10);
     }
 
+    const ctaLabel = isEvent && cta_label != null ? String(cta_label).trim().slice(0, 80) || null : null;
+    const statusBadge =
+      isEvent && status_badge != null ? String(status_badge).trim().slice(0, 80) || null : null;
+    const highlightEnabled =
+      isEvent && (highlight_enabled === true || highlight_enabled === 'true');
+    const highlightColor = isEvent ? normalizeHexColor(highlight_color) : null;
+    const badgeColor = isEvent ? normalizeHexColor(badge_color) : null;
+
     const result = await pool.query(
-      `INSERT INTO works (type, titre, description, prix, image, date, date_debut, date_fin, lieu, adresse, is_sold, is_featured, display_order, ticket_mode, ticket_capacity)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+      `INSERT INTO works (type, titre, description, prix, image, date, date_debut, date_fin, lieu, adresse, is_sold, is_featured, display_order, ticket_mode, ticket_capacity, cta_label, status_badge, highlight_enabled, highlight_color, badge_color)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
        RETURNING *`,
       [
         type,
@@ -123,6 +165,11 @@ export const createWork = async (req, res) => {
         finalDisplayOrder,
         eventTicketMode,
         null,
+        ctaLabel,
+        statusBadge,
+        highlightEnabled,
+        highlightColor,
+        badgeColor,
       ]
     );
 
@@ -153,6 +200,7 @@ export const createWork = async (req, res) => {
 
 export const updateWork = async (req, res) => {
   try {
+    await ensureEventDisplayColumns();
     const { id } = req.params;
     const {
       titre,
@@ -170,6 +218,11 @@ export const updateWork = async (req, res) => {
       ticket_mode,
       ticket_capacity,
       ticket_slots,
+      cta_label,
+      status_badge,
+      highlight_enabled,
+      highlight_color,
+      badge_color,
     } = req.body;
     console.log('🔄 Mise à jour œuvre:', { id, adresse, lieu, date_debut, date_fin });
 
@@ -251,6 +304,30 @@ export const updateWork = async (req, res) => {
       updates.push(`ticket_capacity = $${paramIndex++}`);
       const cap = ticket_capacity === '' || ticket_capacity == null ? null : parseInt(ticket_capacity, 10);
       params.push(cap != null && !Number.isNaN(cap) ? cap : null);
+    }
+    if (cta_label !== undefined) {
+      updates.push(`cta_label = $${paramIndex++}`);
+      params.push(cta_label != null && String(cta_label).trim() ? String(cta_label).trim().slice(0, 80) : null);
+    }
+    if (status_badge !== undefined) {
+      updates.push(`status_badge = $${paramIndex++}`);
+      params.push(
+        status_badge != null && String(status_badge).trim()
+          ? String(status_badge).trim().slice(0, 80)
+          : null
+      );
+    }
+    if (highlight_enabled !== undefined) {
+      updates.push(`highlight_enabled = $${paramIndex++}`);
+      params.push(highlight_enabled === true || highlight_enabled === 'true');
+    }
+    if (highlight_color !== undefined) {
+      updates.push(`highlight_color = $${paramIndex++}`);
+      params.push(normalizeHexColor(highlight_color));
+    }
+    if (badge_color !== undefined) {
+      updates.push(`badge_color = $${paramIndex++}`);
+      params.push(normalizeHexColor(badge_color));
     }
 
     updates.push(`updated_at = CURRENT_TIMESTAMP`);

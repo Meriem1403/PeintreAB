@@ -10,6 +10,14 @@ import { recordThemeHistory } from './themePaletteController.js';
 const DEFAULT_PUBLIC_SITE_URL =
   process.env.FRONTEND_URL?.replace(/\/$/, '') || 'https://www.alexandrebindl.fr';
 
+const DEFAULT_NAV_LABELS = {
+  nav_label_home: 'Accueil',
+  nav_label_gallery: 'Galerie',
+  nav_label_bio: 'Biographie',
+  nav_label_contact: 'Contact',
+  nav_label_admin: 'Admin',
+};
+
 const DEFAULT_SETTINGS = {
   hero_image: '/images/peintures/2025-2-le-cours.jpg',
   primary_color: '#C6AC8F',
@@ -18,7 +26,30 @@ const DEFAULT_SETTINGS = {
   public_site_url: DEFAULT_PUBLIC_SITE_URL,
   ...DEFAULT_ATELIER_HERO_COPY,
   ...DEFAULT_ATELIER_SECTION_COPY,
+  ...DEFAULT_NAV_LABELS,
 };
+
+function normalizeNavLabel(value, fallback) {
+  if (value === undefined) return undefined;
+  if (value == null) return fallback;
+  const trimmed = String(value).trim().slice(0, 40);
+  return trimmed || fallback;
+}
+
+let navLabelColumnsReady = false;
+
+async function ensureNavLabelColumns() {
+  if (navLabelColumnsReady) return;
+  await pool.query(`
+    ALTER TABLE site_settings
+    ADD COLUMN IF NOT EXISTS nav_label_home VARCHAR(40) DEFAULT 'Accueil',
+    ADD COLUMN IF NOT EXISTS nav_label_gallery VARCHAR(40) DEFAULT 'Galerie',
+    ADD COLUMN IF NOT EXISTS nav_label_bio VARCHAR(40) DEFAULT 'Biographie',
+    ADD COLUMN IF NOT EXISTS nav_label_contact VARCHAR(40) DEFAULT 'Contact',
+    ADD COLUMN IF NOT EXISTS nav_label_admin VARCHAR(40) DEFAULT 'Admin'
+  `);
+  navLabelColumnsReady = true;
+}
 
 function normalizePublicSiteUrl(raw) {
   if (raw == null || raw === '') return null;
@@ -38,6 +69,7 @@ function normalizePublicSiteUrl(raw) {
 
 export const getSiteSettings = async (req, res) => {
   try {
+    await ensureNavLabelColumns();
     const result = await pool.query('SELECT * FROM site_settings ORDER BY id DESC LIMIT 1');
     if (result.rows.length === 0) {
       return res.json(DEFAULT_SETTINGS);
@@ -47,6 +79,11 @@ export const getSiteSettings = async (req, res) => {
       ...DEFAULT_SETTINGS,
       ...settings,
       hero_image: normalizeImageUrl(settings.hero_image),
+      nav_label_home: settings.nav_label_home || DEFAULT_NAV_LABELS.nav_label_home,
+      nav_label_gallery: settings.nav_label_gallery || DEFAULT_NAV_LABELS.nav_label_gallery,
+      nav_label_bio: settings.nav_label_bio || DEFAULT_NAV_LABELS.nav_label_bio,
+      nav_label_contact: settings.nav_label_contact || DEFAULT_NAV_LABELS.nav_label_contact,
+      nav_label_admin: settings.nav_label_admin || DEFAULT_NAV_LABELS.nav_label_admin,
     });
   } catch (error) {
     console.error('Erreur lors de la récupération des paramètres du site:', error);
@@ -56,6 +93,7 @@ export const getSiteSettings = async (req, res) => {
 
 export const updateSiteSettings = async (req, res) => {
   try {
+    await ensureNavLabelColumns();
     const {
       hero_image,
       primary_color,
@@ -75,6 +113,11 @@ export const updateSiteSettings = async (req, res) => {
       atelier_works_title,
       atelier_works_intro,
       public_site_url,
+      nav_label_home,
+      nav_label_gallery,
+      nav_label_bio,
+      nav_label_contact,
+      nav_label_admin,
     } = req.body;
 
     const normalizedSiteUrl =
@@ -82,6 +125,12 @@ export const updateSiteSettings = async (req, res) => {
     if (public_site_url !== undefined && public_site_url !== '' && normalizedSiteUrl === null) {
       return res.status(400).json({ error: 'URL du site invalide (utilisez https://…)' });
     }
+
+    const nextNavHome = normalizeNavLabel(nav_label_home, DEFAULT_NAV_LABELS.nav_label_home);
+    const nextNavGallery = normalizeNavLabel(nav_label_gallery, DEFAULT_NAV_LABELS.nav_label_gallery);
+    const nextNavBio = normalizeNavLabel(nav_label_bio, DEFAULT_NAV_LABELS.nav_label_bio);
+    const nextNavContact = normalizeNavLabel(nav_label_contact, DEFAULT_NAV_LABELS.nav_label_contact);
+    const nextNavAdmin = normalizeNavLabel(nav_label_admin, DEFAULT_NAV_LABELS.nav_label_admin);
 
     const existing = await pool.query('SELECT * FROM site_settings ORDER BY id DESC LIMIT 1');
     const previousColors = existing.rows[0]
@@ -103,9 +152,10 @@ export const updateSiteSettings = async (req, res) => {
            atelier_events_index, atelier_events_title, atelier_events_intro,
            atelier_works_index, atelier_works_title, atelier_works_intro,
            public_site_url,
+           nav_label_home, nav_label_gallery, nav_label_bio, nav_label_contact, nav_label_admin,
            updated_at
          )
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, CURRENT_TIMESTAMP)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, CURRENT_TIMESTAMP)
          RETURNING *`,
         [
           hero_image || DEFAULT_SETTINGS.hero_image,
@@ -126,6 +176,11 @@ export const updateSiteSettings = async (req, res) => {
           atelier_works_title ?? DEFAULT_SETTINGS.atelier_works_title,
           atelier_works_intro ?? DEFAULT_SETTINGS.atelier_works_intro,
           normalizedSiteUrl ?? DEFAULT_SETTINGS.public_site_url,
+          nextNavHome ?? DEFAULT_NAV_LABELS.nav_label_home,
+          nextNavGallery ?? DEFAULT_NAV_LABELS.nav_label_gallery,
+          nextNavBio ?? DEFAULT_NAV_LABELS.nav_label_bio,
+          nextNavContact ?? DEFAULT_NAV_LABELS.nav_label_contact,
+          nextNavAdmin ?? DEFAULT_NAV_LABELS.nav_label_admin,
         ]
       );
     } else {
@@ -149,8 +204,13 @@ export const updateSiteSettings = async (req, res) => {
              atelier_works_title = COALESCE($16, atelier_works_title),
              atelier_works_intro = COALESCE($17, atelier_works_intro),
              public_site_url = COALESCE($18, public_site_url),
+             nav_label_home = COALESCE($19, nav_label_home),
+             nav_label_gallery = COALESCE($20, nav_label_gallery),
+             nav_label_bio = COALESCE($21, nav_label_bio),
+             nav_label_contact = COALESCE($22, nav_label_contact),
+             nav_label_admin = COALESCE($23, nav_label_admin),
              updated_at = CURRENT_TIMESTAMP
-         WHERE id = $19
+         WHERE id = $24
          RETURNING *`,
         [
           hero_image ?? null,
@@ -171,6 +231,11 @@ export const updateSiteSettings = async (req, res) => {
           atelier_works_title ?? null,
           atelier_works_intro ?? null,
           normalizedSiteUrl ?? null,
+          nextNavHome ?? null,
+          nextNavGallery ?? null,
+          nextNavBio ?? null,
+          nextNavContact ?? null,
+          nextNavAdmin ?? null,
           existing.rows[0].id,
         ]
       );
@@ -204,7 +269,16 @@ export const updateSiteSettings = async (req, res) => {
 
     res.json({
       message: 'Paramètres du site mis à jour avec succès',
-      settings: saved,
+      settings: {
+        ...DEFAULT_SETTINGS,
+        ...saved,
+        hero_image: normalizeImageUrl(saved.hero_image),
+        nav_label_home: saved.nav_label_home || DEFAULT_NAV_LABELS.nav_label_home,
+        nav_label_gallery: saved.nav_label_gallery || DEFAULT_NAV_LABELS.nav_label_gallery,
+        nav_label_bio: saved.nav_label_bio || DEFAULT_NAV_LABELS.nav_label_bio,
+        nav_label_contact: saved.nav_label_contact || DEFAULT_NAV_LABELS.nav_label_contact,
+        nav_label_admin: saved.nav_label_admin || DEFAULT_NAV_LABELS.nav_label_admin,
+      },
     });
   } catch (error) {
     console.error('Erreur lors de la mise à jour des paramètres du site:', error);

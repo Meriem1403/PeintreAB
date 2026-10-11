@@ -8,11 +8,12 @@ import {
   deleteContact,
 } from '../controllers/contactController.js';
 import { authenticateToken } from '../middleware/auth.js';
+import { contactLimiter } from '../middleware/rateLimit.js';
 
 const router = express.Router();
 
 // Route publique pour envoyer un message
-router.post('/', createContact);
+router.post('/', contactLimiter, createContact);
 
 // Routes protégées (admin seulement)
 router.get('/summary', authenticateToken, getContactsSummary);

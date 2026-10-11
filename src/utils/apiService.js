@@ -1,10 +1,16 @@
 // Service API pour communiquer avec le backend
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
-// Fonction utilitaire pour les requêtes
+let onUnauthorized = null;
+
+/** Enregistré par AuthProvider pour déconnecter sur 401. */
+export const setUnauthorizedHandler = (handler) => {
+  onUnauthorized = typeof handler === 'function' ? handler : null;
+};
+
 const request = async (endpoint, options = {}) => {
   const token = localStorage.getItem('token');
-  
+
   const isFormData = options.body instanceof FormData;
   const config = {
     headers: {
@@ -24,128 +30,128 @@ const request = async (endpoint, options = {}) => {
 
   try {
     const url = `${API_URL}${endpoint}`;
-    console.log(`📡 Requête API: ${url}`);
-    
+    if (import.meta.env.DEV) {
+      console.log(`📡 Requête API: ${url}`);
+    }
+
     const response = await fetch(url, config);
-    
+
+    if (response.status === 401) {
+      onUnauthorized?.();
+      const errorData = await response.json().catch(() => ({ error: 'Session expirée' }));
+      throw new Error(errorData.error || 'Session expirée');
+    }
+
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ error: 'Erreur inconnue' }));
       throw new Error(errorData.error || `Erreur ${response.status}: ${response.statusText}`);
     }
 
     const data = await response.json();
-    console.log(`✅ Réponse API reçue:`, data?.length || 'non-array');
+    if (import.meta.env.DEV) {
+      console.log(`✅ Réponse API reçue:`, data?.length || 'non-array');
+    }
     return data;
   } catch (error) {
-    console.error(`❌ Erreur API pour ${endpoint}:`, error.message);
+    if (import.meta.env.DEV) {
+      console.error(`❌ Erreur API pour ${endpoint}:`, error.message);
+    }
     throw error;
   }
 };
 
-// API d'authentification
 export const authAPI = {
-  login: async (username, password) => {
-    return request('/auth/login', {
+  login: async (email, password) =>
+    request('/auth/login', {
       method: 'POST',
-      body: { username, password },
-    });
-  },
+      body: { email, password },
+    }),
+  forgotPassword: async (email) =>
+    request('/auth/forgot-password', {
+      method: 'POST',
+      body: { email },
+    }),
+  resetPassword: async (token, password) =>
+    request('/auth/reset-password', {
+      method: 'POST',
+      body: { token, password },
+    }),
 };
 
-// API des œuvres
 export const worksAPI = {
   getAll: async (type = null) => {
     const query = type ? `?type=${type}` : '';
     return request(`/works${query}`);
   },
-  
-  getById: async (id) => {
-    return request(`/works/${id}`);
-  },
-  
-  create: async (work) => {
-    return request('/works', {
+
+  getById: async (id) => request(`/works/${id}`),
+
+  create: async (work) =>
+    request('/works', {
       method: 'POST',
       body: work,
-    });
-  },
-  
-  update: async (id, updates) => {
-    return request(`/works/${id}`, {
+    }),
+
+  update: async (id, updates) =>
+    request(`/works/${id}`, {
       method: 'PUT',
       body: updates,
-    });
-  },
-  
-  delete: async (id) => {
-    return request(`/works/${id}`, {
+    }),
+
+  delete: async (id) =>
+    request(`/works/${id}`, {
       method: 'DELETE',
-    });
-  },
+    }),
 };
 
-// API des contacts
 export const contactsAPI = {
-  create: async (contact) => {
-    return request('/contacts', {
+  create: async (contact) =>
+    request('/contacts', {
       method: 'POST',
       body: contact,
-    });
-  },
-  
-  getAll: async () => {
-    return request('/contacts');
-  },
-  
-  markAsRead: async (id) => {
-    return request(`/contacts/${id}/read`, {
+    }),
+
+  getAll: async () => request('/contacts'),
+
+  getSummary: async () => request('/contacts/summary'),
+
+  markAsRead: async (id) =>
+    request(`/contacts/${id}/read`, {
       method: 'PUT',
-    });
-  },
-  
-  reply: async (id, replyData) => {
-    return request(`/contacts/${id}/reply`, {
+    }),
+
+  reply: async (id, replyData) =>
+    request(`/contacts/${id}/reply`, {
       method: 'POST',
       body: replyData,
-    });
-  },
-  
-  delete: async (id) => {
-    return request(`/contacts/${id}`, {
+    }),
+
+  delete: async (id) =>
+    request(`/contacts/${id}`, {
       method: 'DELETE',
-    });
-  },
+    }),
 };
 
-// API des informations artiste
 export const artistAPI = {
-  get: async () => {
-    return request('/artist');
-  },
-  
-  update: async (data) => {
-    return request('/artist', {
+  get: async () => request('/artist'),
+
+  update: async (data) =>
+    request('/artist', {
       method: 'PUT',
       body: data,
-    });
-  },
+    }),
 };
 
-// API des informations de contact
 export const contactInfoAPI = {
-  get: async () => {
-    return request('/contact-info');
-  },
-  
-  update: async (data) => {
-    return request('/contact-info', {
+  get: async () => request('/contact-info'),
+
+  update: async (data) =>
+    request('/contact-info', {
       method: 'PUT',
       body: data,
-    });
-  },
+    }),
 };
 
-// API des paramètres du site
 export const uploadAPI = {
   uploadImage: async (file, folder = 'uploads') => {
     const formData = new FormData();
@@ -188,16 +194,13 @@ export const galleryCategoriesAPI = {
 };
 
 export const siteSettingsAPI = {
-  get: async () => {
-    return request('/site-settings');
-  },
+  get: async () => request('/site-settings'),
 
-  update: async (data) => {
-    return request('/site-settings', {
+  update: async (data) =>
+    request('/site-settings', {
       method: 'PUT',
       body: data,
-    });
-  },
+    }),
 
   getWebsiteQr: async (url) => {
     const q = url?.trim() ? `?url=${encodeURIComponent(url.trim())}` : '';
@@ -212,4 +215,20 @@ export const themePalettesAPI = {
   listHistory: () => request('/theme-palettes/history'),
   deleteHistory: (id) => request(`/theme-palettes/history/${id}`, { method: 'DELETE' }),
   clearHistory: () => request('/theme-palettes/history', { method: 'DELETE' }),
+};
+
+export const analyticsAPI = {
+  getStats: () => request('/analytics/stats'),
+};
+
+export const smtpAPI = {
+  getStatus: () => request('/smtp/status'),
+  update: (body) => request('/smtp', { method: 'PUT', body }),
+  createSetupLink: () => request('/smtp/setup-link', { method: 'POST', body: {} }),
+  validateSetupToken: (token) => request(`/smtp/setup/${encodeURIComponent(token)}`),
+  completeSetup: (token, body) =>
+    request(`/smtp/setup/${encodeURIComponent(token)}`, {
+      method: 'POST',
+      body,
+    }),
 };

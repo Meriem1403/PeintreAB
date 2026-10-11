@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
+import { DEFAULT_NAV_LABELS, normalizeNavLabels } from '../constants/navLabels';
 import { siteSettingsAPI } from '../utils/apiService';
 
 const DEFAULT_THEME = {
@@ -9,6 +10,7 @@ const DEFAULT_THEME = {
 
 const ThemeContext = createContext({
   theme: DEFAULT_THEME,
+  navLabels: DEFAULT_NAV_LABELS,
   loading: true,
   refreshTheme: async () => {},
 });
@@ -37,6 +39,7 @@ const hexToRgb = (hex) => {
 
 export const ThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState(DEFAULT_THEME);
+  const [navLabels, setNavLabels] = useState(DEFAULT_NAV_LABELS);
   const [loading, setLoading] = useState(true);
 
   const refreshTheme = async () => {
@@ -48,10 +51,12 @@ export const ThemeProvider = ({ children }) => {
         navbar_color: settings.navbar_color || DEFAULT_THEME.navbar_color,
       };
       setTheme(nextTheme);
+      setNavLabels(normalizeNavLabels(settings));
       applyThemeToDocument(nextTheme);
     } catch (error) {
       console.error('Erreur chargement thème:', error);
       applyThemeToDocument(DEFAULT_THEME);
+      setNavLabels(DEFAULT_NAV_LABELS);
     } finally {
       setLoading(false);
     }
@@ -63,7 +68,7 @@ export const ThemeProvider = ({ children }) => {
   }, []);
 
   return (
-    <ThemeContext.Provider value={{ theme, loading, refreshTheme }}>
+    <ThemeContext.Provider value={{ theme, navLabels, loading, refreshTheme }}>
       {children}
     </ThemeContext.Provider>
   );

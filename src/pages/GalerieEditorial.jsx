@@ -5,12 +5,13 @@ import { galleryPath } from '../constants/galleryRoutes';
 import { useGalleryCategories } from '../contexts/GalleryCategoriesContext';
 import GalerieClassicBody from './galerie/GalerieClassicBody';
 import { useGaleriePage } from './galerie/useGaleriePage';
+import Seo from '../components/Seo';
 import './Galerie.css';
 import './galerie-editorial.css';
 
 const GalerieEditorial = () => {
   const reduceMotion = useReducedMotion();
-  const { defaultSlug } = useGalleryCategories();
+  const { defaultSlug, isEventsSlug } = useGalleryCategories();
   const {
     activeCategory,
     activeCategoryLead,
@@ -36,8 +37,20 @@ const GalerieEditorial = () => {
     return <Navigate to={galleryPath(defaultSlug)} replace />;
   }
 
+  const categoryMeta = galleryCategories.find((c) => c.id === activeCategory);
+  const categoryLabel = categoryMeta?.label || activeCategory;
+  const galeriePath = `/galerie/${activeCategory}`;
+
   return (
     <div className="gallery-v2">
+      <Seo
+        title={`${categoryLabel} — Galerie`}
+        description={
+          activeCategoryLead ||
+          `Découvrez la collection ${categoryLabel} d’Alexandre Bindl, artiste peintre.`
+        }
+        path={galeriePath}
+      />
       <div className="gallery-v2__intro">
         <header className="gallery-v2__hero">
           <div className="gallery-v2__hero-inner">
@@ -78,6 +91,7 @@ const GalerieEditorial = () => {
           onPageChange={handlePageChange}
           getPageNumbers={getPageNumbers}
           refinedCards
+          isEventCategory={isEventsSlug(activeCategory)}
         />
       </div>
     </div>

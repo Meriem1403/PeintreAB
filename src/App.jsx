@@ -5,6 +5,7 @@ import { WorksProvider } from './contexts/WorksContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import Navbar from './components/Navbar';
+import SiteVisitTracker from './components/SiteVisitTracker';
 import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 import Galerie from './pages/Galerie';
@@ -14,6 +15,9 @@ import Privacy from './pages/Privacy';
 import WorkDetail from './pages/WorkDetail';
 import Admin from './pages/Admin';
 import Login from './pages/Login';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import SetupSmtpPage from './pages/SetupSmtpPage';
 import NotFound from './pages/NotFound';
 import TicketPage from './pages/TicketPage';
 import LeadCapturePage from './pages/LeadCapturePage';
@@ -30,6 +34,7 @@ function App() {
               <Router>
                 <div className="app">
                   <Navbar />
+                  <SiteVisitTracker />
                   <ErrorBoundary>
                     <Routes>
                       <Route path="/" element={<Home />} />
@@ -40,6 +45,9 @@ function App() {
                       <Route path="/contact" element={<Contact />} />
                       <Route path="/confidentialite" element={<Privacy />} />
                       <Route path="/login" element={<Login />} />
+                      <Route path="/forgot-password" element={<ForgotPassword />} />
+                      <Route path="/reset-password" element={<ResetPassword />} />
+                      <Route path="/configurer-email" element={<SetupSmtpPage />} />
                       <Route path="/billet/:code" element={<TicketPage />} />
                       <Route path="/rejoindre" element={<LeadCapturePage />} />
                       <Route

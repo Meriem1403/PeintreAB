@@ -98,6 +98,10 @@
   display: none;
 }
 
+.site-bottom-nav {
+  display: none;
+}
+
 @media (max-width: 968px) {
   .navbar {
     padding: 1rem max(1rem, env(safe-area-inset-right, 0px)) 1rem
@@ -159,5 +163,97 @@
     background: rgba(0, 0, 0, 0.35);
     z-index: var(--z-navbar, 1000);
     cursor: pointer;
+  }
+}
+
+/* Téléphone : barre d’onglets en bas (essai) */
+@media (max-width: 640px) {
+  .app {
+    --site-bottom-nav-h: calc(3.75rem + env(safe-area-inset-bottom, 0px));
+    padding-bottom: var(--site-bottom-nav-h);
+  }
+
+  /* Accueil Atelier : le hero se réduit déjà à la barre — pas de padding .app */
+  .app:has(.home-atelier) {
+    padding-bottom: 0;
+  }
+
+  .navbar-toggle {
+    display: none;
+  }
+
+  .navbar-menu,
+  .navbar-menu.open {
+    display: none;
+  }
+
+  .navbar-overlay {
+    display: none !important;
+  }
+
+  .site-bottom-nav {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: calc(var(--z-navbar, 1000) + 20);
+    height: var(--site-bottom-nav-h);
+    padding: 0.3rem 0.2rem calc(0.3rem + env(safe-area-inset-bottom, 0px));
+    background: color-mix(in srgb, var(--color-navbar) 96%, #000 4%);
+    border-top: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 -10px 28px rgba(0, 0, 0, 0.14);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  .site-bottom-nav__item {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.18rem;
+    padding: 0.2rem 0.1rem;
+    color: rgba(255, 255, 255, 0.62);
+    text-decoration: none;
+    font-size: 0.6rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    -webkit-tap-highlight-color: transparent;
+    transition: color 0.2s ease;
+  }
+
+  .site-bottom-nav__item svg {
+    width: 1.3rem;
+    height: 1.3rem;
+    stroke-width: 1.75;
+  }
+
+  .site-bottom-nav__item span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .site-bottom-nav__item.is-active {
+    color: #ffffff;
+  }
+
+  .site-bottom-nav__item.is-active svg {
+    stroke-width: 2.15;
+  }
+
+  body.exhibition-mode .site-bottom-nav,
+  body.exhibition-mode.exhibition-mode--scroll .site-bottom-nav {
+    display: none;
+  }
+
+  body.exhibition-mode .app,
+  body.exhibition-mode.exhibition-mode--scroll .app {
+    padding-bottom: 0;
   }
 }

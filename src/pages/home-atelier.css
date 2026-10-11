@@ -30,8 +30,10 @@ body:has(.home-atelier) {
   --atelier-line: rgba(20, 17, 15, 0.18);
   --atelier-gold: var(--color-primary, #c6ac8f);
   --atelier-gold-dark: #7a6348;
-  --atelier-viewport-h: calc(100dvh - 4.75rem);
+  --atelier-viewport-h: calc(100dvh - var(--atelier-chrome-h, var(--atelier-nav-h, 4.75rem)));
   --atelier-nav-h: 4.75rem;
+  --atelier-bottom-nav-h: 0px;
+  --atelier-chrome-h: var(--atelier-nav-h);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -117,11 +119,11 @@ section.atelier-snap-panel:not(.atelier-hero):last-of-type {
   background: #1a1816;
   flex: 0 0 auto;
   flex-shrink: 0;
-  /* Hauteur fenêtre − navbar ; le style inline React renforce en px */
-  min-height: calc(100vh - var(--atelier-nav-h, 4.75rem));
-  min-height: calc(100dvh - var(--atelier-nav-h, 4.75rem));
-  height: calc(100vh - var(--atelier-nav-h, 4.75rem));
-  height: calc(100dvh - var(--atelier-nav-h, 4.75rem));
+  /* Hauteur fenêtre − chrome (navbar + barre téléphone) ; style inline React en px */
+  min-height: calc(100vh - var(--atelier-chrome-h, var(--atelier-nav-h, 4.75rem)));
+  min-height: calc(100dvh - var(--atelier-chrome-h, var(--atelier-nav-h, 4.75rem)));
+  height: calc(100vh - var(--atelier-chrome-h, var(--atelier-nav-h, 4.75rem)));
+  height: calc(100dvh - var(--atelier-chrome-h, var(--atelier-nav-h, 4.75rem)));
   max-height: none;
 }
 
@@ -232,6 +234,21 @@ section.atelier-snap-panel:not(.atelier-hero):last-of-type {
   margin: 0 auto;
   padding: clamp(3rem, 10vh, 6rem) clamp(1.25rem, 4vw, 2.5rem) clamp(2rem, 5vh, 3.5rem);
   pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  .atelier-hero__inner {
+    padding-top: clamp(2rem, 8vh, 4rem);
+    padding-bottom: clamp(1.25rem, 3.5vh, 2rem);
+  }
+
+  .atelier-hero__title {
+    font-size: clamp(2.35rem, 11vw, 3.25rem);
+  }
+
+  .atelier-hero__lead {
+    font-size: 0.95rem;
+  }
 }
 
 @media (min-width: 969px) {
@@ -807,6 +824,13 @@ section.atelier-snap-panel:not(.atelier-hero):last-of-type {
   box-shadow: 0 18px 40px rgba(20, 17, 15, 0.12);
 }
 
+.atelier-event-card--highlight .atelier-event-card__shell:hover {
+  border-color: var(--event-hl, #e07a5f);
+  box-shadow:
+    0 0 0 1px rgba(var(--event-hl-rgb), 0.45),
+    0 18px 42px rgba(var(--event-hl-rgb), 0.3);
+}
+
 .atelier-event-card__hit {
   width: 100%;
   flex: 1 1 auto;
@@ -859,13 +883,75 @@ section.atelier-snap-panel:not(.atelier-hero):last-of-type {
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  background: rgba(20, 17, 15, 0.88);
-  color: #faf6f0;
+  background: rgba(250, 246, 240, 0.94);
+  color: var(--atelier-ink, #14110f);
+  border: 1px solid rgba(184, 149, 106, 0.45);
+  box-shadow: 0 2px 10px rgba(20, 17, 15, 0.12);
+}
+
+.atelier-event-card__status,
+.atelier-event-card__status--soon,
+.atelier-event-card__status--custom,
+.atelier-event-card__status--default {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: #8a6a3d;
+  color: #fffaf3;
+  border: none;
+  box-shadow: 0 2px 10px rgba(20, 17, 15, 0.2);
+}
+
+.atelier-event-card__status--live {
+  background: #c45c3e;
+  color: #fffaf3;
+}
+
+.atelier-event-card__status--soon {
+  background: #e07a5f;
+  color: #fffaf3;
+}
+
+.atelier-event-card__status--past {
+  background: #6b6560;
+  color: #f5f5f4;
+}
+
+.atelier-event-card--highlight .atelier-event-card__shell {
+  position: relative;
+  border-width: 2px;
+  border-color: var(--event-hl, #e07a5f);
+  background: var(--event-hl-soft, #ffece6);
+  box-shadow:
+    0 0 0 1px rgba(var(--event-hl-rgb), 0.4),
+    0 14px 36px rgba(var(--event-hl-rgb), 0.24);
+}
+
+.atelier-event-card--highlight .atelier-event-card__shell::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  z-index: 2;
+  pointer-events: none;
+  background: var(--event-hl, #e07a5f);
+}
+
+.atelier-event-card--highlight .atelier-event-card__tag {
+  color: var(--event-hl, #e07a5f);
 }
 
 .atelier-event-card__body {
   flex-shrink: 0;
   padding: 1rem 1rem 1.1rem;
+  background: #fff;
 }
 
 .atelier-event-card__tag {
@@ -922,6 +1008,12 @@ section.atelier-snap-panel:not(.atelier-hero):last-of-type {
 .atelier-event-card__footer {
   flex-shrink: 0;
   padding: 0 1rem 1rem;
+  background: #fff;
+}
+
+.atelier-event-card--highlight .atelier-event-card__body,
+.atelier-event-card--highlight .atelier-event-card__footer {
+  background: var(--event-hl-soft, #ffece6);
 }
 
 .atelier-event-card__participate {
@@ -933,23 +1025,24 @@ section.atelier-snap-panel:not(.atelier-hero):last-of-type {
   padding: 0.65rem 1rem;
   border: none;
   border-radius: 999px;
-  background: var(--atelier-ink, #14110f);
-  color: #faf6f0;
+  background: #7a6348;
+  color: #fffaf3;
   font: inherit;
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.04em;
   cursor: pointer;
   transition: background 0.2s ease, transform 0.15s ease;
 }
 
 .atelier-event-card__participate:hover {
-  background: var(--atelier-gold-dark, #7a6348);
+  background: #5c4a36;
+  color: #fffaf3;
   transform: translateY(-1px);
 }
 
 .atelier-event-card__participate:focus-visible {
-  outline: 2px solid var(--atelier-gold-dark);
+  outline: 2px solid #7a6348;
   outline-offset: 2px;
 }
 
@@ -1074,6 +1167,15 @@ section.atelier-snap-panel:not(.atelier-hero):last-of-type {
   padding: clamp(3.5rem, 8vh, 5.5rem) 0 clamp(1.75rem, 4vh, 2.5rem);
   background: linear-gradient(165deg, #0a0908 0%, #14110f 42%, #1c1814 100%);
   color: #ece5da;
+}
+
+/* Téléphone : laisser la place à la barre d’onglets (bouton « Retour en haut ») */
+@media (max-width: 640px) {
+  .atelier-footer {
+    padding-bottom: calc(
+      var(--site-bottom-nav-h, calc(3.75rem + env(safe-area-inset-bottom, 0px))) + 1.25rem
+    );
+  }
 }
 
 .atelier-footer__glow {

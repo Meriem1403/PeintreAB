@@ -234,13 +234,6 @@ const ThemeSettingsForm = () => {
 
   return (
     <form className="theme-settings-form app-form app-form-panel" onSubmit={handleSubmit}>
-      <h2>Couleurs de l&apos;application</h2>
-      <p className="theme-settings-intro app-form-intro">
-        Ces couleurs sont appliquées sur tout le site (boutons, navigation, accents, particules).
-        Enregistrez des palettes favorites pour les réutiliser, et consultez l’historique des
-        changements appliqués au site.
-      </p>
-
       <div className="theme-color-grid">
         <label className="theme-color-field">
           <span>Couleur principale</span>

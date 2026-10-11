@@ -2,10 +2,12 @@ User-agent: *
 Allow: /
 
 # Sitemap
-# ⚠️ IMPORTANT : Remplacez VOTRE_DOMAINE_OU_IP par votre URL réelle
-Sitemap: http://VOTRE_DOMAINE_OU_IP/sitemap.xml
+Sitemap: https://VOTRE_DOMAINE/sitemap.xml
 
-# Bloquer l'admin et les API
+# Zones privées
 Disallow: /admin
+Disallow: /admin/
 Disallow: /api/
 Disallow: /login
+Disallow: /billet/
+Disallow: /rejoindre

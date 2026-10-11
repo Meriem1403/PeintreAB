@@ -64,9 +64,22 @@ export function useHomeFeatured({ measureNavForClassic = false, measureNavForAte
   useEffect(() => {
     if (!measureNavForClassic && !measureNavForAtelier) return undefined;
 
+    let lastHeroPx = -1;
+    let lastNavPx = -1;
+    let lastBottomPx = -1;
+    let debounceId = 0;
+
     const measureNav = () => {
       const nav = document.querySelector('.navbar');
-      const navPx = nav ? Math.ceil(nav.getBoundingClientRect().height) : 76;
+      const bottomNav = document.querySelector('.site-bottom-nav');
+      const navPx = nav ? Math.round(nav.getBoundingClientRect().height) : 76;
+      const bottomVisible =
+        bottomNav &&
+        window.getComputedStyle(bottomNav).display !== 'none' &&
+        bottomNav.getBoundingClientRect().height > 0;
+      const bottomPx = bottomVisible
+        ? Math.round(bottomNav.getBoundingClientRect().height)
+        : 0;
       const offset = `${navPx}px`;
       const root = homeRef.current;
 
@@ -76,37 +89,65 @@ export function useHomeFeatured({ measureNavForClassic = false, measureNavForAte
       }
 
       if (measureNavForAtelier) {
-        /* Hauteur hero = fenêtre moins navbar (jamais height:auto du snap-panel) */
-        const heroPx = Math.max(280, Math.round(window.innerHeight - navPx));
-        const heroValue = `${heroPx}px`;
+        /* Prefer visualViewport (évite le thrash de la barre d’URL mobile) */
+        const viewportH = Math.round(
+          window.visualViewport?.height || window.innerHeight
+        );
+        const heroPx = Math.max(280, viewportH - navPx - bottomPx);
+        /* Ignore les micro-variations (±2px) qui font clignoter les canvas */
+        const heroStable =
+          lastHeroPx < 0 || Math.abs(heroPx - lastHeroPx) >= 3;
+        const chromeStable =
+          navPx !== lastNavPx || bottomPx !== lastBottomPx;
 
-        setHeroViewportPx(heroPx);
+        if (!heroStable && !chromeStable) return;
+
+        lastHeroPx = heroPx;
+        lastNavPx = navPx;
+        lastBottomPx = bottomPx;
+
+        const heroValue = `${heroPx}px`;
+        const chromePx = `${navPx + bottomPx}px`;
+
+        setHeroViewportPx((prev) => (prev === heroPx ? prev : heroPx));
         document.documentElement.style.setProperty('--atelier-nav-h', offset);
+        document.documentElement.style.setProperty('--atelier-bottom-nav-h', `${bottomPx}px`);
+        document.documentElement.style.setProperty('--atelier-chrome-h', chromePx);
         document.documentElement.style.setProperty('--atelier-viewport-h', heroValue);
         root?.style.setProperty('--atelier-nav-h', offset);
+        root?.style.setProperty('--atelier-bottom-nav-h', `${bottomPx}px`);
+        root?.style.setProperty('--atelier-chrome-h', chromePx);
         root?.style.setProperty('--atelier-viewport-h', heroValue);
       }
     };
 
+    const scheduleMeasure = () => {
+      window.clearTimeout(debounceId);
+      debounceId = window.setTimeout(measureNav, 80);
+    };
+
     measureNav();
     const raf = requestAnimationFrame(measureNav);
-    const t1 = window.setTimeout(measureNav, 50);
-    const t2 = window.setTimeout(measureNav, 250);
+    const t1 = window.setTimeout(measureNav, 120);
 
     const nav = document.querySelector('.navbar');
-    const navObserver = nav ? new ResizeObserver(measureNav) : null;
-    if (nav && navObserver) navObserver.observe(nav);
+    const bottomNav = document.querySelector('.site-bottom-nav');
+    const navObserver = new ResizeObserver(scheduleMeasure);
+    if (nav) navObserver.observe(nav);
+    if (bottomNav) navObserver.observe(bottomNav);
 
-    window.addEventListener('resize', measureNav);
-    window.addEventListener('orientationchange', measureNav);
+    window.addEventListener('resize', scheduleMeasure);
+    window.addEventListener('orientationchange', scheduleMeasure);
+    window.visualViewport?.addEventListener('resize', scheduleMeasure);
 
     return () => {
       cancelAnimationFrame(raf);
       window.clearTimeout(t1);
-      window.clearTimeout(t2);
-      navObserver?.disconnect();
-      window.removeEventListener('resize', measureNav);
-      window.removeEventListener('orientationchange', measureNav);
+      window.clearTimeout(debounceId);
+      navObserver.disconnect();
+      window.removeEventListener('resize', scheduleMeasure);
+      window.removeEventListener('orientationchange', scheduleMeasure);
+      window.visualViewport?.removeEventListener('resize', scheduleMeasure);
     };
   }, [measureNavForClassic, measureNavForAtelier]);
 

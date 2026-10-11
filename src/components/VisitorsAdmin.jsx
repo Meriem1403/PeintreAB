@@ -13,8 +13,10 @@ import {
   FiUsers,
   FiTrendingUp,
   FiEdit3,
+  FiEye,
+  FiActivity,
 } from 'react-icons/fi';
-import { eventsAPI } from '../utils/apiService';
+import { analyticsAPI, eventsAPI } from '../utils/apiService';
 import { useWorks } from '../contexts/WorksContext';
 import { formatDurationLabel, isEventPast } from '../utils/eventDates';
 import { adminTabPath } from '../constants/adminRoutes';
@@ -217,6 +219,8 @@ const VisitorsAdmin = () => {
   const [contactSearch, setContactSearch] = useState('');
   const [guestsPage, setGuestsPage] = useState(1);
   const [contactsPage, setContactsPage] = useState(1);
+  const [siteStats, setSiteStats] = useState(null);
+  const [siteStatsLoading, setSiteStatsLoading] = useState(false);
 
   const selectedEvent = useMemo(
     () => events.find((ev) => String(ev.id) === String(selectedEventId)),
@@ -345,9 +349,23 @@ const VisitorsAdmin = () => {
     }
   }, []);
 
+  const loadSiteStats = useCallback(async () => {
+    setSiteStatsLoading(true);
+    try {
+      const data = await analyticsAPI.getStats();
+      setSiteStats(data);
+    } catch (err) {
+      console.error(err);
+      setSiteStats(null);
+    } finally {
+      setSiteStatsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     loadVisitors();
-  }, [loadVisitors]);
+    loadSiteStats();
+  }, [loadVisitors, loadSiteStats]);
 
   useEffect(() => {
     if (events.length > 0 && !selectedEventId) {
@@ -1045,6 +1063,53 @@ const VisitorsAdmin = () => {
 
         {activeTab === 'contacts' && (
           <section className="vdash-panel">
+            <div className="vdash-metric-row vdash-metric-row--traffic" aria-label="Trafic du site">
+              <article className="vdash-metric vdash-metric--ok">
+                <span className="vdash-metric__icon" aria-hidden>
+                  <FiEye />
+                </span>
+                <div>
+                  <span className="vdash-metric__value">
+                    {siteStatsLoading ? '…' : siteStats?.totalVisitors ?? 0}
+                  </span>
+                  <span className="vdash-metric__label">Visiteurs du site (total)</span>
+                </div>
+              </article>
+              <article className="vdash-metric">
+                <span className="vdash-metric__icon" aria-hidden>
+                  <FiActivity />
+                </span>
+                <div>
+                  <span className="vdash-metric__value">
+                    {siteStatsLoading ? '…' : siteStats?.todayVisitors ?? 0}
+                  </span>
+                  <span className="vdash-metric__label">Visiteurs aujourd’hui</span>
+                </div>
+              </article>
+              <article className="vdash-metric vdash-metric--wait">
+                <span className="vdash-metric__icon" aria-hidden>
+                  <FiTrendingUp />
+                </span>
+                <div>
+                  <span className="vdash-metric__value">
+                    {siteStatsLoading ? '…' : siteStats?.weekVisitors ?? 0}
+                  </span>
+                  <span className="vdash-metric__label">Visiteurs sur 7 jours</span>
+                </div>
+              </article>
+              <article className="vdash-metric">
+                <span className="vdash-metric__icon" aria-hidden>
+                  <FiUsers />
+                </span>
+                <div>
+                  <span className="vdash-metric__value">
+                    {siteStatsLoading ? '…' : siteStats?.totalPageViews ?? 0}
+                  </span>
+                  <span className="vdash-metric__label">Pages vues (total)</span>
+                </div>
+              </article>
+            </div>
+
             <div className="vdash-toolbar vdash-toolbar--spread">
               <div className="vdash-search">
                 <FiSearch aria-hidden />
@@ -1056,7 +1121,14 @@ const VisitorsAdmin = () => {
                   aria-label="Rechercher un contact"
                 />
               </div>
-              <button type="button" className="vdash-btn vdash-btn--soft" onClick={loadVisitors}>
+              <button
+                type="button"
+                className="vdash-btn vdash-btn--soft"
+                onClick={() => {
+                  loadVisitors();
+                  loadSiteStats();
+                }}
+              >
                 <FiRefreshCw aria-hidden />
                 Actualiser
               </button>

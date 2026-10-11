@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes.js';
 import workRoutes from './routes/workRoutes.js';
@@ -11,28 +12,71 @@ import uploadRoutes from './routes/uploadRoutes.js';
 import eventRoutes from './routes/eventRoutes.js';
 import galleryCategoryRoutes from './routes/galleryCategoryRoutes.js';
 import themePaletteRoutes from './routes/themePaletteRoutes.js';
-import pool from './config/database.js';
+import analyticsRoutes from './routes/analyticsRoutes.js';
+import smtpRoutes from './routes/smtpRoutes.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { getJwtSecret, isProduction } from './utils/security.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.resolve(__dirname, '../public');
 
 dotenv.config();
 
+try {
+  getJwtSecret();
+} catch (error) {
+  console.error(`❌ ${error.message}`);
+  process.exit(1);
+}
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors({
-  origin: process.env.FRONTEND_URL ? [process.env.FRONTEND_URL, 'http://localhost:5173'] : 'http://localhost:5173',
-  credentials: true,
-}));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+if (isProduction()) {
+  app.set('trust proxy', 1);
+}
+
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    contentSecurityPolicy: false,
+  })
+);
+
+const frontendUrl = (process.env.FRONTEND_URL || '').replace(/\/$/, '');
+const corsOrigins = isProduction()
+  ? frontendUrl
+    ? [frontendUrl]
+    : []
+  : [
+      frontendUrl || 'http://localhost:5173',
+      'http://localhost:5173',
+      'http://127.0.0.1:5173',
+    ].filter(Boolean);
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || corsOrigins.length === 0) {
+        if (isProduction() && corsOrigins.length === 0) {
+          return callback(new Error('FRONTEND_URL manquant en production'));
+        }
+        return callback(null, true);
+      }
+      if (corsOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error('Origine CORS non autorisée'));
+    },
+    credentials: true,
+  })
+);
+
+app.use(express.json({ limit: '100kb' }));
+app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 app.use('/images', express.static(path.join(publicDir, 'images')));
 
-// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/works', workRoutes);
 app.use('/api/contacts', contactRoutes);
@@ -43,29 +87,21 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/gallery-categories', galleryCategoryRoutes);
 app.use('/api/theme-palettes', themePaletteRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/smtp', smtpRoutes);
 
-// Route de santé
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'API fonctionnelle' });
 });
 
-// Test de connexion à la base de données
-app.get('/api/test-db', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT NOW()');
-    res.json({ status: 'OK', database: 'Connecté', time: result.rows[0].now });
-  } catch (error) {
-    res.status(500).json({ status: 'ERROR', database: 'Non connecté', error: error.message });
-  }
-});
-
-// Gestion des erreurs
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error(err.stack || err.message || err);
+  if (err.message === 'Origine CORS non autorisée') {
+    return res.status(403).json({ error: 'Origine non autorisée' });
+  }
   res.status(500).json({ error: 'Erreur serveur' });
 });
 
-// Démarrage du serveur
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Serveur backend démarré sur le port ${PORT}`);
   console.log(`📡 API disponible sur http://localhost:${PORT}/api`);

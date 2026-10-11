@@ -5,6 +5,7 @@ import {
   buildContactNotificationEmail,
   buildEventInvitationEmail,
   buildEventTicketEmail,
+  buildPasswordResetEmail,
   buildQrBlock,
   buildReplyEmail,
   buildWorkInfoBlock,
@@ -12,61 +13,90 @@ import {
 
 dotenv.config();
 
-const emailHost = process.env.EMAIL_HOST || 'smtp.gmail.com';
-const emailPort = parseInt(process.env.EMAIL_PORT || '587', 10);
-const isLocalMail =
-  emailHost === 'mailpit' ||
-  emailHost === 'localhost' ||
-  process.env.EMAIL_MODE === 'dev';
+let transporter = null;
+let activeFrom = process.env.EMAIL_FROM || process.env.EMAIL_USER || 'noreply@peintreab.local';
+let activeIsLocalMail = true;
 
-const emailPasswordRaw = process.env.EMAIL_PASSWORD || '';
-const emailPassword = emailPasswordRaw.replace(/\s+/g, '');
+const buildEnvConfig = () => {
+  const host = process.env.EMAIL_HOST || 'smtp.gmail.com';
+  const port = parseInt(process.env.EMAIL_PORT || '587', 10);
+  const isLocalMail =
+    host === 'mailpit' || host === 'localhost' || process.env.EMAIL_MODE === 'dev';
+  const password = String(process.env.EMAIL_PASSWORD || '').replace(/\s+/g, '');
+  const user = process.env.EMAIL_USER || '';
+  const from = process.env.EMAIL_FROM || user || 'noreply@peintreab.local';
 
-const transporterConfig = {
-  host: emailHost,
-  port: emailPort,
-  secure: emailPort === 465,
-  tls: {
-    rejectUnauthorized: false,
-  },
+  const config = {
+    host,
+    port,
+    secure: port === 465,
+    tls: { rejectUnauthorized: !isLocalMail },
+  };
+  if (user && password) {
+    config.auth = { user, pass: password };
+  } else if (user && !password && !isLocalMail) {
+    console.warn(
+      '⚠️ EMAIL_PASSWORD manquant — configurez Gmail via /admin/email-smtp ou le lien sécurisé'
+    );
+  }
+  return { config, from, isLocalMail, host, port };
 };
 
-if (process.env.EMAIL_USER && emailPassword) {
-  transporterConfig.auth = {
-    user: process.env.EMAIL_USER,
-    pass: emailPassword,
-  };
-} else if (process.env.EMAIL_USER && !emailPassword && !isLocalMail) {
-  console.warn(
-    '⚠️ EMAIL_PASSWORD manquant — envoi SMTP impossible (hors Mailpit sans auth).'
-  );
-}
+const applyTransport = ({ config, from, isLocalMail, host, port }) => {
+  transporter = nodemailer.createTransport(config);
+  activeFrom = from;
+  activeIsLocalMail = isLocalMail;
 
-const transporter = nodemailer.createTransport(transporterConfig);
+  transporter.verify((error) => {
+    if (error) {
+      console.log('⚠️ Configuration email non disponible:', error.message);
+      if (isLocalMail) {
+        console.log('📧 Vérifiez que Mailpit est démarré (docker compose up mailpit)');
+      }
+    } else if (isLocalMail) {
+      console.log(`✅ SMTP ${host}:${port} (Mailpit) — http://localhost:8025`);
+    } else {
+      console.log(`✅ SMTP ${host}:${port} — expéditeur ${from}`);
+    }
+  });
+};
 
-transporter.verify((error) => {
-  if (error) {
-    console.log('⚠️ Configuration email non disponible:', error.message);
-    if (isLocalMail) {
-      console.log('📧 Vérifiez que le service Mailpit est démarré (docker compose up mailpit)');
-    } else {
-      console.log('📧 Le service de mailing nécessite EMAIL_USER et EMAIL_PASSWORD dans .env');
+/** Recharge le transporteur : DB (config artiste) prioritaire, sinon .env / Mailpit. */
+export const reloadMailTransport = async () => {
+  try {
+    const { getDecryptedSmtpConfig } = await import('../controllers/smtpController.js');
+    const dbConfig = await getDecryptedSmtpConfig();
+    if (dbConfig?.user && dbConfig?.pass) {
+      applyTransport({
+        config: {
+          host: dbConfig.host,
+          port: dbConfig.port,
+          secure: dbConfig.port === 465,
+          auth: { user: dbConfig.user, pass: dbConfig.pass },
+          tls: { rejectUnauthorized: true },
+        },
+        from: dbConfig.from || dbConfig.user,
+        isLocalMail: false,
+        host: dbConfig.host,
+        port: dbConfig.port,
+      });
+      return;
     }
-  } else {
-    const from = process.env.EMAIL_FROM || process.env.EMAIL_USER || 'noreply@peintreab.local';
-    if (isLocalMail) {
-      console.log(`✅ SMTP ${emailHost}:${emailPort} (Mailpit) — boîte web http://localhost:8025`);
-      console.log(`   Les emails ne partent PAS vers de vraies adresses tant que EMAIL_HOST=mailpit.`);
-    } else {
-      console.log(`✅ SMTP ${emailHost}:${emailPort} — expéditeur ${from}`);
-    }
+  } catch (error) {
+    console.warn('⚠️ Lecture SMTP DB:', error.message);
   }
-});
+  applyTransport(buildEnvConfig());
+};
+
+// Init async (env d’abord, puis DB si dispo)
+applyTransport(buildEnvConfig());
+reloadMailTransport().catch(() => {});
 
 export const sendEmail = async ({ to, subject, text, html }) => {
   try {
+    if (!transporter) await reloadMailTransport();
     const mailOptions = {
-      from: process.env.EMAIL_FROM || process.env.EMAIL_USER || 'noreply@peintreab.local',
+      from: activeFrom,
       to,
       subject,
       text,
@@ -76,24 +106,34 @@ export const sendEmail = async ({ to, subject, text, html }) => {
     const info = await transporter.sendMail(mailOptions);
     console.log('📧 Email envoyé avec succès:', info.messageId);
     console.log('   Destinataire:', to);
-    if (isLocalMail) {
+    if (activeIsLocalMail) {
       console.log('   Interface Mailpit: http://localhost:8025');
     }
     return { success: true, messageId: info.messageId };
   } catch (error) {
-    console.error('❌ Erreur lors de l\'envoi de l\'email:', error.message);
+    console.error("❌ Erreur lors de l'envoi de l'email:", error.message);
     if (error.message.includes('Application-specific password')) {
-      console.error('⚠️ Gmail nécessite un "App Password". Vérifiez votre configuration.');
+      console.error('⚠️ Mot de passe d’application Gmail invalide ou manquant.');
     }
     throw error;
   }
 };
 
+export const sendPasswordResetEmail = async ({ to, resetUrl }) => {
+  const html = buildPasswordResetEmail({ resetUrl });
+  const text = `Réinitialisation du mot de passe administrateur\n\nOuvrez ce lien (valable 1 heure) :\n${resetUrl}\n\nSi vous n'avez pas fait cette demande, ignorez cet e-mail.`;
+  return sendEmail({
+    to,
+    subject: 'Réinitialisation du mot de passe — Alexandre Bindl',
+    text,
+    html,
+  });
+};
+
 export const sendContactNotification = async (contactData, workData = null) => {
   const { name, email, subject, message } = contactData;
   const subjectLine =
-    subject ||
-    (workData ? `Intérêt pour: ${workData.titre}` : 'Aucun sujet');
+    subject || (workData ? `Intérêt pour: ${workData.titre}` : 'Aucun sujet');
 
   const html = buildContactNotificationEmail({
     name,
@@ -112,13 +152,21 @@ export const sendContactNotification = async (contactData, workData = null) => {
     Message: ${message}
   `;
 
-  const adminTo =
+  let adminTo =
     process.env.ADMIN_NOTIFY_EMAIL ||
     process.env.EMAIL_USER ||
     process.env.EMAIL_FROM ||
     'dev@peintreab.local';
 
-  return await sendEmail({
+  try {
+    const { getDecryptedSmtpConfig } = await import('../controllers/smtpController.js');
+    const smtp = await getDecryptedSmtpConfig();
+    if (smtp?.user) adminTo = process.env.ADMIN_NOTIFY_EMAIL || smtp.user;
+  } catch {
+    /* keep env */
+  }
+
+  return sendEmail({
     to: adminTo,
     subject: workData
       ? `Nouvelle demande pour l'œuvre: ${workData.titre}`
@@ -143,7 +191,7 @@ export const sendContactConfirmation = async (email, name, workData = null) => {
     Équipe Alexandre Bindl
   `;
 
-  return await sendEmail({
+  return sendEmail({
     to: email,
     subject: workData
       ? `Demande reçue pour ${workData.titre} - Alexandre Bindl`
@@ -178,7 +226,7 @@ export const sendReply = async ({ to, subject, message, originalContact }) => {
     Alexandre Bindl
   `;
 
-  return await sendEmail({
+  return sendEmail({
     to,
     subject,
     text,

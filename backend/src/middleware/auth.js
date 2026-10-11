@@ -1,19 +1,25 @@
 import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
-
-dotenv.config();
+import { getJwtSecret } from '../utils/security.js';
 
 export const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(' ')[1];
 
   if (!token) {
-    return res.status(401).json({ error: 'Token d\'authentification manquant' });
+    return res.status(401).json({ error: "Token d'authentification manquant" });
   }
 
-  jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key', (err, user) => {
+  let secret;
+  try {
+    secret = getJwtSecret();
+  } catch (error) {
+    console.error(error.message);
+    return res.status(500).json({ error: 'Configuration serveur invalide' });
+  }
+
+  jwt.verify(token, secret, (err, user) => {
     if (err) {
-      return res.status(403).json({ error: 'Token invalide' });
+      return res.status(401).json({ error: 'Token invalide ou expiré' });
     }
     req.user = user;
     next();

@@ -6,7 +6,17 @@ import ParticlesBackground from '../components/ParticlesBackground';
 import GeometricBackground from '../components/GeometricBackground';
 import HomeExhibitionPanel from '../components/HomeExhibitionPanel';
 import { galleryPath, workDetailPath } from '../constants/galleryRoutes';
-import { canRegisterToEvent } from '../utils/eventDates';
+import {
+  canRegisterToEvent,
+  resolveEventCtaLabel,
+  resolveEventStatusBadge,
+} from '../utils/eventDates';
+import {
+  eventHighlightCssVars,
+  resolveEventBadgeColor,
+  resolveEventHighlightStyle,
+} from '../utils/eventStyles';
+import Seo from '../components/Seo';
 import { normalizeImageUrl } from '../utils/imageUrl';
 import { useHomeFeatured, workCategoryLabel } from './home/useHomeFeatured';
 import { useGalleryCategories } from '../contexts/GalleryCategoriesContext';
@@ -61,6 +71,11 @@ const HomeClassic = () => {
 
   return (
     <div className="home" ref={homeRef}>
+      <Seo
+        title="Alexandre Bindl — Artiste peintre | Galerie d’art"
+        description="Galerie en ligne d’Alexandre Bindl : peintures, croquis et événements artistiques."
+        path="/"
+      />
       <div className="hero-section home-panel">
         <div className="hero-artwork-bg">
           <div className="artwork-image" style={{ backgroundImage: `url(${heroImage})` }} />
@@ -158,10 +173,16 @@ const HomeClassic = () => {
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.32 }}
             >
-              {getVisibleEvents().map((event) => (
+              {getVisibleEvents().map((event) => {
+                const status = resolveEventStatusBadge(event);
+                const cta = resolveEventCtaLabel(event);
+                const highlight = resolveEventHighlightStyle(event);
+                const badgeColor = resolveEventBadgeColor(event, status.tone);
+                return (
                 <motion.div
                   key={`${event.id}-${event.category}`}
-                  className="featured-event-item"
+                  className={`featured-event-item${highlight ? ' featured-event-item--highlight' : ''}`}
+                  style={eventHighlightCssVars(highlight)}
                   transition={{ duration: 0.2 }}
                 >
                   <button
@@ -169,36 +190,44 @@ const HomeClassic = () => {
                     className="featured-event-item__hit"
                     onClick={() => handleWorkClick(event, event.category)}
                   >
-                    {event.image && (
-                      <div className="featured-event-image">
+                    <div className="featured-event-image">
+                      {event.image ? (
                         <img src={normalizeImageUrl(event.image)} alt={event.titre} />
-                        <div className="image-gradient" />
-                        {(event.date_debut || event.date) && (
-                          <div className="event-date-badge">
-                            {event.date_debut && event.date_fin ? (
-                              <>
-                                {new Date(event.date_debut).toLocaleDateString('fr-FR', {
-                                  day: 'numeric',
-                                  month: 'short',
-                                })}{' '}
-                                -{' '}
-                                {new Date(event.date_fin).toLocaleDateString('fr-FR', {
-                                  day: 'numeric',
-                                  month: 'short',
-                                  year: 'numeric',
-                                })}
-                              </>
-                            ) : (
-                              new Date(event.date_debut || event.date).toLocaleDateString('fr-FR', {
+                      ) : (
+                        <div className="featured-event-image__placeholder" aria-hidden />
+                      )}
+                      <div className="image-gradient" />
+                      <span
+                        className="event-status-badge"
+                        style={{ background: badgeColor, color: '#fffaf3' }}
+                      >
+                        {status.label}
+                      </span>
+                      {(event.date_debut || event.date) && (
+                        <div className="event-date-badge">
+                          {event.date_debut && event.date_fin ? (
+                            <>
+                              {new Date(event.date_debut).toLocaleDateString('fr-FR', {
                                 day: 'numeric',
-                                month: 'long',
+                                month: 'short',
+                              })}{' '}
+                              -{' '}
+                              {new Date(event.date_fin).toLocaleDateString('fr-FR', {
+                                day: 'numeric',
+                                month: 'short',
                                 year: 'numeric',
-                              })
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    )}
+                              })}
+                            </>
+                          ) : (
+                            new Date(event.date_debut || event.date).toLocaleDateString('fr-FR', {
+                              day: 'numeric',
+                              month: 'long',
+                              year: 'numeric',
+                            })
+                          )}
+                        </div>
+                      )}
+                    </div>
                     <div className="featured-event-info">
                       <div className="event-category-tag">Événement</div>
                       <h3>{event.titre}</h3>
@@ -224,12 +253,13 @@ const HomeClassic = () => {
                         className="featured-event-item__participate"
                         onClick={() => goToEventDetails(event)}
                       >
-                        Voir &amp; s&apos;inscrire
+                        {cta}
                       </button>
                     </div>
                   )}
                 </motion.div>
-              ))}
+                );
+              })}
             </motion.div>
           </AnimatePresence>
         </HomeExhibitionPanel>

@@ -157,16 +157,10 @@ const HeroSettingsForm = ({ onUpdate }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <h2>Accueil Atelier</h2>
-      <p className="form-description">
-        Textes et image de la page d&apos;accueil (variante Atelier).
-      </p>
-
       <form onSubmit={handleSubmit} className="app-form">
-        <h3 className="hero-settings-section-title">Texte du hero</h3>
+        <h3 className="hero-settings-section-title">Hero</h3>
         <p className="form-description hero-settings-section-desc">
-          Les mots en doré sur le site (« couleur », « carnet ») correspondent aux champs « mot
-          mis en avant » ci-dessous.
+          Les champs « mot mis en avant » correspondent aux mots dorés sur le site.
         </p>
 
         <div className="form-group">
@@ -257,11 +251,7 @@ const HeroSettingsForm = ({ onUpdate }) => {
           </div>
         </div>
 
-        <h3 className="hero-settings-section-title">Section Agenda (événements)</h3>
-        <p className="form-description hero-settings-section-desc">
-          Filigrane vertical, titre principal et texte d&apos;introduction au-dessus du carrousel
-          d&apos;événements.
-        </p>
+        <h3 className="hero-settings-section-title">Agenda</h3>
 
         <div className="form-row hero-settings-form-row">
           <div className="form-group">
@@ -300,10 +290,7 @@ const HeroSettingsForm = ({ onUpdate }) => {
           />
         </div>
 
-        <h3 className="hero-settings-section-title">Section Sélection (œuvres)</h3>
-        <p className="form-description hero-settings-section-desc">
-          Même principe pour le carrousel des œuvres mises en avant.
-        </p>
+        <h3 className="hero-settings-section-title">Sélection</h3>
 
         <div className="form-row hero-settings-form-row">
           <div className="form-group">

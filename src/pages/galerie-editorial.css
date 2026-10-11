@@ -411,6 +411,82 @@
   background: rgba(26, 22, 19, 0.06);
 }
 
+/* Badges statut — pastilles pleines, contraste fort */
+.gallery-v2__galerie .galerie-exhibit .availability-badge.event-status,
+.gallery-v2__galerie .galerie-exhibit .availability-badge.event-status--soon,
+.gallery-v2__galerie .galerie-exhibit .availability-badge.event-status--custom,
+.gallery-v2__galerie .galerie-exhibit .availability-badge.event-status--default {
+  background: #8a6a3d;
+  color: #fffaf3;
+  border: none;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  box-shadow: 0 2px 10px rgba(20, 17, 15, 0.22);
+}
+
+.gallery-v2__galerie .galerie-exhibit .availability-badge.event-status--live {
+  background: #c45c3e;
+  color: #fffaf3;
+  border: none;
+}
+
+.gallery-v2__galerie .galerie-exhibit .availability-badge.event-status--soon {
+  background: #e07a5f;
+  color: #fffaf3;
+  border: none;
+}
+
+.gallery-v2__galerie .galerie-exhibit .availability-badge.event-status--past {
+  background: #6b6560;
+  color: #f5f5f4;
+  border: none;
+}
+
+.gallery-v2__galerie .galerie-exhibit__event-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-top: 0.55rem;
+}
+
+.gallery-v2__galerie .galerie-exhibit__ticket-hint {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #c45c3e;
+}
+
+.gallery-v2__galerie .galerie-exhibit__participate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 2.4rem;
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
+  background: #7a6348;
+  color: #fffaf3;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Surbrillance — spécificité > .featured-work-item */
+.gallery-v2__galerie .galerie-exhibit.featured-work-item.galerie-exhibit--highlight {
+  border: 2px solid var(--event-hl, #e07a5f);
+  background: var(--event-hl-soft, #ffece6);
+  box-shadow:
+    0 0 0 1px rgba(var(--event-hl-rgb), 0.4),
+    0 14px 36px rgba(var(--event-hl-rgb), 0.24);
+}
+
+.gallery-v2__galerie .galerie-exhibit--highlight .galerie-exhibit__caption {
+  background: transparent;
+}
+
 .gallery-v2__galerie .galerie-exhibit__caption-foot {
   margin-top: 0.15rem;
   padding-top: 0.55rem;
@@ -475,6 +551,32 @@
 }
 
 @media (max-width: 768px) {
+  .gallery-v2__galerie .galerie-grid--exhibition.galerie-grid--events {
+    gap: 1.35rem;
+  }
+
+  .gallery-v2__galerie .galerie-grid--events .galerie-exhibit .item-image.featured-work-image {
+    aspect-ratio: 16 / 10;
+    flex: 0 0 auto;
+  }
+
+  .gallery-v2__galerie .galerie-grid--events .galerie-exhibit.featured-work-item {
+    padding: 0.4rem;
+  }
+
+  .gallery-v2__galerie .galerie-grid--events .galerie-exhibit__description {
+    display: none;
+  }
+
+  .gallery-v2__galerie .galerie-grid--events .galerie-exhibit__caption.featured-work-info {
+    gap: 0.35rem;
+    padding: 0.55rem 0.2rem 0.35rem;
+  }
+
+  .gallery-v2__galerie .galerie-grid--events .galerie-exhibit__participate {
+    min-height: 2.25rem;
+  }
+
   .gallery-v2__galerie.galerie {
     padding-top: 2.5rem;
   }

@@ -14,6 +14,7 @@ import {
   formatDurationLabel,
   isEventPast,
 } from '../utils/eventDates';
+import { DEFAULT_EVENT_BADGE, DEFAULT_EVENT_HIGHLIGHT } from '../utils/eventStyles';
 import './WorkForm.css';
 import ModalPortal from './ModalPortal';
 
@@ -47,6 +48,11 @@ const WorkForm = ({ type, work, onClose }) => {
     is_sold: false,
     is_featured: false,
     ticket_mode: 'closed',
+    cta_label: '',
+    status_badge: '',
+    highlight_enabled: false,
+    highlight_color: DEFAULT_EVENT_HIGHLIGHT,
+    badge_color: DEFAULT_EVENT_BADGE,
   });
   const [ticketSlots, setTicketSlots] = useState([emptySlot()]);
   const [registrationsOpen, setRegistrationsOpen] = useState(false);
@@ -77,6 +83,11 @@ const WorkForm = ({ type, work, onClose }) => {
         is_sold: work.is_sold || false,
         is_featured: work.is_featured || false,
         ticket_mode: work.ticket_mode || 'closed',
+        cta_label: work.cta_label || '',
+        status_badge: work.status_badge || '',
+        highlight_enabled: Boolean(work.highlight_enabled),
+        highlight_color: work.highlight_color || DEFAULT_EVENT_HIGHLIGHT,
+        badge_color: work.badge_color || DEFAULT_EVENT_BADGE,
       });
     }
   }, [work]);
@@ -341,6 +352,120 @@ const WorkForm = ({ type, work, onClose }) => {
                     required
                   />
                   <small className="field-hint">Utilisée pour le lien Google Maps</small>
+                </div>
+                <div className="form-block" style={{ marginTop: '1rem' }}>
+                  <h3 className="form-block-title">Apparence publique</h3>
+                  <div className="form-group">
+                    <label htmlFor="work-status-badge">Badge (sur la carte)</label>
+                    <div className="work-form__badge-presets" role="group" aria-label="Suggestions de badge">
+                      {['En ce moment', 'À venir', 'Bientôt', 'Derniers jours', 'Complet'].map(
+                        (preset) => (
+                          <button
+                            key={preset}
+                            type="button"
+                            className={`work-form__badge-chip${
+                              formData.status_badge === preset ? ' is-active' : ''
+                            }`}
+                            onClick={() =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                status_badge: prev.status_badge === preset ? '' : preset,
+                              }))
+                            }
+                          >
+                            {preset}
+                          </button>
+                        )
+                      )}
+                    </div>
+                    <input
+                      id="work-status-badge"
+                      type="text"
+                      name="status_badge"
+                      value={formData.status_badge}
+                      onChange={handleChange}
+                      placeholder="Ou écrivez votre propre badge…"
+                      maxLength={80}
+                    />
+                    <small className="field-hint">
+                      Vide = automatique selon les dates (En ce moment / À venir / Terminé)
+                    </small>
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="work-badge-color">Couleur du badge</label>
+                    <div className="work-form__color-row">
+                      <input
+                        id="work-badge-color"
+                        type="color"
+                        name="badge_color"
+                        value={formData.badge_color || DEFAULT_EVENT_BADGE}
+                        onChange={handleChange}
+                        aria-label="Couleur du badge"
+                      />
+                      <input
+                        type="text"
+                        name="badge_color"
+                        value={formData.badge_color || ''}
+                        onChange={handleChange}
+                        placeholder={DEFAULT_EVENT_BADGE}
+                        maxLength={7}
+                      />
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="work-cta-label">Texte du bouton d’inscription</label>
+                    <input
+                      id="work-cta-label"
+                      type="text"
+                      name="cta_label"
+                      value={formData.cta_label}
+                      onChange={handleChange}
+                      placeholder="Ex. Je participe, Réserver, Prendre une place…"
+                      maxLength={80}
+                    />
+                    <small className="field-hint">
+                      Accueil + galerie. Vide = « Voir & s&apos;inscrire »
+                    </small>
+                  </div>
+                  <FormSwitch
+                    id="work-highlight-enabled"
+                    name="highlight_enabled"
+                    checked={Boolean(formData.highlight_enabled)}
+                    onChange={handleChange}
+                    label="Surbrillance de la carte"
+                    description="Met en avant l’événement sur l’accueil et la galerie"
+                  />
+                  {formData.highlight_enabled && (
+                    <div className="form-group">
+                      <label htmlFor="work-highlight-color">Couleur de surbrillance</label>
+                      <div className="work-form__color-row">
+                        <input
+                          id="work-highlight-color"
+                          type="color"
+                          name="highlight_color"
+                          value={formData.highlight_color || DEFAULT_EVENT_HIGHLIGHT}
+                          onChange={handleChange}
+                          aria-label="Couleur de surbrillance"
+                        />
+                        <input
+                          type="text"
+                          name="highlight_color"
+                          value={formData.highlight_color || ''}
+                          onChange={handleChange}
+                          placeholder={DEFAULT_EVENT_HIGHLIGHT}
+                          maxLength={7}
+                        />
+                      </div>
+                      <small className="field-hint">
+                        Aperçu :
+                        <span
+                          className="work-form__color-swatch"
+                          style={{ background: formData.highlight_color || DEFAULT_EVENT_HIGHLIGHT }}
+                          aria-hidden
+                        />
+                      </small>
+                    </div>
+                  )}
                 </div>
                 <div className="form-block" style={{ marginTop: '1rem' }}>
                   <h3 className="form-block-title">Billetterie</h3>
