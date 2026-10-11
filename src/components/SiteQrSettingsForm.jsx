@@ -3,6 +3,21 @@ import { siteSettingsAPI } from '../utils/apiService';
 import { useWorks } from '../contexts/WorksContext';
 import './SiteQrSettingsForm.css';
 
+const isLocalOrPrivateHost = (urlString) => {
+  try {
+    const { hostname } = new URL(urlString);
+    const host = hostname.toLowerCase();
+    if (host === 'localhost' || host === '127.0.0.1' || host === '::1') return true;
+    if (host.endsWith('.local')) return true;
+    if (/^192\.168\.\d+\.\d+$/.test(host)) return true;
+    if (/^10\.\d+\.\d+\.\d+$/.test(host)) return true;
+    if (/^172\.(1[6-9]|2\d|3[0-1])\.\d+\.\d+$/.test(host)) return true;
+    return false;
+  } catch {
+    return true;
+  }
+};
+
 const SiteQrSettingsForm = () => {
   const { works } = useWorks();
   const events = useMemo(() => works.evenements || [], [works.evenements]);
@@ -23,20 +38,27 @@ const SiteQrSettingsForm = () => {
   const [leadError, setLeadError] = useState('');
   const [copied, setCopied] = useState(false);
 
-  const siteBase = useMemo(() => {
+  /** Base publique uniquement — jamais localhost (un téléphone ne peut pas y accéder) */
+  const publicBase = useMemo(() => {
     const raw = (publicSiteUrl || '').trim().replace(/\/$/, '');
-    if (raw) return raw;
-    if (typeof window !== 'undefined') return window.location.origin;
-    return '';
+    if (!raw) return '';
+    try {
+      const parsed = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`);
+      return parsed.href.replace(/\/$/, '');
+    } catch {
+      return '';
+    }
   }, [publicSiteUrl]);
 
+  const publicBaseUsable = Boolean(publicBase) && !isLocalOrPrivateHost(publicBase);
+
   const leadFormUrl = useMemo(() => {
-    if (!siteBase) return '';
+    if (!publicBaseUsable) return '';
     const path = leadEventId
       ? `/rejoindre?e=${encodeURIComponent(leadEventId)}`
       : '/rejoindre';
-    return `${siteBase}${path}`;
-  }, [siteBase, leadEventId]);
+    return `${publicBase}${path}`;
+  }, [publicBase, publicBaseUsable, leadEventId]);
 
   useEffect(() => {
     (async () => {
@@ -109,6 +131,11 @@ const SiteQrSettingsForm = () => {
 
   useEffect(() => {
     if (loading) return undefined;
+    if (!leadFormUrl) {
+      setLeadQrPreview(null);
+      setLeadPreviewUrl('');
+      return undefined;
+    }
     const t = setTimeout(() => {
       refreshLeadQr(leadFormUrl);
     }, 400);
@@ -123,7 +150,6 @@ const SiteQrSettingsForm = () => {
     try {
       await siteSettingsAPI.update({ public_site_url: publicSiteUrl.trim() });
       await refreshQr(publicSiteUrl.trim());
-      await refreshLeadQr(leadFormUrl);
       setMessage('URL enregistrée — les QR codes utilisent cette adresse de base.');
     } catch (err) {
       setError(err.message || 'Erreur lors de la sauvegarde.');
@@ -160,19 +186,20 @@ const SiteQrSettingsForm = () => {
       <form onSubmit={handleSubmit}>
         <h2>QR code du site</h2>
         <p className="site-qr-intro app-form-intro">
-          Générez un QR code vers l&apos;adresse de votre site (carte de visite, affiche).
-          Cette URL sert aussi de base pour le QR « contacts événement » ci-dessous.
+          Indiquez l&apos;adresse <strong>publique</strong> de votre site (ex.{' '}
+          <code>https://www.alexandre-bindl.fr</code>) — pas localhost. Cette URL sert de base
+          à tous les QR codes (site + formulaire contacts).
         </p>
 
         <div className="form-group">
-          <label htmlFor="public_site_url">Adresse du site (URL)</label>
+          <label htmlFor="public_site_url">Adresse du site (URL publique)</label>
           <input
             id="public_site_url"
             name="public_site_url"
             type="url"
             inputMode="url"
             autoComplete="url"
-            placeholder="https://www.votre-site.fr"
+            placeholder="https://www.alexandre-bindl.fr"
             value={publicSiteUrl}
             onChange={(e) => setPublicSiteUrl(e.target.value)}
             required
@@ -185,6 +212,12 @@ const SiteQrSettingsForm = () => {
             <>
               <img src={qrPreview} alt="QR code vers le site" className="site-qr-preview__img" />
               <p className="site-qr-preview__url">{previewUrl}</p>
+              {previewUrl && isLocalOrPrivateHost(previewUrl) && (
+                <p className="site-qr-lead-warn">
+                  Cette URL est locale (<code>localhost</code>). Un téléphone qui scanne ne pourra
+                  pas ouvrir le site. Utilisez votre domaine public HTTPS.
+                </p>
+              )}
               <div className="site-qr-preview__actions">
                 <button
                   type="button"
@@ -222,11 +255,17 @@ const SiteQrSettingsForm = () => {
       <section className="site-qr-lead" aria-labelledby="site-qr-lead-title">
         <h2 id="site-qr-lead-title">QR code contacts (salon / vernissage)</h2>
         <p className="site-qr-intro app-form-intro">
-          À afficher sur place : les visiteurs scannent, remplissent un formulaire simple
-          (prénom, nom, email, téléphone) et rejoignent votre base de contacts — onglet{' '}
-          <strong>Visiteurs &amp; billets → Contacts</strong>. Liez éventuellement un événement
-          pour savoir d’où vient le contact.
+          À afficher sur place : les visiteurs scannent, remplissent un formulaire simple et
+          rejoignent <strong>Visiteurs &amp; billets → Contacts</strong>.
         </p>
+
+        {!publicBaseUsable && (
+          <p className="site-qr-lead-warn" role="status">
+            Pour que le scan fonctionne sur un téléphone, enregistrez d’abord une URL publique
+            ci-dessus (ex. <code>https://www.alexandre-bindl.fr</code>), pas{' '}
+            <code>http://localhost:5173</code>.
+          </p>
+        )}
 
         <div className="form-group">
           <label htmlFor="lead_event_id">Événement lié (optionnel)</label>
@@ -246,7 +285,7 @@ const SiteQrSettingsForm = () => {
 
         <div className="site-qr-preview site-qr-preview--lead" aria-live="polite">
           {leadQrLoading && <p className="site-qr-preview__status">Génération du QR…</p>}
-          {!leadQrLoading && leadQrPreview && (
+          {!leadQrLoading && publicBaseUsable && leadQrPreview && (
             <>
               <img
                 src={leadQrPreview}
@@ -281,9 +320,9 @@ const SiteQrSettingsForm = () => {
               </div>
             </>
           )}
-          {!leadQrLoading && !leadQrPreview && (
+          {!leadQrLoading && !publicBaseUsable && (
             <p className="site-qr-preview__status">
-              Enregistrez d’abord l’URL du site pour générer ce QR.
+              QR contacts en attente d’une URL publique valide.
             </p>
           )}
         </div>

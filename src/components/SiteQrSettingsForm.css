@@ -105,12 +105,50 @@
   background: #faf8f5;
 }
 
+/* Ne pas utiliser le shorthand `background` : il efface no-repeat et le chevron se répète */
+.site-qr-form select,
 .site-qr-lead select {
   width: 100%;
   min-height: 2.75rem;
-  padding: 0.55rem 0.75rem;
+  padding: 0.55rem 2.5rem 0.55rem 0.75rem;
   border: 1px solid var(--form-border, #e8e4df);
   border-radius: 8px;
   font: inherit;
-  background: #fff;
+  color: #1c1917;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-color: #fff;
+  background-image: var(--form-select-chevron);
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1.1rem 1.1rem;
+  cursor: pointer;
+}
+
+.site-qr-form select:hover,
+.site-qr-form select:focus,
+.site-qr-lead select:hover,
+.site-qr-lead select:focus {
+  background-color: #fff;
+  background-image: var(--form-select-chevron);
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1.1rem 1.1rem;
+}
+
+.site-qr-lead-warn {
+  margin: 0 0 0.85rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid rgba(180, 83, 9, 0.35);
+  background: #fff7ed;
+  color: #9a3412;
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.site-qr-lead-warn code {
+  font-size: 0.8125rem;
+  word-break: break-all;
 }
