@@ -28,6 +28,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { useWorks } from '../contexts/WorksContext';
 import { useGalleryCategories } from '../contexts/GalleryCategoriesContext';
+import { galleryPath } from '../constants/galleryRoutes';
 import { contactsAPI } from '../utils/apiService';
 import WorkForm from '../components/WorkForm';
 import WorkList from '../components/WorkList';
@@ -310,7 +311,7 @@ const Admin = () => {
           </div>
           <p className="admin-page-header__desc">
             {isGalleryWorksTab
-              ? 'Ajoutez, modifiez ou réorganisez les œuvres visibles sur le site.'
+              ? 'Ajoutez, modifiez ou réorganisez les œuvres. Utilisez « Aperçu » pour voir la page publique sans quitter l’admin.'
               : activeTab === 'onglets-galerie'
                 ? 'Créez, renommez et réordonnez les onglets de la galerie (Peintures, Croquis…).'
                 : activeTab === 'notifications'
@@ -322,18 +323,29 @@ const Admin = () => {
                     : 'Paramètres et contenus éditoriaux.'}
           </p>
           {isGalleryWorksTab && (
-            <motion.button
-              type="button"
-              className="admin-main-cta"
-              onClick={() => {
-                setEditingWork(null);
-                setIsFormOpen(true);
-              }}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              Nouvelle entrée
-            </motion.button>
+            <div className="admin-page-header__actions">
+              <a
+                href={galleryPath(activeTab)}
+                className="admin-main-cta admin-main-cta--ghost"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <FiExternalLink aria-hidden />
+                Voir la galerie
+              </a>
+              <motion.button
+                type="button"
+                className="admin-main-cta"
+                onClick={() => {
+                  setEditingWork(null);
+                  setIsFormOpen(true);
+                }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Nouvelle entrée
+              </motion.button>
+            </div>
           )}
         </header>
 

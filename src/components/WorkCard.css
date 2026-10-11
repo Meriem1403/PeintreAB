@@ -11,11 +11,45 @@
 }
 
 .work-card-image {
+  position: relative;
   width: 100%;
   height: 300px;
   overflow: hidden;
   background: #f5f5f5;
   margin-bottom: 1.5rem;
+}
+
+.work-card-image__preview {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.75rem;
+  border: none;
+  border-radius: 999px;
+  background: rgba(28, 25, 23, 0.82);
+  color: #fafaf9;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.2s ease, transform 0.2s ease, background 0.2s ease;
+}
+
+.work-card:hover .work-card-image__preview,
+.work-card-image__preview:focus-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.work-card-image__preview:hover {
+  background: rgba(28, 25, 23, 0.95);
 }
 
 .work-card-image img {
@@ -103,10 +137,15 @@
 }
 
 .btn-edit,
-.btn-delete {
+.btn-delete,
+.btn-preview {
   flex: 1;
-  min-width: 120px;
-  padding: 0.75rem 1.5rem;
+  min-width: 110px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.75rem 1.25rem;
   border: 1px solid #1a1a1a;
   background: transparent;
   color: #1a1a1a;
@@ -118,6 +157,17 @@
   font-size: 0.85rem;
   flex-shrink: 0;
   user-select: none;
+}
+
+.btn-preview {
+  border-color: var(--color-primary, #a89278);
+  color: #5c4a36;
+}
+
+.btn-preview:hover {
+  background: var(--color-primary, #a89278);
+  color: #fff;
+  border-color: var(--color-primary, #a89278);
 }
 
 .btn-edit:hover {

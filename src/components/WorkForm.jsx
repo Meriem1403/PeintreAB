@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { FaExternalLinkAlt } from 'react-icons/fa';
 import { useWorks } from '../contexts/WorksContext';
 import { useGalleryCategories } from '../contexts/GalleryCategoriesContext';
+import { workDetailPath } from '../constants/galleryRoutes';
 import FormSwitch from './FormSwitch';
 import ImageDropzone from './ImageDropzone';
 import EventTicketSlotsEditor from './EventTicketSlotsEditor';
@@ -392,6 +394,20 @@ const WorkForm = ({ type, work, onClose }) => {
           </div>
 
           <div className="form-actions">
+            {work?.id && (
+              <motion.a
+                href={workDetailPath(type, work.id)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-cancel work-form-preview-link"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <FaExternalLinkAlt aria-hidden />
+                Aperçu public
+              </motion.a>
+            )}
             <motion.button
               type="button"
               onClick={onClose}
@@ -399,7 +415,7 @@ const WorkForm = ({ type, work, onClose }) => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              Annuler
+              Fermer
             </motion.button>
             <motion.button
               type="submit"
