@@ -4,6 +4,7 @@ import { Html5Qrcode } from 'html5-qrcode';
 import {
   buildCameraStartAttempts,
   cameraScanErrorMessage,
+  isCameraSecureContext,
   qrBoxForViewfinder,
 } from '../utils/cameraScan';
 import {
@@ -13,6 +14,7 @@ import {
   FiCameraOff,
   FiCheckCircle,
   FiExternalLink,
+  FiLock,
   FiMapPin,
   FiUsers,
 } from 'react-icons/fi';
@@ -58,6 +60,7 @@ const TicketScannerAdmin = () => {
   const [history, setHistory] = useState([]);
   const scannerRef = useRef(null);
   const lastScanRef = useRef({ code: '', at: 0 });
+  const cameraBlocked = !isCameraSecureContext();
 
   const selectedEvent = useMemo(
     () => events.find((ev) => String(ev.id) === String(selectedEventId)),
@@ -150,7 +153,7 @@ const TicketScannerAdmin = () => {
     if (scannerRef.current) return;
     setLastResult(null);
 
-    if (typeof window !== 'undefined' && !window.isSecureContext) {
+    if (cameraBlocked) {
       setLastResult({ type: 'error', message: cameraScanErrorMessage(new Error('insecure')) });
       return;
     }
@@ -197,7 +200,7 @@ const TicketScannerAdmin = () => {
       type: 'error',
       message: cameraScanErrorMessage(lastErr || new Error('NO_CAMERA')),
     });
-  }, [processCode]);
+  }, [cameraBlocked, processCode]);
 
   useEffect(
     () => () => {
@@ -304,21 +307,55 @@ const TicketScannerAdmin = () => {
         </div>
       </header>
 
+      {cameraBlocked && (
+        <div className="vscan-https-banner" role="alert">
+          <FiLock aria-hidden />
+          <div>
+            <p className="vscan-https-banner__title">Caméra indisponible sans HTTPS</p>
+            <p className="vscan-https-banner__text">
+              Le navigateur refuse l’accès caméra sur une page en <code>http://</code>. Ce n’est
+              pas un bug de l’app : configurez un certificat Let’s Encrypt + reverse proxy sur le
+              NAS, puis ouvrez le site en <code>https://</code>. En attendant, validez les billets
+              avec la saisie manuelle du code UUID.
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="vscan-workspace">
         <section className="vscan-stage" aria-label="Scanner caméra">
           <div className="vscan-stage__view">
             <div id={SCANNER_ID} className="vscan-viewfinder" />
             {!cameraOn && (
               <div className="vscan-stage__idle">
-                <FiCamera size={40} strokeWidth={1.1} />
-                <p>Activez la caméra pour scanner les QR codes des billets</p>
+                {cameraBlocked ? (
+                  <>
+                    <FiLock size={40} strokeWidth={1.1} />
+                    <p>HTTPS requis pour la caméra — utilisez la saisie manuelle ci-dessous</p>
+                  </>
+                ) : (
+                  <>
+                    <FiCamera size={40} strokeWidth={1.1} />
+                    <p>Activez la caméra pour scanner les QR codes des billets</p>
+                  </>
+                )}
               </div>
             )}
           </div>
 
           <div className="vscan-stage__bar">
             {!cameraOn ? (
-              <button type="button" className="vscan-btn vscan-btn--primary" onClick={startCamera}>
+              <button
+                type="button"
+                className="vscan-btn vscan-btn--primary"
+                onClick={startCamera}
+                disabled={cameraBlocked}
+                title={
+                  cameraBlocked
+                    ? 'Indisponible en HTTP — activez HTTPS sur le NAS'
+                    : undefined
+                }
+              >
                 <FiCamera aria-hidden />
                 Démarrer la caméra
               </button>
