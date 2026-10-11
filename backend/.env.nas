@@ -18,6 +18,8 @@ ADMIN_PASSWORD_2=admin123
 PORT=3000
 NODE_ENV=production
 FRONTEND_URL=https://www.alexandre-bindl.fr
+# Accès temporaire hors HTTPS (IP:5173) + domaine http
+CORS_ORIGINS=http://82.66.116.200:5173,http://www.alexandre-bindl.fr:5173,http://www.alexandre-bindl.fr,https://www.alexandre-bindl.fr
 
 # SMTP : laisser vide — config via Admin → E-mail (lien sécurisé)
 EMAIL_HOST=smtp.gmail.com

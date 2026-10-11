@@ -45,15 +45,24 @@ app.use(
 );
 
 const frontendUrl = (process.env.FRONTEND_URL || '').replace(/\/$/, '');
-const corsOrigins = isProduction()
-  ? frontendUrl
-    ? [frontendUrl]
-    : []
-  : [
-      frontendUrl || 'http://localhost:5173',
-      'http://localhost:5173',
-      'http://127.0.0.1:5173',
-    ].filter(Boolean);
+const extraCorsOrigins = String(process.env.CORS_ORIGINS || '')
+  .split(',')
+  .map((o) => o.trim().replace(/\/$/, ''))
+  .filter(Boolean);
+
+const corsOrigins = [
+  ...new Set(
+    [
+      frontendUrl,
+      ...extraCorsOrigins,
+      ...(isProduction()
+        ? []
+        : ['http://localhost:5173', 'http://127.0.0.1:5173']),
+    ].filter(Boolean)
+  ),
+];
+
+console.log('🔒 CORS origins:', corsOrigins.join(', ') || '(aucune)');
 
 app.use(
   cors({
