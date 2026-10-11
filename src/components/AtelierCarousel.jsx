@@ -1,4 +1,5 @@
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { AnimatePresence, keyframes, motion, useReducedMotion, velocityPerSecond } from 'framer-motion';
+import { VscDebugBreakpointData } from 'react-icons/vsc';
 
 const slideVariants = {
   enter: (direction) => ({

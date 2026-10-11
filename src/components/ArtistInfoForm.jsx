@@ -70,11 +70,6 @@ const ArtistInfoForm = ({ onUpdate }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <h2>Informations artiste</h2>
-      <p className="form-description">
-        Gérez votre photo et votre biographie qui apparaissent sur la page Biographie.
-      </p>
-
       <form onSubmit={handleSubmit} className="app-form">
         <ImageDropzone
           label="Photo de profil"

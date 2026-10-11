@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
+import { FiEye } from 'react-icons/fi';
 import { useWorks } from '../contexts/WorksContext';
 import { useGalleryCategories } from '../contexts/GalleryCategoriesContext';
+import GalleryOrderPreviewModal from './GalleryOrderPreviewModal';
 import WorkCard from './WorkCard';
 import './WorkList.css';
 
@@ -14,6 +16,7 @@ const WorkList = ({ type, onEdit }) => {
   const [dragOverIndex, setDragOverIndex] = useState(null);
   const [dragOverZone, setDragOverZone] = useState(null);
   const [page, setPage] = useState(1);
+  const [orderPreviewOpen, setOrderPreviewOpen] = useState(false);
 
   const sortedItems = [...items].sort((a, b) => {
     const orderA = a.display_order !== undefined && a.display_order !== null ? a.display_order : 999999;
@@ -150,6 +153,26 @@ const WorkList = ({ type, onEdit }) => {
 
   return (
     <div className="work-list-wrap">
+      <div className="work-list-toolbar">
+        <p className="work-list-toolbar__hint">Ordre d’affichage sur la galerie publique.</p>
+        <button
+          type="button"
+          className="work-list-toolbar__preview"
+          onClick={() => setOrderPreviewOpen(true)}
+        >
+          <FiEye aria-hidden />
+          Aperçu de l’ordre
+        </button>
+      </div>
+
+      {orderPreviewOpen && (
+        <GalleryOrderPreviewModal
+          type={type}
+          items={sortedItems}
+          onClose={() => setOrderPreviewOpen(false)}
+        />
+      )}
+
       {showPrevZone && (
         <div
           className={`work-list-page-zone work-list-page-zone--prev ${dragOverZone === 'prev' ? 'is-active' : ''}`}

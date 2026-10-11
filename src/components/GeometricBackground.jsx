@@ -34,9 +34,15 @@ const GeometricBackground = ({ density = 'normal', theme = 'light' }) => {
     const resize = () => {
       const parent = canvas.parentElement;
       if (!parent) return;
+      const nextW = parent.clientWidth;
+      const nextH = parent.clientHeight;
+      /* Évite de reset le canvas sur des micro-variations (clignotement) */
+      if (w && h && Math.abs(nextW - w) < 3 && Math.abs(nextH - h) < 3) {
+        return;
+      }
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      w = parent.clientWidth;
-      h = parent.clientHeight;
+      w = nextW;
+      h = nextH;
       canvas.width = Math.floor(w * dpr);
       canvas.height = Math.floor(h * dpr);
       canvas.style.width = `${w}px`;

@@ -443,19 +443,33 @@ body:has(.home) {
   padding: 0.65rem 1rem;
   border: none;
   border-radius: 999px;
-  background: #1c1917;
-  color: #faf6f0;
+  background: #7a6348;
+  color: #fffaf3;
   font: inherit;
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.04em;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.15s ease;
+  transition: background 0.2s ease, transform 0.15s ease, color 0.2s ease;
 }
 
 .home .featured-event-item__participate:hover {
-  background: var(--color-primary, #c6ac8f);
+  background: #5c4a36;
+  color: #fffaf3;
   transform: translateY(-1px);
+}
+
+.home .featured-event-item--highlight {
+  border: 2px solid var(--event-hl, #e07a5f);
+  background: var(--event-hl-soft, #ffece6);
+  box-shadow:
+    0 0 0 1px rgba(var(--event-hl-rgb), 0.4),
+    0 12px 30px rgba(var(--event-hl-rgb), 0.24);
+}
+
+.home .featured-event-item--highlight .featured-event-info,
+.home .featured-event-item--highlight .featured-event-item__footer {
+  background: transparent;
 }
 
 .home .featured-event-item:hover .featured-event-image img,

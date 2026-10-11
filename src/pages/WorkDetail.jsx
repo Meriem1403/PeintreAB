@@ -19,8 +19,9 @@ import { useGalleryCategories } from '../contexts/GalleryCategoriesContext';
 import ContactWorkForm from '../components/ContactWorkForm';
 import ModalPortal from '../components/ModalPortal';
 import EventRegistrationForm from '../components/EventRegistrationForm';
-import { isEventPast } from '../utils/eventDates';
+import { isEventPast, resolveEventCtaLabel } from '../utils/eventDates';
 import { normalizeImageUrl } from '../utils/imageUrl';
+import Seo from '../components/Seo';
 import './WorkDetail.css';
 
 const COMPACT_EXHIBITION_MQ = '(max-width: 1099px)';
@@ -394,6 +395,12 @@ const WorkDetail = () => {
     currentWork.ticket_mode !== 'closed' &&
     !isEventPast(currentWork.date_fin);
 
+  const workTitle = currentWork?.titre || 'Œuvre';
+  const workImage = currentWork?.image ? normalizeImageUrl(currentWork.image) : undefined;
+  const workDesc = currentWork?.description
+    ? String(currentWork.description).replace(/\s+/g, ' ').trim().slice(0, 160)
+    : `${workTitle} — œuvre d’Alexandre Bindl.`;
+
   return (
     <div
       className={`exhibition${isEventPage ? ' exhibition--event' : ''}${compactExhibition ? ' exhibition--compact' : ''}`}
@@ -402,6 +409,12 @@ const WorkDetail = () => {
         '--light-y': `${light.y}%`,
       }}
     >
+      <Seo
+        title={workTitle}
+        description={workDesc}
+        path={`/galerie/${category}/${currentWork?.id || id}`}
+        image={workImage}
+      />
       <div className="exhibition-veil" aria-hidden="true" />
       <div className="exhibition-ambient exhibition-ambient--a" aria-hidden="true" />
       <div className="exhibition-ambient exhibition-ambient--b" aria-hidden="true" />
@@ -670,7 +683,7 @@ const WorkDetail = () => {
                   className="brand-btn brand-btn--primary brand-btn--pill brand-btn--block exhibition-btn exhibition-btn--primary"
                   onClick={() => setIsRegistrationOpen(true)}
                 >
-                  Réserver ma place
+                  {resolveEventCtaLabel(currentWork, 'Réserver ma place')}
                 </button>
               </div>
             )}

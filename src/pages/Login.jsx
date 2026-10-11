@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import {
@@ -7,38 +7,40 @@ import {
   DEFAULT_ADMIN_TAB,
   isValidAdminTab,
 } from '../constants/adminRoutes';
-import { FiUser, FiLock } from 'react-icons/fi';
+import { FiLock, FiMail } from 'react-icons/fi';
+import Seo from '../components/Seo';
 import './Login.css';
 
+const safeAdminRedirect = (from) => {
+  if (!from || typeof from !== 'string') return adminTabPath(DEFAULT_ADMIN_TAB);
+  if (from === '/admin') return adminTabPath(DEFAULT_ADMIN_TAB);
+  if (from.startsWith('/admin/')) {
+    const tab = from.slice('/admin/'.length).split(/[/?#]/)[0];
+    return isValidAdminTab(tab) ? adminTabPath(tab) : adminTabPath(DEFAULT_ADMIN_TAB);
+  }
+  return adminTabPath(DEFAULT_ADMIN_TAB);
+};
+
 const Login = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const resolveRedirect = () => {
-    const from = location.state?.from;
-    if (!from || typeof from !== 'string') return adminTabPath(DEFAULT_ADMIN_TAB);
-    if (from === '/admin') return adminTabPath(DEFAULT_ADMIN_TAB);
-    if (from.startsWith('/admin/')) {
-      const tab = from.slice('/admin/'.length).split(/[/?#]/)[0];
-      return isValidAdminTab(tab) ? adminTabPath(tab) : adminTabPath(DEFAULT_ADMIN_TAB);
-    }
-    return from;
-  };
-  const redirectPath = resolveRedirect();
+  const redirectPath = safeAdminRedirect(location.state?.from);
+  const resetOk = Boolean(location.state?.resetOk);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    if (!username || !password) {
+    if (!email || !password) {
       setError('Veuillez remplir tous les champs');
       return;
     }
 
-    const success = await login(username, password);
+    const success = await login(email.trim(), password);
     if (success) {
       navigate(redirectPath, { replace: true });
     } else {
@@ -48,6 +50,7 @@ const Login = () => {
 
   return (
     <div className="login-page">
+      <Seo title="Connexion admin" path="/login" noIndex />
       <motion.div
         className="login-card"
         initial={{ opacity: 0, y: 20 }}
@@ -56,10 +59,15 @@ const Login = () => {
       >
         <div className="login-card-header">
           <h1>Espace Administration</h1>
-          <p>Connectez-vous pour gérer la galerie</p>
+          <p>Connectez-vous avec votre e-mail Gmail</p>
         </div>
 
         <form onSubmit={handleSubmit} className="app-form login-form">
+          {resetOk && !error && (
+            <p className="login-form__success">
+              Mot de passe mis à jour. Connectez-vous avec votre e-mail.
+            </p>
+          )}
           {error && (
             <motion.div
               className="error-message"
@@ -71,16 +79,17 @@ const Login = () => {
           )}
 
           <div className="form-group">
-            <label htmlFor="username" className="form-label-inline">
-              <FiUser className="icon" aria-hidden />
-              Nom d&apos;utilisateur
+            <label htmlFor="email" className="form-label-inline">
+              <FiMail className="icon" aria-hidden />
+              E-mail
             </label>
             <input
-              type="text"
-              id="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Votre nom d'utilisateur"
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="votre@gmail.com"
+              autoComplete="username"
               required
             />
           </div>
@@ -96,9 +105,14 @@ const Login = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Votre mot de passe"
+              autoComplete="current-password"
               required
             />
           </div>
+
+          <p className="login-form__forgot">
+            <Link to="/forgot-password">Mot de passe oublié ?</Link>
+          </p>
 
           <motion.button
             type="submit"

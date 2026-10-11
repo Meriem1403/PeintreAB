@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import { PRIVACY_POLICY_VERSION, PRIVACY_SECTIONS } from '../constants/privacy';
+import Seo from '../components/Seo';
 import './Privacy.css';
 
 const Privacy = () => {
@@ -23,6 +24,11 @@ const Privacy = () => {
 
   return (
     <div className="privacy-page" key={location.pathname}>
+      <Seo
+        title="Politique de confidentialité"
+        description="Politique de confidentialité du site Alexandre Bindl — protection des données personnelles."
+        path="/confidentialite"
+      />
       <header className="privacy-page__hero">
         <motion.div className="privacy-page__hero-inner" {...fadeIn(0.05)}>
           <p className="privacy-page__kicker">Transparence</p>

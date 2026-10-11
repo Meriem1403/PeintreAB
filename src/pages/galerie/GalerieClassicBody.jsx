@@ -17,12 +17,15 @@ const GalerieClassicBody = ({
   onPageChange,
   getPageNumbers,
   refinedCards = false,
+  isEventCategory = false,
 }) => (
   <>
     <AnimatePresence mode="wait">
       <motion.div
         key={`${activeCategory}-${loading ? 'loading' : 'loaded'}`}
-        className={`galerie-grid ${refinedCards ? 'galerie-grid--exhibition' : ''}`}
+        className={`galerie-grid${refinedCards ? ' galerie-grid--exhibition' : ''}${
+          isEventCategory ? ' galerie-grid--events' : ''
+        }`}
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: 20 }}
@@ -60,6 +63,7 @@ const GalerieClassicBody = ({
                     index={startIndex + index}
                     onClick={onWorkClick}
                     refined={refinedCards}
+                    isEvent={isEventCategory}
                   />
                 );
               })

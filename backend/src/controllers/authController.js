@@ -1,39 +1,53 @@
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import pool from '../config/database.js';
-import dotenv from 'dotenv';
+import { sendPasswordResetEmail } from '../services/emailService.js';
+import {
+  getFrontendUrl,
+  getJwtExpiresIn,
+  getJwtSecret,
+  isValidEmail,
+  normalizeEmail,
+} from '../utils/security.js';
 
-dotenv.config();
+const MIN_PASSWORD_LENGTH = 8;
+
+const hashToken = (token) => crypto.createHash('sha256').update(token).digest('hex');
 
 export const login = async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const rawEmail = req.body?.email ?? req.body?.username;
+    const password = req.body?.password;
 
-    if (!username || !password) {
-      return res.status(400).json({ error: 'Nom d\'utilisateur et mot de passe requis' });
+    if (!rawEmail || !password) {
+      return res.status(400).json({ error: 'E-mail et mot de passe requis' });
     }
 
-    // Chercher l'utilisateur
-    const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+    const email = normalizeEmail(rawEmail);
+    if (!isValidEmail(email)) {
+      return res.status(401).json({ error: 'Identifiants incorrects' });
+    }
+
+    const result = await pool.query(
+      'SELECT * FROM users WHERE LOWER(email) = $1 LIMIT 1',
+      [email]
+    );
 
     if (result.rows.length === 0) {
       return res.status(401).json({ error: 'Identifiants incorrects' });
     }
 
     const user = result.rows[0];
-
-    // Vérifier le mot de passe
     const isValidPassword = await bcrypt.compare(password, user.password_hash);
-
     if (!isValidPassword) {
       return res.status(401).json({ error: 'Identifiants incorrects' });
     }
 
-    // Générer le token JWT
     const token = jwt.sign(
-      { id: user.id, username: user.username },
-      process.env.JWT_SECRET || 'your-secret-key',
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      { id: user.id, email: user.email, username: user.username },
+      getJwtSecret(),
+      { expiresIn: getJwtExpiresIn() }
     );
 
     res.json({
@@ -47,5 +61,114 @@ export const login = async (req, res) => {
   } catch (error) {
     console.error('Erreur lors de la connexion:', error);
     res.status(500).json({ error: 'Erreur serveur lors de la connexion' });
+  }
+};
+
+export const forgotPassword = async (req, res) => {
+  const generic = {
+    message:
+      'Si un compte existe pour cet e-mail, un lien de réinitialisation a été envoyé.',
+  };
+
+  try {
+    const email = normalizeEmail(req.body?.email);
+    if (!isValidEmail(email)) {
+      return res.json(generic);
+    }
+
+    const result = await pool.query(
+      'SELECT id, email FROM users WHERE LOWER(email) = $1 LIMIT 1',
+      [email]
+    );
+
+    if (result.rows.length === 0) {
+      return res.json(generic);
+    }
+
+    const user = result.rows[0];
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = hashToken(rawToken);
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+    await pool.query(
+      `UPDATE password_reset_tokens SET used_at = NOW()
+       WHERE user_id = $1 AND used_at IS NULL AND expires_at > NOW()`,
+      [user.id]
+    );
+
+    await pool.query(
+      `INSERT INTO password_reset_tokens (user_id, token_hash, expires_at)
+       VALUES ($1, $2, $3)`,
+      [user.id, tokenHash, expiresAt]
+    );
+
+    const resetUrl = `${getFrontendUrl()}/reset-password?token=${rawToken}`;
+    await sendPasswordResetEmail({ to: user.email, resetUrl });
+
+    return res.json(generic);
+  } catch (error) {
+    console.error('forgotPassword:', error);
+    return res.json(generic);
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const token = String(req.body?.token || '').trim();
+    const password = String(req.body?.password || '');
+
+    if (!token || token.length < 32) {
+      return res.status(400).json({ error: 'Lien de réinitialisation invalide' });
+    }
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      return res.status(400).json({
+        error: `Le mot de passe doit contenir au moins ${MIN_PASSWORD_LENGTH} caractères`,
+      });
+    }
+
+    const tokenHash = hashToken(token);
+    const result = await pool.query(
+      `SELECT t.id AS token_id, t.user_id, t.expires_at, t.used_at
+       FROM password_reset_tokens t
+       WHERE t.token_hash = $1
+       LIMIT 1`,
+      [tokenHash]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({ error: 'Lien de réinitialisation invalide ou expiré' });
+    }
+
+    const row = result.rows[0];
+    if (row.used_at || new Date(row.expires_at) <= new Date()) {
+      return res.status(400).json({ error: 'Lien de réinitialisation invalide ou expiré' });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 12);
+    await pool.query('BEGIN');
+    try {
+      await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [
+        passwordHash,
+        row.user_id,
+      ]);
+      await pool.query(
+        'UPDATE password_reset_tokens SET used_at = NOW() WHERE id = $1',
+        [row.token_id]
+      );
+      await pool.query(
+        `UPDATE password_reset_tokens SET used_at = NOW()
+         WHERE user_id = $1 AND used_at IS NULL AND id <> $2`,
+        [row.user_id, row.token_id]
+      );
+      await pool.query('COMMIT');
+    } catch (err) {
+      await pool.query('ROLLBACK');
+      throw err;
+    }
+
+    res.json({ message: 'Mot de passe mis à jour. Vous pouvez vous connecter.' });
+  } catch (error) {
+    console.error('resetPassword:', error);
+    res.status(500).json({ error: 'Erreur lors de la réinitialisation' });
   }
 };

@@ -2,3 +2,31 @@
 .login-form .form-group {
   margin-bottom: 1.25rem;
 }
+
+.login-form__forgot {
+  margin: 0 0 1rem;
+  text-align: right;
+  font-size: 0.875rem;
+}
+
+.login-form__forgot a {
+  color: var(--color-primary, #c6ac8f);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.login-form__success {
+  margin: 0 0 1.25rem;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: #44403c;
+}
+
+.login-form__link-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  width: 100%;
+  box-sizing: border-box;
+}

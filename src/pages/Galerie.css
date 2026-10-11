@@ -145,6 +145,53 @@
   color: #ffffff;
 }
 
+.availability-badge.event-status,
+.availability-badge.event-status--soon,
+.availability-badge.event-status--custom,
+.availability-badge.event-status--default {
+  background: #8a6a3d;
+  color: #fffaf3;
+  border: none;
+  font-weight: 700;
+}
+
+.availability-badge.event-status--live {
+  background: #c45c3e;
+  color: #fffaf3;
+  border: none;
+}
+
+.availability-badge.event-status--soon {
+  background: #e07a5f;
+  color: #fffaf3;
+  border: none;
+}
+
+.availability-badge.event-status--past {
+  background: #6b6560;
+  color: #f5f5f4;
+  border: none;
+}
+
+.item-ticket {
+  display: inline-block;
+  margin-top: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  background: var(--color-primary, #c6ac8f);
+  color: #1c1917;
+}
+
+.galerie-item--highlight {
+  box-shadow:
+    0 0 0 2px rgba(var(--event-hl-rgb), 0.45),
+    0 8px 24px rgba(var(--event-hl-rgb), 0.22);
+  background: var(--event-hl-soft, #ffece6);
+}
+
 .image-overlay {
   position: absolute;
   top: 0;

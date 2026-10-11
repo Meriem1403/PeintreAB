@@ -2,46 +2,63 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/jpeg" href="/images/accueil.jpg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#C6AC8F" />
     
     <!-- SEO Meta Tags -->
-    <title>Alexandre Bindl - Artiste Peintre | Galerie d'Art en Ligne</title>
-    <meta name="description" content="Découvrez les œuvres d'Alexandre Bindl, artiste peintre passionné. Explorez sa galerie de peintures, croquis et événements artistiques. Expositions et créations originales." />
+    <title>Alexandre Bindl — Artiste peintre | Galerie d’art</title>
+    <meta name="description" content="Galerie en ligne d’Alexandre Bindl, artiste peintre. Peintures, croquis, expositions et événements — Marseille & Aix-en-Provence." />
     <meta name="keywords" content="Alexandre Bindl, artiste peintre, peinture, galerie d'art, exposition, œuvres d'art, peinture à l'huile, croquis, art contemporain, Marseille, Aix-en-Provence" />
     <meta name="author" content="Alexandre Bindl" />
-    <meta name="robots" content="index, follow" />
-    <link rel="canonical" href="http://www.alexandre-bindl.fr/" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="googlebot" content="index, follow" />
+    <link rel="canonical" href="https://www.alexandre-bindl.fr/" />
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="http://www.alexandre-bindl.fr/" />
-    <meta property="og:title" content="Alexandre Bindl - Artiste Peintre | Galerie d'Art" />
-    <meta property="og:description" content="Découvrez les œuvres d'Alexandre Bindl, artiste peintre passionné. Explorez sa galerie de peintures, croquis et événements artistiques." />
-    <meta property="og:image" content="http://www.alexandre-bindl.fr/images/accueil.jpg" />
+    <meta property="og:site_name" content="Alexandre Bindl" />
+    <meta property="og:url" content="https://www.alexandre-bindl.fr/" />
+    <meta property="og:title" content="Alexandre Bindl — Artiste peintre | Galerie d’art" />
+    <meta property="og:description" content="Galerie en ligne d’Alexandre Bindl, artiste peintre. Peintures, croquis, expositions et événements." />
+    <meta property="og:image" content="https://www.alexandre-bindl.fr/images/accueil.jpg" />
     <meta property="og:locale" content="fr_FR" />
     
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:url" content="http://www.alexandre-bindl.fr/" />
-    <meta name="twitter:title" content="Alexandre Bindl - Artiste Peintre" />
-    <meta name="twitter:description" content="Découvrez les œuvres d'Alexandre Bindl, artiste peintre passionné." />
-    <meta name="twitter:image" content="http://www.alexandre-bindl.fr/images/accueil.jpg" />
+    <meta name="twitter:url" content="https://www.alexandre-bindl.fr/" />
+    <meta name="twitter:title" content="Alexandre Bindl — Artiste peintre" />
+    <meta name="twitter:description" content="Galerie en ligne d’Alexandre Bindl, artiste peintre. Peintures, croquis et expositions." />
+    <meta name="twitter:image" content="https://www.alexandre-bindl.fr/images/accueil.jpg" />
     
     <!-- Schema.org structured data -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "Person",
-      "name": "Alexandre Bindl",
-      "jobTitle": "Artiste Peintre",
-      "url": "http://www.alexandre-bindl.fr",
-      "sameAs": [
-        "https://www.facebook.com/AlexandreBindlArtistePeintre",
-        "https://www.instagram.com/Alexandre_Bindl"
-      ],
-      "image": "http://www.alexandre-bindl.fr/images/accueil.jpg",
-      "description": "Artiste peintre passionné par la représentation de la beauté et de l'émotion à travers ses œuvres."
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://www.alexandre-bindl.fr/#website",
+          "url": "https://www.alexandre-bindl.fr/",
+          "name": "Alexandre Bindl",
+          "description": "Galerie en ligne d’Alexandre Bindl, artiste peintre.",
+          "inLanguage": "fr-FR",
+          "publisher": { "@id": "https://www.alexandre-bindl.fr/#person" }
+        },
+        {
+          "@type": "Person",
+          "@id": "https://www.alexandre-bindl.fr/#person",
+          "name": "Alexandre Bindl",
+          "jobTitle": "Artiste peintre",
+          "url": "https://www.alexandre-bindl.fr/",
+          "image": "https://www.alexandre-bindl.fr/images/accueil.jpg",
+          "sameAs": [
+            "https://www.facebook.com/AlexandreBindlArtistePeintre",
+            "https://www.instagram.com/Alexandre_Bindl"
+          ],
+          "description": "Artiste peintre — peintures, croquis et expositions."
+        }
+      ]
     }
     </script>
     

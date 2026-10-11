@@ -900,6 +900,7 @@ body.exhibition-mode.exhibition-mode--scroll .navbar {
     top: 0;
     z-index: 20;
     flex-shrink: 0;
+    background: #070605;
   }
 
   .exhibition-layout {

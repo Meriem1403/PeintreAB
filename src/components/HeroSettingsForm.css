@@ -5,6 +5,7 @@
   color: var(--form-heading, #1a1816);
 }
 
+.hero-settings-form .app-form > .hero-settings-section-title:first-child,
 .hero-settings-section-title:first-of-type {
   margin-top: 0;
 }
@@ -15,8 +16,14 @@
 
 .hero-settings-form-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1.5rem;
+}
+
+@media (min-width: 1100px) {
+  .hero-settings-form-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 720px) {

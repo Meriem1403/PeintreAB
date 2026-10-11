@@ -23,7 +23,8 @@ export const escapeHtml = (value) => {
 
 export const nl2br = (text) => escapeHtml(text).replace(/\n/g, '<br />');
 
-const siteUrl = () => (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
+const siteUrl = () =>
+  String(process.env.FRONTEND_URL || 'https://www.alexandre-bindl.fr').replace(/\/$/, '');
 
 /**
  * Enveloppe commune : bandeau sombre, corps crème, pied de page discret.
@@ -261,4 +262,20 @@ export const buildWorkInfoBlock = (workData) => {
       <p style="margin:6px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:${BRAND.muted};">${escapeHtml(typeLabel)}${workData.prix ? ` · ${escapeHtml(workData.prix)} €` : ''}</p>
     </td></tr>
   </table>`;
+};
+
+export const buildPasswordResetEmail = ({ resetUrl }) => {
+  const bodyHtml = `
+    <p style="margin:0 0 16px;">Bonjour,</p>
+    <p style="margin:0 0 16px;">Une demande de réinitialisation du mot de passe administrateur a été effectuée pour le site Alexandre Bindl.</p>
+    <p style="margin:0 0 8px;">Ce lien est valable <strong style="font-weight:600;">1 heure</strong> et ne peut être utilisé qu&apos;une seule fois.</p>
+    <p style="margin:24px 0 0;font-size:14px;color:${BRAND.muted};">Si vous n&apos;êtes pas à l&apos;origine de cette demande, ignorez cet e-mail — votre mot de passe actuel reste inchangé.</p>`;
+
+  return wrapEmailLayout({
+    preheader: 'Réinitialisation du mot de passe administrateur',
+    headline: 'Nouveau mot de passe',
+    bodyHtml,
+    cta: { href: resetUrl, label: 'Choisir un nouveau mot de passe' },
+    footerNote: 'Lien à usage unique — ne le partagez pas.',
+  });
 };

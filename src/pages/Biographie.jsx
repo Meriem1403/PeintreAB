@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import { artistAPI } from '../utils/apiService';
 import { normalizeImageUrl } from '../utils/imageUrl';
+import Seo from '../components/Seo';
 import './Biographie.css';
 
 const Biographie = () => {
@@ -46,6 +47,12 @@ const Biographie = () => {
 
   return (
     <div className="bio-v2" key={location.pathname}>
+      <Seo
+        title="Biographie"
+        description="Parcours et biographie d’Alexandre Bindl, artiste peintre — peintre contemporain, expositions et ateliers."
+        path="/biographie"
+        image={photo}
+      />
       <div className="bio-v2__stage">
       <header className="bio-v2__banner">
         <img className="bio-v2__banner-img" src={photo} alt="Portrait d'Alexandre Bindl" />

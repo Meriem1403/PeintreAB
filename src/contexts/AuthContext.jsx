@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { setUnauthorizedHandler } from '../utils/apiService';
 
 const AuthContext = createContext();
 
@@ -32,6 +33,20 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const logout = useCallback(() => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('auth');
+    setIsAuthenticated(false);
+  }, []);
+
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      logout();
+    });
+    return () => setUnauthorizedHandler(null);
+  }, [logout]);
+
   useEffect(() => {
     const token = localStorage.getItem('token');
 
@@ -47,34 +62,31 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const login = async (username, password) => {
+  const login = async (email, password) => {
     try {
       const { authAPI } = await import('../utils/apiService');
-      const response = await authAPI.login(username, password);
+      const response = await authAPI.login(email, password);
       localStorage.setItem('token', response.token);
       localStorage.setItem('user', JSON.stringify(response.user));
       setIsAuthenticated(true);
       return true;
     } catch (error) {
-      console.error('Erreur de connexion:', error);
+      if (import.meta.env.DEV) {
+        console.error('Erreur de connexion:', error);
+      }
       return false;
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('auth');
-    setIsAuthenticated(false);
-  };
-
   return (
-    <AuthContext.Provider value={{
-      isAuthenticated,
-      loading,
-      login,
-      logout
-    }}>
+    <AuthContext.Provider
+      value={{
+        isAuthenticated,
+        loading,
+        login,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

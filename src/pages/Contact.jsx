@@ -10,6 +10,7 @@ import {
   FaPhone,
 } from 'react-icons/fa';
 import { contactInfoAPI, contactsAPI } from '../utils/apiService';
+import Seo from '../components/Seo';
 import './Contact.css';
 
 const defaultContactInfo = {
@@ -23,7 +24,7 @@ const defaultContactInfo = {
   },
   website: {
     name: 'www.alexandre-bindl.fr',
-    url: 'http://www.alexandre-bindl.fr',
+    url: 'https://www.alexandre-bindl.fr',
   },
   email: 'alexandre.bindl@gmail.com',
   phone: '06 32 00 12 28',
@@ -112,6 +113,11 @@ const Contact = () => {
 
   return (
     <div className="contact-page" key={location.pathname}>
+      <Seo
+        title="Contact"
+        description="Contactez Alexandre Bindl — demandes d’œuvres, expositions, ateliers et partenariats."
+        path="/contact"
+      />
       <header className="contact-page__hero">
         <motion.div className="contact-page__hero-inner" {...fadeIn(0.05)}>
           <p className="contact-page__kicker">Dialogue</p>

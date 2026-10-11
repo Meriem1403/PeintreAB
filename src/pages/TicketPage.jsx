@@ -35,7 +35,7 @@ const TicketPage = () => {
   useEffect(() => {
     const applyNavOffset = () => {
       const nav = document.querySelector('.navbar');
-      const h = nav ? Math.ceil(nav.getBoundingClientRect().height) : 72;
+      const h = nav ? Math.ceil(nav.getBoundingClientRect().height) : 0;
       document.documentElement.style.setProperty('--ticket-nav-offset', `${h}px`);
     };
     applyNavOffset();

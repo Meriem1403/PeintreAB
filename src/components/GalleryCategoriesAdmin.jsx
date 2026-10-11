@@ -98,13 +98,6 @@ const GalleryCategoriesAdmin = () => {
 
   return (
     <div className="gcat-admin">
-      <p className="gcat-admin__intro">
-        Gérez les onglets de la galerie publique et de la barre latérale admin. Renommez
-        « Peintures », « Croquis », etc., ajoutez de nouveaux classements, et changez l’ordre
-        d’affichage. L’onglet Événements (billets / visiteurs) peut être renommé mais pas
-        supprimé.
-      </p>
-
       {error && (
         <div className="gcat-admin__error" role="alert">
           {error}

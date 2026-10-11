@@ -215,6 +215,16 @@ Formé dans les techniques classiques de la peinture à l''huile, Alexandre dév
     `);
     console.log('✅ Colonne public_site_url vérifiée dans site_settings');
 
+    await pool.query(`
+      ALTER TABLE site_settings
+      ADD COLUMN IF NOT EXISTS nav_label_home VARCHAR(40) DEFAULT 'Accueil',
+      ADD COLUMN IF NOT EXISTS nav_label_gallery VARCHAR(40) DEFAULT 'Galerie',
+      ADD COLUMN IF NOT EXISTS nav_label_bio VARCHAR(40) DEFAULT 'Biographie',
+      ADD COLUMN IF NOT EXISTS nav_label_contact VARCHAR(40) DEFAULT 'Contact',
+      ADD COLUMN IF NOT EXISTS nav_label_admin VARCHAR(40) DEFAULT 'Admin'
+    `);
+    console.log('✅ Colonnes libellés navigation header vérifiées dans site_settings');
+
     // Ajouter work_id à la table contacts si elle n'existe pas
     try {
       await pool.query(`
@@ -233,6 +243,16 @@ Formé dans les techniques classiques de la peinture à l''huile, Alexandre dév
       ADD COLUMN IF NOT EXISTS ticket_capacity INTEGER
     `);
     console.log('✅ Colonnes billetterie ajoutées/vérifiées dans works');
+
+    await pool.query(`
+      ALTER TABLE works
+      ADD COLUMN IF NOT EXISTS cta_label VARCHAR(80),
+      ADD COLUMN IF NOT EXISTS status_badge VARCHAR(80),
+      ADD COLUMN IF NOT EXISTS highlight_enabled BOOLEAN DEFAULT FALSE,
+      ADD COLUMN IF NOT EXISTS highlight_color VARCHAR(20),
+      ADD COLUMN IF NOT EXISTS badge_color VARCHAR(20)
+    `);
+    console.log('✅ Colonnes apparence événement (cta/badge/surbrillance) vérifiées dans works');
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS visitors (
@@ -380,6 +400,16 @@ Formé dans les techniques classiques de la peinture à l''huile, Alexandre dév
     await ensureVisitorLeadsTable();
     console.log('✅ Table visitor_leads créée/vérifiée');
 
+    const { ensureSiteAnalyticsTable } = await import(
+      '../src/controllers/analyticsController.js'
+    );
+    await ensureSiteAnalyticsTable();
+    console.log('✅ Table site_analytics_hits (compteur visiteurs) créée/vérifiée');
+
+    const { ensureSmtpTables } = await import('../src/controllers/smtpController.js');
+    await ensureSmtpTables();
+    console.log('✅ Tables smtp_settings / smtp_setup_tokens créées/vérifiées');
+
     const { migrateLegacyTicketToSlots } = await import('../src/services/ticketSlots.js');
     const legacyEvents = await pool.query(
       `SELECT * FROM works WHERE type = 'evenements' AND ticket_mode NOT IN ('closed', 'open')`
@@ -391,17 +421,67 @@ Formé dans les techniques classiques de la peinture à l''huile, Alexandre dév
       console.log(`✅ ${legacyEvents.rows.length} événement(s) migré(s) vers créneaux billetterie`);
     }
 
-    // Créer un utilisateur admin par défaut si aucun n'existe
-    const userCheck = await pool.query('SELECT * FROM users WHERE username = $1', ['admin']);
-    
-    if (userCheck.rows.length === 0) {
-      const bcrypt = await import('bcryptjs');
-      const hashedPassword = await bcrypt.default.hash('admin123', 10);
-      await pool.query(
-        'INSERT INTO users (username, password_hash, email) VALUES ($1, $2, $3)',
-        ['admin', hashedPassword, 'admin@alexandrebindl.com']
-      );
-      console.log('✅ Utilisateur admin créé (username: admin, password: admin123)');
+    // Auth e-mail : emails uniques + tokens reset
+    await pool.query(`
+      UPDATE users
+      SET email = LOWER(TRIM(username))
+      WHERE (email IS NULL OR TRIM(email) = '')
+        AND username LIKE '%@%'
+    `);
+    await pool.query(`
+      UPDATE users
+      SET email = LOWER(TRIM(COALESCE(NULLIF(TRIM(email), ''), username))) ||
+        CASE WHEN COALESCE(NULLIF(TRIM(email), ''), username) LIKE '%@%' THEN '' ELSE '@migrated.local' END
+      WHERE email IS NULL OR TRIM(email) = ''
+    `);
+    await pool.query(`
+      UPDATE users SET email = LOWER(TRIM(email)) WHERE email IS NOT NULL
+    `);
+    await pool.query(`
+      ALTER TABLE users
+      ALTER COLUMN email SET NOT NULL
+    `);
+    await pool.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS users_email_unique_idx
+      ON users (LOWER(email))
+    `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS password_reset_tokens (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        token_hash VARCHAR(128) NOT NULL UNIQUE,
+        expires_at TIMESTAMPTZ NOT NULL,
+        used_at TIMESTAMPTZ,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `);
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS password_reset_tokens_user_idx
+      ON password_reset_tokens (user_id)
+    `);
+    console.log('✅ Auth e-mail + password_reset_tokens vérifiés');
+
+    // Admin : uniquement via ADMIN_EMAIL + ADMIN_PASSWORD (plus de admin/admin123)
+    const userCount = await pool.query('SELECT COUNT(*)::int AS c FROM users');
+    if (userCount.rows[0].c === 0) {
+      const adminEmail = String(process.env.ADMIN_EMAIL || '')
+        .trim()
+        .toLowerCase();
+      const adminPassword = String(process.env.ADMIN_PASSWORD || '');
+      const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(adminEmail);
+      if (emailOk && adminPassword.length >= 8) {
+        const bcrypt = await import('bcryptjs');
+        const hashedPassword = await bcrypt.default.hash(adminPassword, 12);
+        await pool.query(
+          'INSERT INTO users (username, password_hash, email) VALUES ($1, $2, $3)',
+          [adminEmail, hashedPassword, adminEmail]
+        );
+        console.log(`✅ Utilisateur admin créé pour ${adminEmail}`);
+      } else {
+        console.warn(
+          '⚠️ Aucun utilisateur admin — définissez ADMIN_EMAIL et ADMIN_PASSWORD (≥ 8 caractères) puis relancez la migration'
+        );
+      }
     }
 
   } catch (error) {

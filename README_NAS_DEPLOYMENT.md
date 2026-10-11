@@ -59,23 +59,33 @@ DB_NAME=peintreab_db
 DB_USER=peintreab_user
 DB_PASSWORD=VOTRE_MOT_DE_PASSE_SECURISE_ICI
 
-# Configuration JWT
+# Configuration JWT (clé aléatoire ≥ 24 caractères — obligatoire)
 JWT_SECRET=VOTRE_SECRET_JWT_TRES_SECURISE_ICI
-JWT_EXPIRES_IN=7d
+JWT_EXPIRES_IN=12h
 PORT=3000
+NODE_ENV=production
 
-# URL du frontend (adapter selon votre configuration)
-FRONTEND_URL=http://www.alexandre-bindl.fr
-# Ou si vous utilisez l'IP du NAS :
-# FRONTEND_URL=http://192.168.1.XXX:5173
+# URL publique HTTPS (reverse proxy NAS)
+FRONTEND_URL=https://www.alexandre-bindl.fr
 
-# Configuration Email Gmail
+# Premier admin (seulement si table users vide) — e-mail Gmail de connexion
+ADMIN_EMAIL=votre-email@gmail.com
+ADMIN_PASSWORD=mot-de-passe-fort-initial
+
+# Configuration Email Gmail (login « mot de passe oublié » + mails site)
 EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
 EMAIL_USER=votre-email@gmail.com
 EMAIL_PASSWORD=votre-app-password-gmail
 EMAIL_FROM=votre-email@gmail.com
 ```
+
+> Connexion admin : **e-mail + mot de passe**. Réinitialisation via `/forgot-password` (lien reçu par Gmail).
+>
+> **Important — Gmail :** le développeur n’a **pas** besoin du mot de passe Gmail.
+> Sur le NAS, c’est **Alexandre** (ou le propriétaire du compte) qui crée un
+> [mot de passe d’application](https://myaccount.google.com/apppasswords) et le
+> colle dans `EMAIL_PASSWORD` du `.env` serveur. En local, le projet utilise Mailpit (`http://localhost:8025`).
 
 ### 4. Configuration Docker Compose pour NAS
 
@@ -149,71 +159,65 @@ docker-compose ps
 docker-compose logs -f
 ```
 
-### 7. Configuration du Reverse Proxy (optionnel mais recommandé)
+### 7. Checklist HTTPS (Let’s Encrypt + reverse proxy)
 
-#### Pour Synology (avec DSM) :
+Les conteneurs restent en **HTTP en local** (`127.0.0.1:5173` / `127.0.0.1:3000`). Le NAS termine le TLS.
 
-1. Ouvrez **Control Panel** → **Login Portal** → **Advanced** → **Reverse Proxy**
-2. Créez une nouvelle règle :
-   - **Description** : PeintreAB
-   - **Source** :
-     - Protocol : HTTPS
-     - Hostname : www.alexandre-bindl.fr
-     - Port : 443
-   - **Destination** :
-     - Protocol : HTTP
-     - Hostname : localhost
-     - Port : 5173
+#### A. Certificat Let’s Encrypt
 
-#### Pour QNAP :
-
-1. Ouvrez **Control Panel** → **Network & Virtual Switch** → **Reverse Proxy**
-2. Créez une nouvelle règle similaire
-
-### 8. Configuration SSL/HTTPS (recommandé)
-
-#### Option A : Certificat Let's Encrypt (gratuit)
-
-**Pour Synology :**
+**Synology :**
 1. **Control Panel** → **Security** → **Certificate**
-2. Ajoutez un nouveau certificat
-3. Sélectionnez "Get a certificate from Let's Encrypt"
-4. Entrez votre domaine : `www.alexandre-bindl.fr`
-5. Configurez le reverse proxy pour utiliser ce certificat
+2. Ajouter un certificat → **Get a certificate from Let's Encrypt**
+3. Domaine : `www.alexandre-bindl.fr` (et `alexandre-bindl.fr` si besoin)
+4. Assigner ce certificat au reverse proxy PeintreAB
 
-**Pour QNAP :**
+**QNAP :**
 1. **Control Panel** → **Security** → **Certificate & Private Key**
-2. Utilisez l'assistant Let's Encrypt
+2. Assistant Let’s Encrypt pour le même domaine
 
-#### Option B : Certificat auto-signé (pour test local)
+#### B. Reverse Proxy (Synology DSM)
 
-Généré automatiquement par le NAS, mais les navigateurs afficheront un avertissement.
+1. **Control Panel** → **Login Portal** → **Advanced** → **Reverse Proxy**
+2. Règle **site** :
+   - Source : `HTTPS` · `www.alexandre-bindl.fr` · `443`
+   - Destination : `HTTP` · `localhost` · `5173`
+3. Si le proxy Vite `/api` ne suffit pas, règle **API** (ou custom header) :
+   - Source : `HTTPS` · `www.alexandre-bindl.fr` · `443` · chemin `/api`
+   - Destination : `HTTP` · `localhost` · `3000` · `/api`
+4. Activer la **redirection HTTP → HTTPS** (port 80 → 443) pour le hostname
+5. En-têtes recommandés : `X-Forwarded-For`, `X-Forwarded-Proto` (le backend a `trust proxy`)
 
-### 9. Configuration du Firewall
+#### C. Firewall / ports publics
 
-Assurez-vous que les ports suivants sont ouverts :
-- **80** (HTTP)
-- **443** (HTTPS)
-- **3000** (Backend API - optionnel, peut rester interne)
-- **5173** (Frontend - optionnel si reverse proxy configuré)
+| Port | Exposition Internet |
+|------|---------------------|
+| **80 / 443** | Oui (Let’s Encrypt + site) |
+| **5173 / 3000 / 5432** | **Non** — bind `127.0.0.1` uniquement (`docker-compose.nas.yml`) |
 
-### 10. Vérification
+#### D. Vérifications post-HTTPS
+
+1. Ouvrir `https://www.alexandre-bindl.fr` (cadenas OK, pas d’avertissement)
+2. `https://www.alexandre-bindl.fr/api/health` → `{"status":"OK",...}`
+3. Login admin avec **e-mail Gmail** ; tester « Mot de passe oublié »
+4. Scan billets : la caméra nécessite HTTPS (déjà bloquée hors contexte sécurisé)
+
+### 8. Vérification des conteneurs
 
 1. **Vérifier les conteneurs** :
    ```bash
-   docker-compose ps
+   docker compose -f docker-compose.nas.yml ps
    ```
    Tous les conteneurs doivent être "Up"
 
 2. **Vérifier les logs** :
    ```bash
-   docker-compose logs backend
-   docker-compose logs frontend
+   docker compose -f docker-compose.nas.yml logs backend
+   docker compose -f docker-compose.nas.yml logs frontend
    ```
 
 3. **Tester l'accès** :
-   - Frontend : `http://NAS-AL-IP:5173` ou `http://www.alexandre-bindl.fr`
-   - Backend API : `http://NAS-AL-IP:3000/api/health`
+   - Site : `https://www.alexandre-bindl.fr`
+   - Santé API : `https://www.alexandre-bindl.fr/api/health`
 
 ### 11. Mise à jour automatique (optionnel)
 
