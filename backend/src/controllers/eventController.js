@@ -389,10 +389,27 @@ export const getPublicTicket = async (req, res) => {
 
 export const listVisitors = async (req, res) => {
   try {
+    const { ensureVisitorLeadsTable } = await import('./leadCaptureController.js');
+    await ensureVisitorLeadsTable();
+
     const result = await pool.query(
       `SELECT v.*,
         (SELECT COUNT(*)::int FROM event_registrations er
          WHERE er.visitor_id = v.id AND er.status = 'confirmed') AS registrations_count,
+        (SELECT COUNT(*)::int FROM visitor_leads vl WHERE vl.visitor_id = v.id) AS leads_count,
+        (
+          SELECT w.titre FROM visitor_leads vl
+          LEFT JOIN works w ON w.id = vl.work_id
+          WHERE vl.visitor_id = v.id
+          ORDER BY vl.created_at DESC
+          LIMIT 1
+        ) AS last_lead_event,
+        (
+          SELECT vl.created_at FROM visitor_leads vl
+          WHERE vl.visitor_id = v.id
+          ORDER BY vl.created_at DESC
+          LIMIT 1
+        ) AS last_lead_at,
         COALESCE(
           (
             SELECT json_agg(row_to_json(ev) ORDER BY ev.last_registration DESC)

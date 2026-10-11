@@ -9,10 +9,18 @@ import {
   inviteOptedInVisitors,
   checkInTicket,
 } from '../controllers/eventController.js';
+import {
+  captureVisitorLead,
+  getLeadCaptureMeta,
+} from '../controllers/leadCaptureController.js';
 
 const router = express.Router();
 
 router.get('/tickets/:code', getPublicTicket);
+
+/* Capture contacts via QR salon (avant les routes :workId) */
+router.get('/leads/meta', getLeadCaptureMeta);
+router.post('/leads', captureVisitorLead);
 
 router.post('/admin/tickets/check-in', authenticateToken, checkInTicket);
 router.get('/admin/visitors', authenticateToken, listVisitors);
