@@ -662,14 +662,15 @@ const WorkDetail = () => {
             {showEventRegistration && (
               <div className="exhibition-placard-cta">
                 <p className="exhibition-placard-cta-hint">
-                  Réservez votre place — billet par email avec QR code à l&apos;entrée.
+                  Billetterie en ligne — réservez votre place, billet par email avec QR code à
+                  l&apos;entrée.
                 </p>
                 <button
                   type="button"
                   className="brand-btn brand-btn--primary brand-btn--pill brand-btn--block exhibition-btn exhibition-btn--primary"
                   onClick={() => setIsRegistrationOpen(true)}
                 >
-                  Je participe
+                  Réserver ma place
                 </button>
               </div>
             )}

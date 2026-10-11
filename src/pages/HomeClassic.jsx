@@ -44,9 +44,9 @@ const HomeClassic = () => {
     handleWorkClick,
   } = useHomeFeatured({ measureNavForClassic: true });
 
-  const goToEventRegistration = (event) => {
+  const goToEventDetails = (event) => {
     if (!event?.id) return;
-    navigate(`${workDetailPath('evenements', event.id)}?participer=1`, {
+    navigate(workDetailPath('evenements', event.id), {
       state: { work: event },
     });
   };
@@ -222,9 +222,9 @@ const HomeClassic = () => {
                       <button
                         type="button"
                         className="featured-event-item__participate"
-                        onClick={() => goToEventRegistration(event)}
+                        onClick={() => goToEventDetails(event)}
                       >
-                        Je participe
+                        Voir &amp; s&apos;inscrire
                       </button>
                     </div>
                   )}
