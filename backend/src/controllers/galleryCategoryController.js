@@ -15,7 +15,25 @@ const mapRow = (row) => ({
   is_locked: Boolean(row.is_locked),
 });
 
+export async function ensureGalleryCategoriesTable() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS gallery_categories (
+      id SERIAL PRIMARY KEY,
+      slug VARCHAR(64) UNIQUE NOT NULL,
+      label VARCHAR(120) NOT NULL,
+      lead TEXT,
+      display_order INTEGER DEFAULT 0,
+      kind VARCHAR(16) NOT NULL DEFAULT 'works',
+      is_locked BOOLEAN DEFAULT FALSE,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+}
+
 export async function ensureGalleryCategoriesSeeded() {
+  await ensureGalleryCategoriesTable();
+
   const count = await pool.query('SELECT COUNT(*)::int AS n FROM gallery_categories');
   if ((count.rows[0]?.n || 0) > 0) return;
 
