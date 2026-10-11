@@ -162,6 +162,11 @@ export const eventsAPI = {
   register: (workId, body) =>
     request(`/events/${workId}/register`, { method: 'POST', body }),
   getTicket: (code) => request(`/events/tickets/${code}`),
+  getLeadMeta: (eventId) => {
+    const q = eventId ? `?event=${encodeURIComponent(eventId)}` : '';
+    return request(`/events/leads/meta${q}`);
+  },
+  captureLead: (body) => request('/events/leads', { method: 'POST', body }),
   listVisitors: () => request('/events/admin/visitors'),
   listRegistrations: (workId) => request(`/events/admin/${workId}/registrations`),
   inviteOptedIn: (workId, body = {}) =>

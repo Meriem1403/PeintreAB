@@ -1062,8 +1062,9 @@ const VisitorsAdmin = () => {
               </button>
             </div>
             <p className="vdash-panel__intro">
-              Tous les contacts enregistrés via la billetterie, <strong>tous événements confondus</strong>.
-              Le consentement marketing est enregistré séparément.
+              Contacts issus de la billetterie et des <strong>QR codes salon</strong> (formulaire
+              /rejoindre), tous événements confondus. Le consentement marketing est enregistré
+              séparément.
             </p>
 
             {filteredContacts.length === 0 ? (
@@ -1096,6 +1097,12 @@ const VisitorsAdmin = () => {
                           <span className="vdash-tag vdash-tag--opt">Opt-in</span>
                         ) : (
                           <span className="vdash-tag vdash-tag--muted">Sans opt-in</span>
+                        )}
+                        {Number(v.leads_count) > 0 && (
+                          <span className="vdash-tag vdash-tag--opt" title="Capturé via QR salon">
+                            QR salon
+                            {v.last_lead_event ? ` · ${v.last_lead_event}` : ''}
+                          </span>
                         )}
                       </div>
                       {Array.isArray(v.events) && v.events.length > 0 && (

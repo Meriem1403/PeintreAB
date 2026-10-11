@@ -16,6 +16,7 @@ import Admin from './pages/Admin';
 import Login from './pages/Login';
 import NotFound from './pages/NotFound';
 import TicketPage from './pages/TicketPage';
+import LeadCapturePage from './pages/LeadCapturePage';
 import { adminTabPath, DEFAULT_ADMIN_TAB } from './constants/adminRoutes';
 import './App.css';
 
@@ -40,6 +41,7 @@ function App() {
                       <Route path="/confidentialite" element={<Privacy />} />
                       <Route path="/login" element={<Login />} />
                       <Route path="/billet/:code" element={<TicketPage />} />
+                      <Route path="/rejoindre" element={<LeadCapturePage />} />
                       <Route
                         path="/admin"
                         element={
