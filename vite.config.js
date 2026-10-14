@@ -1,6 +1,19 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
+// Les requêtes /api passent par Vite → backend. On retire Origin pour éviter
+// le rejet CORS Express (le navigateur voit déjà du same-origin sur le domaine).
+const apiProxy = {
+  target: 'http://backend:3000',
+  changeOrigin: true,
+  configure: (proxy) => {
+    proxy.on('proxyReq', (proxyReq) => {
+      proxyReq.removeHeader('origin')
+      proxyReq.removeHeader('Origin')
+    })
+  },
+}
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
@@ -10,10 +23,7 @@ export default defineConfig({
     port: 5173,
     allowedHosts: true,
     proxy: {
-      '/api': {
-        target: 'http://backend:3000',
-        changeOrigin: true,
-      },
+      '/api': apiProxy,
     },
   },
   preview: {
@@ -21,8 +31,8 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
+        ...apiProxy,
         target: 'http://localhost:3000',
-        changeOrigin: true,
       },
     },
   },
