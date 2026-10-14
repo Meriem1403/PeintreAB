@@ -9,10 +9,10 @@ const isProduction = process.env.NODE_ENV === 'production';
 const dbPassword = process.env.DB_PASSWORD;
 
 if (isProduction && (!dbPassword || dbPassword === 'peintreab_password')) {
-  console.error(
-    '❌ DB_PASSWORD manquant ou trop faible en production — mettez à jour backend/.env'
+  // Ne plus exit(1) : ça coupait tout le site NAS. Avertir seulement.
+  console.warn(
+    '⚠️ DB_PASSWORD faible ou par défaut — changez-le dans backend/.env quand possible'
   );
-  process.exit(1);
 }
 
 const pool = new Pool({

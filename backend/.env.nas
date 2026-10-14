@@ -16,7 +16,8 @@ ADMIN_EMAIL_2=meriemzahzouh@gmail.com
 ADMIN_PASSWORD_2=admin123
 
 PORT=3000
-NODE_ENV=production
+# development = OK avec le mot de passe DB Docker par défaut (sinon le backend crashait)
+NODE_ENV=development
 FRONTEND_URL=https://www.alexandre-bindl.fr
 CORS_ORIGINS=https://www.alexandre-bindl.fr,https://alexandre-bindl.fr,http://www.alexandre-bindl.fr,http://alexandre-bindl.fr,http://82.66.116.200:5173,http://www.alexandre-bindl.fr:5173
 
