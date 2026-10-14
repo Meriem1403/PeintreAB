@@ -22,6 +22,22 @@
   color: #44403c;
 }
 
+.login-form__steps {
+  margin: 0 0 1.25rem;
+  padding-left: 1.25rem;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: #44403c;
+}
+
+.login-form__steps li {
+  margin-bottom: 0.45rem;
+}
+
+.login-form__steps a {
+  color: var(--color-primary, #c6ac8f);
+}
+
 .login-form__link-btn {
   display: inline-flex;
   align-items: center;

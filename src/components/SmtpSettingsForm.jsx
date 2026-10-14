@@ -136,9 +136,10 @@ const SmtpSettingsForm = () => {
           <div>
             <h3>Méthode recommandée — lien pour Alexandre</h3>
             <p>
-              Alexandre crée un « mot de passe d’application » dans son compte Google, puis le
-              saisit sur une page sécurisée. Vous générez le lien ici et vous le lui envoyez
-              (WhatsApp / Signal). Vous ne voyez jamais son secret.
+              1) Cliquez ci-dessous → 2) Copiez le lien → 3) Envoyez-le à Alexandre (WhatsApp /
+              Signal). <strong>Ne remplissez pas la page vous-même</strong> : c’est lui qui ouvre
+              le lien, crée un mot de passe d’application Google, et l’enregistre. Vous ne voyez
+              jamais son secret.
             </p>
           </div>
         </header>
