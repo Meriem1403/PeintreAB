@@ -30,3 +30,35 @@
   width: 100%;
   box-sizing: border-box;
 }
+
+.password-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-field input {
+  width: 100%;
+  padding-right: 2.75rem;
+}
+
+.password-field__toggle {
+  position: absolute;
+  right: 0.55rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  background: transparent;
+  color: #78716c;
+  cursor: pointer;
+  padding: 0;
+}
+
+.password-field__toggle:hover {
+  color: #44403c;
+}
