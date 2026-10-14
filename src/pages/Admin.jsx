@@ -45,6 +45,7 @@ import TicketScannerAdmin from '../components/TicketScannerAdmin';
 import GalleryCategoriesAdmin from '../components/GalleryCategoriesAdmin';
 import NavLabelsForm from '../components/NavLabelsForm';
 import SmtpSettingsForm from '../components/SmtpSettingsForm';
+import ChangePasswordForm from '../components/ChangePasswordForm';
 import './Admin.css';
 import '../styles/adminTypography.css';
 import '../styles/adminResponsive.css';
@@ -59,7 +60,7 @@ const SITE_NAV = [
       { id: 'artist-info', label: 'Artiste', icon: FiUser },
       { id: 'contact-info', label: 'Contact', icon: FiPhone },
       { id: 'site-qr', label: 'QR site', icon: FiGrid },
-      { id: 'email-smtp', label: 'E-mail (SMTP)', icon: FiSend },
+      { id: 'email-smtp', label: 'Compte & e-mail', icon: FiSend },
     ],
   },
   {
@@ -85,7 +86,7 @@ const ADMIN_PAGE_DESC = {
   'contact-info': 'Coordonnées affichées sur la page Contact.',
   'site-qr': 'URL publique et QR codes (site + contacts salon).',
   'email-smtp':
-    'Lien sécurisé pour qu’Alexandre configure Gmail sans partager son mot de passe d’application.',
+    'Changez votre mot de passe admin, puis configurez Gmail (lien sécurisé pour Alexandre).',
   notifications: 'Messages reçus — actualisation toutes les 20 s.',
   visiteurs: 'Inscrits, contacts et billets par événement.',
   scan: 'Contrôle d’entrée — caméra ou saisie manuelle.',
@@ -442,7 +443,10 @@ const Admin = () => {
             ) : activeTab === 'site-qr' ? (
               <SiteQrSettingsForm />
             ) : activeTab === 'email-smtp' ? (
-              <SmtpSettingsForm />
+              <>
+                <ChangePasswordForm />
+                <SmtpSettingsForm />
+              </>
             ) : activeTab === 'visiteurs' ? (
               <VisitorsAdmin />
             ) : activeTab === 'scan' ? (

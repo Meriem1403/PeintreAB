@@ -76,6 +76,11 @@ export const authAPI = {
       method: 'POST',
       body: { token, password },
     }),
+  changePassword: async (currentPassword, newPassword) =>
+    request('/auth/change-password', {
+      method: 'POST',
+      body: { currentPassword, newPassword },
+    }),
 };
 
 export const worksAPI = {
