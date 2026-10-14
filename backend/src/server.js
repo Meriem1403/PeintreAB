@@ -55,6 +55,12 @@ const corsOrigins = [
     [
       frontendUrl,
       ...extraCorsOrigins,
+      'https://www.alexandre-bindl.fr',
+      'https://alexandre-bindl.fr',
+      'http://www.alexandre-bindl.fr',
+      'http://alexandre-bindl.fr',
+      'http://82.66.116.200:5173',
+      'http://www.alexandre-bindl.fr:5173',
       ...(isProduction()
         ? []
         : ['http://localhost:5173', 'http://127.0.0.1:5173']),
@@ -62,18 +68,34 @@ const corsOrigins = [
   ),
 ];
 
+const allowedCorsHosts = new Set(
+  corsOrigins
+    .map((o) => {
+      try {
+        return new URL(o).hostname;
+      } catch {
+        return null;
+      }
+    })
+    .filter(Boolean)
+);
+
+const isAllowedCorsOrigin = (origin) => {
+  if (!origin) return true;
+  if (corsOrigins.includes(origin.replace(/\/$/, ''))) return true;
+  try {
+    return allowedCorsHosts.has(new URL(origin).hostname);
+  } catch {
+    return false;
+  }
+};
+
 console.log('🔒 CORS origins:', corsOrigins.join(', ') || '(aucune)');
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || corsOrigins.length === 0) {
-        if (isProduction() && corsOrigins.length === 0) {
-          return callback(new Error('FRONTEND_URL manquant en production'));
-        }
-        return callback(null, true);
-      }
-      if (corsOrigins.includes(origin)) {
+      if (isAllowedCorsOrigin(origin)) {
         return callback(null, true);
       }
       return callback(new Error('Origine CORS non autorisée'));
