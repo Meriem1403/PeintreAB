@@ -125,14 +125,16 @@ export const createWork = async (req, res) => {
       }
     }
 
-    // Si display_order n'est pas fourni, utiliser le max + 1 pour cette catégorie
+    // Si display_order n'est pas fourni : nouvel élément en haut de liste
     let finalDisplayOrder = display_order;
     if (finalDisplayOrder === undefined || finalDisplayOrder === null || finalDisplayOrder === '') {
-      const maxOrderResult = await pool.query(
-        'SELECT COALESCE(MAX(display_order), 0) + 1 as next_order FROM works WHERE type = $1',
+      await pool.query(
+        `UPDATE works
+         SET display_order = COALESCE(display_order, 0) + 1
+         WHERE type = $1`,
         [type]
       );
-      finalDisplayOrder = maxOrderResult.rows[0].next_order;
+      finalDisplayOrder = 0;
     } else {
       finalDisplayOrder = parseInt(finalDisplayOrder, 10);
     }
