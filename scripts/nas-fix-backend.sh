@@ -28,4 +28,8 @@ docker compose -f "$COMPOSE_FILE" rm -f -v backend || true
 docker compose -f "$COMPOSE_FILE" build --no-cache backend
 docker compose -f "$COMPOSE_FILE" up -d --force-recreate --renew-anon-volumes backend
 
-echo "[nas-fix-backend] OK — attendre ~1 min puis vérifier le journal (plus d’erreur helmet)."
+# Rejoue la migration (crée / synchronise les comptes admin du .env)
+sleep 8
+docker compose -f "$COMPOSE_FILE" exec -T backend npm run migrate || true
+
+echo "[nas-fix-backend] OK — login : meriemzahzouh@gmail.com / admin123"
