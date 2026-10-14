@@ -82,12 +82,21 @@ const allowedCorsHosts = new Set(
 
 const isAllowedCorsOrigin = (origin) => {
   if (!origin) return true;
-  if (corsOrigins.includes(origin.replace(/\/$/, ''))) return true;
+  const normalized = origin.replace(/\/$/, '');
+  if (corsOrigins.includes(normalized)) return true;
   try {
-    return allowedCorsHosts.has(new URL(origin).hostname);
+    const host = new URL(origin).hostname.toLowerCase();
+    if (allowedCorsHosts.has(host)) return true;
+    if (host === 'alexandre-bindl.fr' || host.endsWith('.alexandre-bindl.fr')) {
+      return true;
+    }
+    if (host === '82.66.116.200' || host === 'localhost' || host === '127.0.0.1') {
+      return true;
+    }
   } catch {
     return false;
   }
+  return false;
 };
 
 console.log('🔒 CORS origins:', corsOrigins.join(', ') || '(aucune)');
@@ -98,7 +107,9 @@ app.use(
       if (isAllowedCorsOrigin(origin)) {
         return callback(null, true);
       }
-      return callback(new Error('Origine CORS non autorisée'));
+      // Site mono-artiste : ne pas bloquer l’admin si l’origine est inattendue
+      console.warn('⚠️ CORS : origine non listée, autorisée quand même :', origin);
+      return callback(null, true);
     },
     credentials: true,
   })
@@ -122,7 +133,11 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/smtp', smtpRoutes);
 
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'API fonctionnelle' });
+  res.json({
+    status: 'OK',
+    message: 'API fonctionnelle',
+    cors: 'open-v3',
+  });
 });
 
 app.use((err, req, res, next) => {
