@@ -86,7 +86,7 @@ const ADMIN_PAGE_DESC = {
   'contact-info': 'Coordonnées affichées sur la page Contact.',
   'site-qr': 'URL publique et QR codes (site + contacts salon).',
   'email-smtp':
-    'Changez votre mot de passe admin, puis configurez Gmail (lien sécurisé pour Alexandre).',
+    'Mot de passe admin (connexion) + envoi des e-mails du site via Gmail (lien pour Alexandre).',
   notifications: 'Messages reçus — actualisation toutes les 20 s.',
   visiteurs: 'Inscrits, contacts et billets par événement.',
   scan: 'Contrôle d’entrée — caméra ou saisie manuelle.',
