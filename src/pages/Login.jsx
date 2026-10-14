@@ -7,7 +7,7 @@ import {
   DEFAULT_ADMIN_TAB,
   isValidAdminTab,
 } from '../constants/adminRoutes';
-import { FiLock, FiMail } from 'react-icons/fi';
+import { FiEye, FiEyeOff, FiLock, FiMail } from 'react-icons/fi';
 import Seo from '../components/Seo';
 import './Login.css';
 

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FiCheckCircle, FiLock, FiMail } from 'react-icons/fi';
+import { FiCheckCircle, FiEye, FiEyeOff, FiLock, FiMail } from 'react-icons/fi';
 import { smtpAPI } from '../utils/apiService';
 import Seo from '../components/Seo';
 import './Login.css';
@@ -15,6 +15,7 @@ const SetupSmtpPage = () => {
   const [suggestedEmail, setSuggestedEmail] = useState('alexandre.bindl@gmail.com');
   const [email, setEmail] = useState('alexandre.bindl@gmail.com');
   const [appPassword, setAppPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
@@ -137,16 +138,26 @@ const SetupSmtpPage = () => {
                 <FiLock className="icon" aria-hidden />
                 Mot de passe d’application
               </label>
-              <input
-                id="setup-smtp-password"
-                type="password"
-                value={appPassword}
-                onChange={(e) => setAppPassword(e.target.value)}
-                autoComplete="new-password"
-                placeholder="xxxx xxxx xxxx xxxx"
-                minLength={8}
-                required
-              />
+              <div className="password-field">
+                <input
+                  id="setup-smtp-password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={appPassword}
+                  onChange={(e) => setAppPassword(e.target.value)}
+                  autoComplete="new-password"
+                  placeholder="xxxx xxxx xxxx xxxx"
+                  minLength={8}
+                  required
+                />
+                <button
+                  type="button"
+                  className="password-field__toggle"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                >
+                  {showPassword ? <FiEyeOff aria-hidden /> : <FiEye aria-hidden />}
+                </button>
+              </div>
               <p className="login-form__success" style={{ marginTop: '0.45rem', fontSize: '0.8rem', lineHeight: 1.4 }}>
                 Sur votre téléphone ou ordinateur : compte Google → Sécurité → Validation en 2
                 étapes (activée) → Mots de passe des applications → créer « Site Peintre » → coller
