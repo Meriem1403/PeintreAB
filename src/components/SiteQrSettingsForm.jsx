@@ -64,7 +64,8 @@ const SiteQrSettingsForm = () => {
     (async () => {
       try {
         const data = await siteSettingsAPI.get();
-        const url = data.public_site_url || '';
+        const url =
+          (data.public_site_url || '').trim() || 'https://www.alexandre-bindl.fr';
         setPublicSiteUrl(url);
       } catch (err) {
         console.error(err);
