@@ -8,7 +8,7 @@ import {
 import { recordThemeHistory } from './themePaletteController.js';
 
 const DEFAULT_PUBLIC_SITE_URL =
-  process.env.FRONTEND_URL?.replace(/\/$/, '') || 'https://www.alexandrebindl.fr';
+  process.env.FRONTEND_URL?.replace(/\/$/, '') || 'https://www.alexandre-bindl.fr';
 
 const DEFAULT_NAV_LABELS = {
   nav_label_home: 'Accueil',
