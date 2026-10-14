@@ -4,7 +4,7 @@ const keyGenerator = (req) => ipKeyGenerator(req.ip || req.socket?.remoteAddress
 
 export const authLoginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5,
+  max: 30,
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator,
