@@ -40,11 +40,11 @@ const Login = () => {
       return;
     }
 
-    const success = await login(email.trim(), password);
-    if (success) {
+    const result = await login(email.trim(), password);
+    if (result?.ok) {
       navigate(redirectPath, { replace: true });
     } else {
-      setError('Identifiants incorrects');
+      setError(result?.error || 'Identifiants incorrects');
     }
   };
 
