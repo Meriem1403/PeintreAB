@@ -37,19 +37,14 @@ services:
     env_file:
       - ./backend/.env
     environment:
-      - NODE_ENV=development
+      # DB_* / mailpit : override réseau Docker. JWT / FRONTEND_URL / ADMIN_* : backend/.env
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_NAME=peintreab_db
       - DB_USER=peintreab_user
       - DB_PASSWORD=peintreab_password
-      - JWT_SECRET=your-secret-key-change-in-production
-      - JWT_EXPIRES_IN=7d
       - PORT=3000
-      - FRONTEND_URL=http://localhost:5173
-      # ADMIN_* : via env_file backend/.env uniquement (ne pas les écraser ici)
-      # Dev Docker : Mailpit capture les mails (override Gmail du .env monté).
-      # Interface : http://localhost:8025 — prod : retirer ces 4 lignes et configurer Gmail dans .env
+      # Dev Docker : Mailpit (prod NAS : commenter ces 4 lignes ou utiliser docker-compose.nas.yml)
       - EMAIL_HOST=mailpit
       - EMAIL_PORT=1025
       - EMAIL_USER=dev@peintreab.local
