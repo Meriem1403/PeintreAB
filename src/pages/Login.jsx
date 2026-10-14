@@ -7,7 +7,8 @@ import {
   DEFAULT_ADMIN_TAB,
   isValidAdminTab,
 } from '../constants/adminRoutes';
-import { FiEye, FiEyeOff, FiLock, FiMail } from 'react-icons/fi';
+import { FiLock, FiMail } from 'react-icons/fi';
+import PasswordInput from '../components/PasswordInput';
 import Seo from '../components/Seo';
 import './Login.css';
 
@@ -24,7 +25,6 @@ const safeAdminRedirect = (from) => {
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -65,8 +65,8 @@ const Login = () => {
 
         <form onSubmit={handleSubmit} className="app-form login-form">
           {resetOk && !error && (
-            <p className="login-form__success">
-              Mot de passe mis à jour. Connectez-vous avec votre e-mail.
+            <p className="login-form__success" role="status">
+              Mot de passe bien mis à jour. Connectez-vous avec le nouveau.
             </p>
           )}
           {error && (
@@ -100,25 +100,14 @@ const Login = () => {
               <FiLock className="icon" aria-hidden />
               Mot de passe
             </label>
-            <div className="password-field">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Votre mot de passe"
-                autoComplete="current-password"
-                required
-              />
-              <button
-                type="button"
-                className="password-field__toggle"
-                onClick={() => setShowPassword((v) => !v)}
-                aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
-              >
-                {showPassword ? <FiEyeOff aria-hidden /> : <FiEye aria-hidden />}
-              </button>
-            </div>
+            <PasswordInput
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Votre mot de passe"
+              autoComplete="current-password"
+              required
+            />
           </div>
 
           <p className="login-form__forgot">
