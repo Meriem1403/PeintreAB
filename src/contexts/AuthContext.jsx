@@ -69,12 +69,12 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('token', response.token);
       localStorage.setItem('user', JSON.stringify(response.user));
       setIsAuthenticated(true);
-      return true;
+      return { ok: true };
     } catch (error) {
       if (import.meta.env.DEV) {
         console.error('Erreur de connexion:', error);
       }
-      return false;
+      return { ok: false, error: error.message || 'Identifiants incorrects' };
     }
   };
 

@@ -44,76 +44,14 @@ app.use(
   })
 );
 
-const frontendUrl = (process.env.FRONTEND_URL || '').replace(/\/$/, '');
-const extraCorsOrigins = String(process.env.CORS_ORIGINS || '')
-  .split(',')
-  .map((o) => o.trim().replace(/\/$/, ''))
-  .filter(Boolean);
-
-const corsOrigins = [
-  ...new Set(
-    [
-      frontendUrl,
-      ...extraCorsOrigins,
-      'https://www.alexandre-bindl.fr',
-      'https://alexandre-bindl.fr',
-      'http://www.alexandre-bindl.fr',
-      'http://alexandre-bindl.fr',
-      'http://82.66.116.200:5173',
-      'http://www.alexandre-bindl.fr:5173',
-      ...(isProduction()
-        ? []
-        : ['http://localhost:5173', 'http://127.0.0.1:5173']),
-    ].filter(Boolean)
-  ),
-];
-
-const allowedCorsHosts = new Set(
-  corsOrigins
-    .map((o) => {
-      try {
-        return new URL(o).hostname;
-      } catch {
-        return null;
-      }
-    })
-    .filter(Boolean)
-);
-
-const isAllowedCorsOrigin = (origin) => {
-  if (!origin) return true;
-  const normalized = origin.replace(/\/$/, '');
-  if (corsOrigins.includes(normalized)) return true;
-  try {
-    const host = new URL(origin).hostname.toLowerCase();
-    if (allowedCorsHosts.has(host)) return true;
-    if (host === 'alexandre-bindl.fr' || host.endsWith('.alexandre-bindl.fr')) {
-      return true;
-    }
-    if (host === '82.66.116.200' || host === 'localhost' || host === '127.0.0.1') {
-      return true;
-    }
-  } catch {
-    return false;
-  }
-  return false;
-};
-
-console.log('🔒 CORS origins:', corsOrigins.join(', ') || '(aucune)');
-
+// Site mono-domaine : refléter n’importe quelle Origin (évite le blocage admin NAS)
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (isAllowedCorsOrigin(origin)) {
-        return callback(null, true);
-      }
-      // Site mono-artiste : ne pas bloquer l’admin si l’origine est inattendue
-      console.warn('⚠️ CORS : origine non listée, autorisée quand même :', origin);
-      return callback(null, true);
-    },
+    origin: true,
     credentials: true,
   })
 );
+console.log('🔒 CORS mode: open-v4 (origin: true)');
 
 app.use(express.json({ limit: '100kb' }));
 app.use(express.urlencoded({ extended: true, limit: '100kb' }));
@@ -136,15 +74,12 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'OK',
     message: 'API fonctionnelle',
-    cors: 'open-v3',
+    cors: 'open-v4',
   });
 });
 
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   console.error(err.stack || err.message || err);
-  if (err.message === 'Origine CORS non autorisée') {
-    return res.status(403).json({ error: 'Origine non autorisée' });
-  }
   res.status(500).json({ error: 'Erreur serveur' });
 });
 
