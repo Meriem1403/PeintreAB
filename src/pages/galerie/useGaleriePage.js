@@ -17,9 +17,26 @@ export function useGaleriePage() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const activeCategoryMeta = useMemo(
+    () => categories.find((c) => c.slug === activeCategory) || null,
+    [categories, activeCategory]
+  );
+
+  const paginationEnabled =
+    activeCategoryMeta?.pagination_enabled === undefined ||
+    activeCategoryMeta?.pagination_enabled === null
+      ? true
+      : Boolean(activeCategoryMeta.pagination_enabled);
+
+  const itemsPerPage = (() => {
+    const n = parseInt(activeCategoryMeta?.items_per_page, 10);
+    if (!Number.isFinite(n) || n < 1) return ITEMS_PER_PAGE;
+    return Math.min(100, n);
+  })();
+
   useEffect(() => {
     setCurrentPage(1);
-  }, [activeCategory, location.pathname]);
+  }, [activeCategory, location.pathname, paginationEnabled, itemsPerPage]);
 
   const items = useMemo(() => {
     if (!works || typeof works !== 'object') return [];
@@ -56,9 +73,13 @@ export function useGaleriePage() {
     }
   };
 
-  const totalPages = Math.ceil(items.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const paginatedItems = items.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const totalPages = paginationEnabled
+    ? Math.max(1, Math.ceil(items.length / itemsPerPage) || 1)
+    : 1;
+  const startIndex = paginationEnabled ? (currentPage - 1) * itemsPerPage : 0;
+  const paginatedItems = paginationEnabled
+    ? items.slice(startIndex, startIndex + itemsPerPage)
+    : items;
 
   useEffect(() => {
     if (totalPages > 0 && currentPage > totalPages) {

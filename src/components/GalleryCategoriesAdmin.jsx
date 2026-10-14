@@ -8,11 +8,15 @@ const GalleryCategoriesAdmin = () => {
   const { categories, refreshCategories, setCategories } = useGalleryCategories();
   const [label, setLabel] = useState('');
   const [lead, setLead] = useState('');
+  const [createPagination, setCreatePagination] = useState(true);
+  const [createPerPage, setCreatePerPage] = useState(12);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [editLabel, setEditLabel] = useState('');
   const [editLead, setEditLead] = useState('');
+  const [editPagination, setEditPagination] = useState(true);
+  const [editPerPage, setEditPerPage] = useState(12);
 
   const persistOrder = async (nextList) => {
     setCategories(nextList);
@@ -43,9 +47,16 @@ const GalleryCategoriesAdmin = () => {
     setSaving(true);
     setError('');
     try {
-      await galleryCategoriesAPI.create({ label: label.trim(), lead: lead.trim() });
+      await galleryCategoriesAPI.create({
+        label: label.trim(),
+        lead: lead.trim(),
+        pagination_enabled: createPagination,
+        items_per_page: createPerPage,
+      });
       setLabel('');
       setLead('');
+      setCreatePagination(true);
+      setCreatePerPage(12);
       await refreshCategories();
     } catch (err) {
       setError(err.message || 'Création impossible');
@@ -58,6 +69,12 @@ const GalleryCategoriesAdmin = () => {
     setEditingId(cat.id);
     setEditLabel(cat.label);
     setEditLead(cat.lead || '');
+    setEditPagination(
+      cat.pagination_enabled === undefined || cat.pagination_enabled === null
+        ? true
+        : Boolean(cat.pagination_enabled)
+    );
+    setEditPerPage(cat.items_per_page || 12);
   };
 
   const saveEdit = async (id) => {
@@ -68,6 +85,8 @@ const GalleryCategoriesAdmin = () => {
       await galleryCategoriesAPI.update(id, {
         label: editLabel.trim(),
         lead: editLead.trim(),
+        pagination_enabled: editPagination,
+        items_per_page: editPerPage,
       });
       setEditingId(null);
       await refreshCategories();
@@ -94,6 +113,15 @@ const GalleryCategoriesAdmin = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const paginationSummary = (cat) => {
+    const enabled =
+      cat.pagination_enabled === undefined || cat.pagination_enabled === null
+        ? true
+        : Boolean(cat.pagination_enabled);
+    if (!enabled) return 'Sans pagination — tout sur une page';
+    return `Pagination — ${cat.items_per_page || 12} par page`;
   };
 
   return (
@@ -145,6 +173,26 @@ const GalleryCategoriesAdmin = () => {
                     placeholder="Texte d’intro sous le titre (optionnel)"
                     aria-label="Description"
                   />
+                  <label className="gcat-admin__check">
+                    <input
+                      type="checkbox"
+                      checked={editPagination}
+                      onChange={(e) => setEditPagination(e.target.checked)}
+                    />
+                    <span>Activer la pagination sur la galerie publique</span>
+                  </label>
+                  {editPagination && (
+                    <label className="gcat-admin__field gcat-admin__field--inline">
+                      <span>Éléments par page</span>
+                      <input
+                        type="number"
+                        min={1}
+                        max={100}
+                        value={editPerPage}
+                        onChange={(e) => setEditPerPage(Number(e.target.value) || 12)}
+                      />
+                    </label>
+                  )}
                   <div className="gcat-admin__edit-actions">
                     <button
                       type="button"
@@ -174,6 +222,7 @@ const GalleryCategoriesAdmin = () => {
                     )}
                   </div>
                   {cat.lead ? <p className="gcat-admin__lead">{cat.lead}</p> : null}
+                  <p className="gcat-admin__meta">{paginationSummary(cat)}</p>
                 </>
               )}
             </div>
@@ -186,7 +235,7 @@ const GalleryCategoriesAdmin = () => {
                   onClick={() => startEdit(cat)}
                   disabled={saving}
                 >
-                  Renommer
+                  Modifier
                 </button>
                 <button
                   type="button"
@@ -228,6 +277,26 @@ const GalleryCategoriesAdmin = () => {
             placeholder="Court texte sous le titre dans la galerie"
           />
         </label>
+        <label className="gcat-admin__check">
+          <input
+            type="checkbox"
+            checked={createPagination}
+            onChange={(e) => setCreatePagination(e.target.checked)}
+          />
+          <span>Activer la pagination</span>
+        </label>
+        {createPagination && (
+          <label className="gcat-admin__field gcat-admin__field--inline">
+            <span>Éléments par page</span>
+            <input
+              type="number"
+              min={1}
+              max={100}
+              value={createPerPage}
+              onChange={(e) => setCreatePerPage(Number(e.target.value) || 12)}
+            />
+          </label>
+        )}
         <button
           type="submit"
           className="gcat-admin__btn gcat-admin__btn--primary"
