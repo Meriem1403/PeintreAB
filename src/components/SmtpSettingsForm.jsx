@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
-import { FiCheck, FiCopy, FiEye, FiEyeOff, FiLink, FiMail, FiShield } from 'react-icons/fi';
+import { FiCheck, FiCopy, FiLink, FiMail, FiShield } from 'react-icons/fi';
 import { smtpAPI } from '../utils/apiService';
+import PasswordInput from './PasswordInput';
+import '../pages/Login.css';
 import './SmtpSettingsForm.css';
 
 const SmtpSettingsForm = () => {
@@ -15,7 +17,6 @@ const SmtpSettingsForm = () => {
 
   const [userEmail, setUserEmail] = useState('alexandre.bindl@gmail.com');
   const [appPassword, setAppPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [fromEmail, setFromEmail] = useState('');
 
   useEffect(() => {
@@ -179,26 +180,15 @@ const SmtpSettingsForm = () => {
 
           <div className="form-group">
             <label htmlFor="smtp-app-password">Mot de passe d’application Google</label>
-            <div className="password-field">
-              <input
-                id="smtp-app-password"
-                type={showPassword ? 'text' : 'password'}
-                value={appPassword}
-                onChange={(e) => setAppPassword(e.target.value)}
-                autoComplete="new-password"
-                placeholder="xxxx xxxx xxxx xxxx"
-                required
-                minLength={8}
-              />
-              <button
-                type="button"
-                className="password-field__toggle"
-                onClick={() => setShowPassword((v) => !v)}
-                aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
-              >
-                {showPassword ? <FiEyeOff aria-hidden /> : <FiEye aria-hidden />}
-              </button>
-            </div>
+            <PasswordInput
+              id="smtp-app-password"
+              value={appPassword}
+              onChange={(e) => setAppPassword(e.target.value)}
+              autoComplete="new-password"
+              placeholder="xxxx xxxx xxxx xxxx"
+              required
+              minLength={8}
+            />
             <p className="form-hint">
               Compte Google → Sécurité → Validation en 2 étapes → Mots de passe des applications.
             </p>

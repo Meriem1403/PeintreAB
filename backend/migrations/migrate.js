@@ -461,7 +461,7 @@ Formé dans les techniques classiques de la peinture à l''huile, Alexandre dév
     `);
     console.log('✅ Auth e-mail + password_reset_tokens vérifiés');
 
-    // Admins depuis .env : crée ou met à jour le mot de passe (1ʳᵉ connexion NAS)
+    // Admins depuis .env : crée seulement s’il manque (ne réécrit JAMAIS un mdp existant)
     const ensureAdminFromEnv = async (emailEnv, passwordEnv, label) => {
       const adminEmail = String(process.env[emailEnv] || '')
         .trim()
@@ -476,20 +476,18 @@ Formé dans les techniques classiques de la peinture à l''huile, Alexandre dév
         }
         return;
       }
-      const bcrypt = await import('bcryptjs');
-      const hashedPassword = await bcrypt.default.hash(adminPassword, 12);
       const existing = await pool.query(
         'SELECT id FROM users WHERE LOWER(email) = $1 LIMIT 1',
         [adminEmail]
       );
       if (existing.rows.length > 0) {
-        await pool.query(
-          'UPDATE users SET password_hash = $1, username = $2, email = $3 WHERE id = $4',
-          [hashedPassword, adminEmail, adminEmail, existing.rows[0].id]
+        console.log(
+          `ℹ️ Admin déjà présent (${label}) : ${adminEmail} — mot de passe inchangé`
         );
-        console.log(`✅ Mot de passe admin synchronisé (${label}) : ${adminEmail}`);
         return;
       }
+      const bcrypt = await import('bcryptjs');
+      const hashedPassword = await bcrypt.default.hash(adminPassword, 12);
       await pool.query(
         'INSERT INTO users (username, password_hash, email) VALUES ($1, $2, $3)',
         [adminEmail, hashedPassword, adminEmail]
