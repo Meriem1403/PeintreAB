@@ -5,6 +5,12 @@ import {
   slugifyCategory,
 } from '../utils/galleryCategories.js';
 
+const clampItemsPerPage = (value, fallback = 12) => {
+  const n = parseInt(value, 10);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(100, Math.max(1, n));
+};
+
 const mapRow = (row) => ({
   id: row.id,
   slug: row.slug,
@@ -13,6 +19,11 @@ const mapRow = (row) => ({
   display_order: row.display_order ?? 0,
   kind: row.kind === 'events' ? 'events' : 'works',
   is_locked: Boolean(row.is_locked),
+  pagination_enabled:
+    row.pagination_enabled === undefined || row.pagination_enabled === null
+      ? true
+      : Boolean(row.pagination_enabled),
+  items_per_page: clampItemsPerPage(row.items_per_page, 12),
 });
 
 export async function ensureGalleryCategoriesTable() {
@@ -25,9 +36,19 @@ export async function ensureGalleryCategoriesTable() {
       display_order INTEGER DEFAULT 0,
       kind VARCHAR(16) NOT NULL DEFAULT 'works',
       is_locked BOOLEAN DEFAULT FALSE,
+      pagination_enabled BOOLEAN DEFAULT TRUE,
+      items_per_page INTEGER DEFAULT 12,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
+  `);
+  await pool.query(`
+    ALTER TABLE gallery_categories
+    ADD COLUMN IF NOT EXISTS pagination_enabled BOOLEAN DEFAULT TRUE
+  `);
+  await pool.query(`
+    ALTER TABLE gallery_categories
+    ADD COLUMN IF NOT EXISTS items_per_page INTEGER DEFAULT 12
   `);
 }
 
@@ -89,12 +110,18 @@ export const createGalleryCategory = async (req, res) => {
       req.body.display_order !== undefined && req.body.display_order !== null
         ? parseInt(req.body.display_order, 10)
         : maxOrder.rows[0].next;
+    const paginationEnabled =
+      req.body.pagination_enabled === undefined
+        ? true
+        : Boolean(req.body.pagination_enabled);
+    const itemsPerPage = clampItemsPerPage(req.body.items_per_page, 12);
 
     const result = await pool.query(
-      `INSERT INTO gallery_categories (slug, label, lead, display_order, kind, is_locked)
-       VALUES ($1, $2, $3, $4, 'works', FALSE)
+      `INSERT INTO gallery_categories
+         (slug, label, lead, display_order, kind, is_locked, pagination_enabled, items_per_page)
+       VALUES ($1, $2, $3, $4, 'works', FALSE, $5, $6)
        RETURNING *`,
-      [slug, label, lead, displayOrder]
+      [slug, label, lead, displayOrder, paginationEnabled, itemsPerPage]
     );
 
     res.status(201).json(mapRow(result.rows[0]));
@@ -127,12 +154,25 @@ export const updateGalleryCategory = async (req, res) => {
       displayOrder = parseInt(req.body.display_order, 10);
     }
 
+    const paginationEnabled =
+      req.body.pagination_enabled !== undefined
+        ? Boolean(req.body.pagination_enabled)
+        : row.pagination_enabled === undefined || row.pagination_enabled === null
+          ? true
+          : Boolean(row.pagination_enabled);
+    const itemsPerPage =
+      req.body.items_per_page !== undefined
+        ? clampItemsPerPage(req.body.items_per_page, 12)
+        : clampItemsPerPage(row.items_per_page, 12);
+
     const result = await pool.query(
       `UPDATE gallery_categories
-       SET label = $1, lead = $2, display_order = $3, updated_at = CURRENT_TIMESTAMP
-       WHERE id = $4
+       SET label = $1, lead = $2, display_order = $3,
+           pagination_enabled = $4, items_per_page = $5,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $6
        RETURNING *`,
-      [label, lead, displayOrder, id]
+      [label, lead, displayOrder, paginationEnabled, itemsPerPage, id]
     );
 
     res.json(mapRow(result.rows[0]));

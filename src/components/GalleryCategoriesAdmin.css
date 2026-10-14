@@ -90,6 +90,37 @@
   color: #78716c;
 }
 
+.gcat-admin__meta {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  color: #78716c;
+}
+
+.gcat-admin__check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.55rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #44403c;
+  cursor: pointer;
+}
+
+.gcat-admin__check input {
+  width: 1rem;
+  height: 1rem;
+}
+
+.gcat-admin__field--inline {
+  margin-top: 0.45rem;
+  max-width: 12rem;
+}
+
+.gcat-admin__field--inline input {
+  width: 100%;
+}
+
 .gcat-admin__actions {
   display: flex;
   align-items: center;
