@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiCheckCircle, FiLock } from 'react-icons/fi';
+import { useAuth } from '../contexts/AuthContext';
 import { authAPI } from '../utils/apiService';
 import PasswordInput from '../components/PasswordInput';
 import Seo from '../components/Seo';
@@ -11,6 +12,7 @@ const ResetPassword = () => {
   const [searchParams] = useSearchParams();
   const token = useMemo(() => searchParams.get('token') || '', [searchParams]);
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState('');
@@ -37,6 +39,7 @@ const ResetPassword = () => {
     setLoading(true);
     try {
       await authAPI.resetPassword(token, password);
+      logout();
       setDone(true);
       setPassword('');
       setConfirm('');

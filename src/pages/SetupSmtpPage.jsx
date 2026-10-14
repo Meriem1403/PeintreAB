@@ -106,7 +106,9 @@ const SetupSmtpPage = () => {
           <div>
             {error && <div className="error-message">{error}</div>}
             <p className="login-form__success">
-              Demandez un nouveau lien depuis l’administration du site.
+              {/trop/i.test(error)
+                ? 'Attendez quelques minutes, puis rouvrez le même lien (ou générez-en un nouveau).'
+                : 'Demandez un nouveau lien depuis l’administration du site (Compte & e-mail).'}
             </p>
           </div>
         ) : (

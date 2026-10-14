@@ -1,10 +1,14 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FiLock } from 'react-icons/fi';
+import { useAuth } from '../contexts/AuthContext';
 import { authAPI } from '../utils/apiService';
 import PasswordInput from './PasswordInput';
 import '../pages/Login.css';
 
 const ChangePasswordForm = () => {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -28,14 +32,17 @@ const ChangePasswordForm = () => {
 
     setLoading(true);
     try {
-      const data = await authAPI.changePassword(currentPassword, newPassword);
-      setMessage(data.message || 'Mot de passe mis à jour.');
+      await authAPI.changePassword(currentPassword, newPassword);
+      setMessage('Mot de passe mis à jour. Déconnexion…');
       setCurrentPassword('');
       setNewPassword('');
       setConfirm('');
+      setTimeout(() => {
+        logout();
+        navigate('/login', { replace: true, state: { resetOk: true } });
+      }, 900);
     } catch (err) {
       setError(err.message || 'Changement impossible');
-    } finally {
       setLoading(false);
     }
   };
@@ -47,8 +54,8 @@ const ChangePasswordForm = () => {
         Mot de passe admin
       </h2>
       <p style={{ marginTop: 0, color: '#57534e', lineHeight: 1.5 }}>
-        Connecté avec <code>admin123</code> ? Changez-le ici — c’est enregistré tout de suite
-        dans la base (sans e-mail).
+        Après enregistrement vous serez déconnecté — reconnectez-vous avec le nouveau mot de
+        passe.
       </p>
 
       <form onSubmit={handleSubmit} className="app-form">
