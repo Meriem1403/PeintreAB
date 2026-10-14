@@ -145,30 +145,92 @@ export const resetPassword = async (req, res) => {
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
-    await pool.query('BEGIN');
+
+    // IMPORTANT : un client dédié — pool.query(BEGIN/COMMIT) sur des connexions
+    // différentes ne committait jamais le nouveau hash → admin123 restait valide.
+    const client = await pool.connect();
     try {
-      await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [
-        passwordHash,
-        row.user_id,
-      ]);
-      await pool.query(
+      await client.query('BEGIN');
+      const updated = await client.query(
+        'UPDATE users SET password_hash = $1 WHERE id = $2 RETURNING id, email',
+        [passwordHash, row.user_id]
+      );
+      if (updated.rowCount !== 1) {
+        throw new Error('Utilisateur introuvable pour la réinitialisation');
+      }
+      await client.query(
         'UPDATE password_reset_tokens SET used_at = NOW() WHERE id = $1',
         [row.token_id]
       );
-      await pool.query(
+      await client.query(
         `UPDATE password_reset_tokens SET used_at = NOW()
          WHERE user_id = $1 AND used_at IS NULL AND id <> $2`,
         [row.user_id, row.token_id]
       );
-      await pool.query('COMMIT');
+      await client.query('COMMIT');
+      console.log(`🔐 Mot de passe réinitialisé pour ${updated.rows[0].email}`);
     } catch (err) {
-      await pool.query('ROLLBACK');
+      try {
+        await client.query('ROLLBACK');
+      } catch {
+        /* ignore */
+      }
       throw err;
+    } finally {
+      client.release();
     }
 
     res.json({ message: 'Mot de passe mis à jour. Vous pouvez vous connecter.' });
   } catch (error) {
     console.error('resetPassword:', error);
     res.status(500).json({ error: 'Erreur lors de la réinitialisation' });
+  }
+};
+
+/** Change le mot de passe du compte connecté (sans e-mail). */
+export const changePassword = async (req, res) => {
+  try {
+    const currentPassword = String(req.body?.currentPassword || '');
+    const newPassword = String(req.body?.newPassword || '');
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'Mot de passe actuel et nouveau requis' });
+    }
+    if (newPassword.length < MIN_PASSWORD_LENGTH) {
+      return res.status(400).json({
+        error: `Le nouveau mot de passe doit contenir au moins ${MIN_PASSWORD_LENGTH} caractères`,
+      });
+    }
+
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Non authentifié' });
+    }
+
+    const result = await pool.query(
+      'SELECT id, email, password_hash FROM users WHERE id = $1 LIMIT 1',
+      [userId]
+    );
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: 'Utilisateur introuvable' });
+    }
+
+    const user = result.rows[0];
+    const ok = await bcrypt.compare(currentPassword, user.password_hash);
+    if (!ok) {
+      return res.status(401).json({ error: 'Mot de passe actuel incorrect' });
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 12);
+    await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [
+      passwordHash,
+      user.id,
+    ]);
+
+    console.log(`🔐 Mot de passe changé (connecté) pour ${user.email}`);
+    res.json({ message: 'Mot de passe mis à jour.' });
+  } catch (error) {
+    console.error('changePassword:', error);
+    res.status(500).json({ error: 'Erreur lors du changement de mot de passe' });
   }
 };
