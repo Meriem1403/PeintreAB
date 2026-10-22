@@ -43,9 +43,9 @@ GIT="$DOCKER run --rm -v $APP:/repo alpine/git -C /repo"
       echo 'NODE_ENV=development' >> backend/.env
     fi
     grep -q '^ADMIN_EMAIL=' backend/.env || echo 'ADMIN_EMAIL=alexandre.bindl@gmail.com' >> backend/.env
-    grep -q '^ADMIN_PASSWORD=' backend/.env || echo 'ADMIN_PASSWORD=admin123' >> backend/.env
+    grep -q '^ADMIN_PASSWORD=' backend/.env || echo 'ADMIN_PASSWORD=change-me' >> backend/.env
     grep -q '^ADMIN_EMAIL_2=' backend/.env || echo 'ADMIN_EMAIL_2=meriemzahzouh@gmail.com' >> backend/.env
-    grep -q '^ADMIN_PASSWORD_2=' backend/.env || echo 'ADMIN_PASSWORD_2=admin123' >> backend/.env
+    grep -q '^ADMIN_PASSWORD_2=' backend/.env || echo 'ADMIN_PASSWORD_2=change-me' >> backend/.env
   fi
 
   echo "== nettoyage conteneurs fantômes =="
@@ -82,5 +82,5 @@ GIT="$DOCKER run --rm -v $APP:/repo alpine/git -C /repo"
 
   echo "OK update terminé"
   echo "Test: https://www.alexandre-bindl.fr/api/health"
-  echo "Login: meriemzahzouh@gmail.com / admin123"
+  echo "Login: meriemzahzouh@gmail.com / change-me"
 } >> "$LOG" 2>&1

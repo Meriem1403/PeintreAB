@@ -1,133 +1,18 @@
-# Alexandre Bindl - Galerie d'Artiste Peintre
+# Alexandre Bindl
 
-Site web React pour exposer la galerie de l'artiste peintre Alexandre Bindl.
+Site de la galerie de l'artiste peintre Alexandre Bindl : œuvres, exposition et administration.
 
-## ⚡ Démarrage rapide
+## Stack
 
-Pour démarrer rapidement, consultez **[QUICK_START.md](QUICK_START.md)**.
+- React, Vite
+- API Node.js, PostgreSQL
+- Docker
 
-```bash
-# Configuration automatique
-./setup.sh
-
-# Déploiement
-./deploy.sh
-```
-
-## 🚀 Technologies
-
-- **React 19** - Bibliothèque JavaScript pour l'interface utilisateur
-- **Vite 7** - Outil de build et serveur de développement
-- **Docker** - Containerisation pour l'environnement de développement
-
-## 📋 Prérequis
-
-- [Node.js](https://nodejs.org/) (version 20 ou supérieure)
-- [Docker](https://www.docker.com/) et [Docker Compose](https://docs.docker.com/compose/)
-
-## 🐳 Développement avec Docker
-
-### Démarrer l'application
+## Démarrage
 
 ```bash
-# Construire et démarrer le conteneur
-docker-compose up --build
-
-# Ou en mode détaché (en arrière-plan)
-docker-compose up -d --build
+cp backend/.env.example backend/.env
+docker compose up --build
 ```
 
-L'application sera accessible sur **http://localhost:5173**
-
-### Arrêter l'application
-
-```bash
-# Arrêter les conteneurs
-docker-compose down
-
-# Arrêter et supprimer les volumes (attention : supprime node_modules)
-docker-compose down -v
-```
-
-### Voir les logs
-
-```bash
-docker-compose logs -f web
-```
-
-### Reconstruire l'image
-
-```bash
-docker-compose build --no-cache
-```
-
-## 💻 Développement local (sans Docker)
-
-### Installation
-
-```bash
-npm install
-```
-
-### Lancer le serveur de développement
-
-```bash
-npm run dev
-```
-
-### Build pour production
-
-```bash
-npm run build
-```
-
-### Prévisualiser le build de production
-
-```bash
-npm run preview
-```
-
-### Linting
-
-```bash
-npm run lint
-```
-
-## 📁 Structure du projet
-
-```
-AlexandreBindl/
-├── public/           # Fichiers statiques
-├── src/
-│   ├── assets/      # Ressources (images, etc.)
-│   ├── components/  # Composants React réutilisables
-│   ├── hooks/       # Hooks personnalisés
-│   ├── layouts/     # Layouts de pages
-│   ├── pages/       # Pages de l'application
-│   ├── utils/       # Fonctions utilitaires
-│   ├── App.jsx      # Composant principal
-│   ├── main.jsx     # Point d'entrée
-│   └── index.css    # Styles globaux
-├── Dockerfile       # Configuration Docker
-├── docker-compose.yml  # Orchestration Docker
-└── package.json     # Dépendances npm
-```
-
-## 🔧 Configuration
-
-- Le port par défaut est **5173** (configurable dans `docker-compose.yml`)
-- Le hot-reload est activé avec les volumes Docker
-- Les modifications dans `src/` sont automatiquement reflétées dans le conteneur
-
-## 📝 Notes
-
-- Les `node_modules` ne sont pas montés en volume pour éviter les conflits entre OS
-- Le mode développement utilise `--host 0.0.0.0` pour permettre l'accès depuis l'extérieur du conteneur
-
-## 📚 Documentation
-
-- [Guide de déploiement](README_DEPLOYMENT.md)
-- [Guide SEO](README_SEO.md)
-- [Guide NAS](README_NAS_DEPLOYMENT.md)
-- [Guide de transfert des données](README_DATA_TRANSFER.md)
-- [Guide Windows](README_WINDOWS.md) - Pour les utilisateurs Windows
+Choisir les mots de passe admin et de base dans `.env` au premier lancement, puis les changer. Aucun mot de passe par défaut n'est publié dans ce dépôt.

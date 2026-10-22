@@ -147,7 +147,7 @@ export const resetPassword = async (req, res) => {
     const passwordHash = await bcrypt.hash(password, 12);
 
     // IMPORTANT : un client dédié — pool.query(BEGIN/COMMIT) sur des connexions
-    // différentes ne committait jamais le nouveau hash → admin123 restait valide.
+    // différentes ne committait jamais le nouveau hash → change-me restait valide.
     const client = await pool.connect();
     try {
       await client.query('BEGIN');

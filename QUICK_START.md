@@ -103,6 +103,6 @@ docker-compose up -d --build
 ## 🔐 Compte admin par défaut
 
 - **Username** : `admin`
-- **Password** : `admin123`
+- **Password** : `change-me`
 
 ⚠️ **Changez ce mot de passe en production !**

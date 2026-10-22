@@ -83,5 +83,5 @@ LOG="$ROOT/update.log"
   echo "OK update terminé"
   DC ps
   echo "TEST: https://www.alexandre-bindl.fr/api/health doit contenir \"cors\":\"open-v4\""
-  echo "Login: meriemzahzouh@gmail.com / admin123"
+  echo "Login: meriemzahzouh@gmail.com / change-me"
 } 2>&1 | tee -a "$LOG"
